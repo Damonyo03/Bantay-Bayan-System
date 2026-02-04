@@ -82,9 +82,9 @@ const IncidentForm: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto pb-20">
-      <header className="mb-8 flex justify-between items-end">
+      <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Official Blotter</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">Official Blotter</h1>
             <p className="text-gray-500 mt-2">Log incident details for official barangay records.</p>
         </div>
         <div className="hidden md:block text-right">
@@ -101,7 +101,7 @@ const IncidentForm: React.FC = () => {
         ))}
       </div>
 
-      <div className="glass-panel rounded-[2rem] p-8 shadow-xl min-h-[500px] relative overflow-hidden">
+      <div className="glass-panel rounded-2xl sm:rounded-[2rem] p-4 sm:p-8 shadow-xl min-h-[500px] relative overflow-hidden">
         
         {/* Step 1: Incident Details */}
         {step === 1 && (
@@ -183,7 +183,7 @@ const IncidentForm: React.FC = () => {
             <div className="flex justify-end pt-4">
               <button 
                 onClick={() => setStep(2)}
-                className="flex items-center space-x-2 bg-slate-900 text-white px-8 py-3 rounded-xl hover:bg-slate-800 transition-colors font-semibold shadow-lg"
+                className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-slate-900 text-white px-8 py-3 rounded-xl hover:bg-slate-800 transition-colors font-semibold shadow-lg"
               >
                 <span>Proceed to Parties</span>
                 <ChevronRight size={18} />
@@ -317,17 +317,17 @@ const IncidentForm: React.FC = () => {
                 <p className="text-gray-500 mb-2">Case Number: <span className="font-mono font-bold text-slate-800">{lastIncident?.case_number}</span></p>
                 <p className="text-gray-500 mb-8 max-w-md">The incident has been officially recorded in the barangay database.</p>
                 
-                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
                     <button 
                         onClick={handleNewEntry}
-                        className="px-6 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
                     >
                         <RotateCcw size={18} />
                         <span>New Entry</span>
                     </button>
                     <button 
                         onClick={() => lastIncident && generateOfficialReport(lastIncident)}
-                        className="px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:scale-105 transition-transform flex items-center justify-center space-x-2 shadow-xl"
+                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:scale-105 transition-transform flex items-center justify-center space-x-2 shadow-xl"
                     >
                         <Printer size={18} />
                         <span>Print Official Record</span>
