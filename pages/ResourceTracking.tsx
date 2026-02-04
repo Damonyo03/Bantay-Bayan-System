@@ -5,7 +5,7 @@ import { AssetRequest } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { Package, Plus, CheckCircle, XCircle, Truck, RotateCcw, Printer, AlertTriangle, RefreshCw, Archive, Clock, CalendarCheck, Car, FileText } from 'lucide-react';
+import { Package, Plus, CheckCircle, XCircle, Truck, RotateCcw, Printer, AlertTriangle, RefreshCw, Archive, Clock, CalendarCheck, Car, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { generateBorrowingSlip } from '../utils/pdfGenerator';
@@ -155,7 +155,7 @@ const ResourceTracking: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-20">
-      <header className="flex flex-col md:flex-row md:justify-between md:items-end">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center">
                 <Package className="mr-3 text-purple-600" />
@@ -165,18 +165,18 @@ const ResourceTracking: React.FC = () => {
         </div>
         <button 
             onClick={() => navigate('/resources/new')}
-            className="mt-4 md:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-xl flex items-center space-x-2"
+            className="w-full sm:w-auto mt-2 sm:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-xl flex items-center justify-center space-x-2"
         >
             <Plus size={18} />
             <span>{t.resourceRequest}</span>
         </button>
       </header>
 
-      {/* Tabs */}
-      <div className="flex space-x-2 bg-gray-200/50 p-1.5 rounded-2xl w-fit overflow-x-auto">
+      {/* Tabs - Scrollable on mobile */}
+      <div className="flex space-x-2 bg-gray-200/50 p-1.5 rounded-2xl w-full sm:w-fit overflow-x-auto no-scrollbar">
           <button
             onClick={() => setFilter('Pending')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 filter === 'Pending' 
                 ? 'bg-white text-purple-700 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -190,7 +190,7 @@ const ResourceTracking: React.FC = () => {
           </button>
           <button
             onClick={() => setFilter('Scheduled')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 filter === 'Scheduled' 
                 ? 'bg-white text-blue-700 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -204,7 +204,7 @@ const ResourceTracking: React.FC = () => {
           </button>
           <button
             onClick={() => setFilter('History')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 filter === 'History' 
                 ? 'bg-white text-gray-800 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -215,7 +215,7 @@ const ResourceTracking: React.FC = () => {
           </button>
           <button
             onClick={() => setFilter('Vehicles')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 filter === 'Vehicles' 
                 ? 'bg-white text-orange-600 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -234,7 +234,8 @@ const ResourceTracking: React.FC = () => {
              {/* VEHICLE LOGS VIEW */}
              {filter === 'Vehicles' ? (
                  <div className="glass-panel rounded-3xl overflow-hidden shadow-xl border border-white/50">
-                     <table className="w-full text-left border-collapse">
+                   <div className="overflow-x-auto">
+                     <table className="w-full text-left border-collapse whitespace-nowrap">
                          <thead>
                              <tr className="bg-gray-50/50 border-b border-gray-200">
                                  <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">Date/Time</th>
@@ -248,7 +249,7 @@ const ResourceTracking: React.FC = () => {
                                  const details = parseVehicleLog(log.unit_name);
                                  return (
                                      <tr key={log.id} className="hover:bg-orange-50/30 transition-colors">
-                                         <td className="p-6 whitespace-nowrap">
+                                         <td className="p-6">
                                              <div className="flex flex-col">
                                                  <span className="font-semibold text-gray-900">{new Date(log.created_at).toLocaleDateString()}</span>
                                                  <span className="text-xs text-gray-500">{new Date(log.created_at).toLocaleTimeString()}</span>
@@ -263,9 +264,9 @@ const ResourceTracking: React.FC = () => {
                                              </div>
                                          </td>
                                          <td className="p-6">
-                                             <div className="flex flex-wrap gap-1">
+                                             <div className="flex flex-wrap gap-1 max-w-xs whitespace-normal">
                                                  {details.personnel.split(',').map((p, i) => (
-                                                     <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md border border-gray-200">
+                                                     <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md border border-gray-200 inline-block mt-1">
                                                          {p.trim()}
                                                      </span>
                                                  ))}
@@ -273,12 +274,12 @@ const ResourceTracking: React.FC = () => {
                                          </td>
                                          <td className="p-6">
                                              {log.incidents ? (
-                                                 <div>
+                                                 <div className="max-w-xs whitespace-normal">
                                                      <span className="text-xs font-bold uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md mb-1 inline-block">
                                                          {log.incidents.type}
                                                      </span>
-                                                     <p className="text-sm text-gray-600 truncate max-w-xs">{log.incidents.narrative}</p>
-                                                     <p className="text-[10px] text-gray-400 mt-0.5"><MapPinIcon size={10} className="inline mr-1"/>{log.incidents.location}</p>
+                                                     <p className="text-sm text-gray-600 truncate">{log.incidents.narrative}</p>
+                                                     <p className="text-[10px] text-gray-400 mt-0.5"><MapPin size={10} className="inline mr-1"/>{log.incidents.location}</p>
                                                  </div>
                                              ) : (
                                                  <span className="text-gray-400 italic text-sm">No linked incident details</span>
@@ -297,6 +298,7 @@ const ResourceTracking: React.FC = () => {
                              )}
                          </tbody>
                      </table>
+                   </div>
                  </div>
              ) : (
                  // ASSET REQUESTS VIEW
@@ -312,7 +314,7 @@ const ResourceTracking: React.FC = () => {
                         <div key={req.id} className="glass-panel p-6 rounded-3xl border border-white/60 hover:shadow-lg transition-all relative overflow-hidden">
                             <div className={`absolute left-0 top-0 bottom-0 w-2 ${getStatusColor(req.status).split(' ')[0]}`} />
                             
-                            <div className="flex flex-col md:flex-row justify-between md:items-start gap-6 pl-4">
+                            <div className="flex flex-col lg:flex-row justify-between lg:items-start gap-6 pl-4">
                                 <div className="space-y-4 flex-1">
                                     <div className="flex items-center space-x-3">
                                         <h3 className="text-xl font-bold text-gray-900">{req.borrower_name}</h3>
@@ -321,7 +323,7 @@ const ResourceTracking: React.FC = () => {
                                         </span>
                                     </div>
                                     
-                                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
                                         <div>
                                             <p className="text-xs font-bold text-gray-400 uppercase">Pickup Date</p>
                                             <p className="font-medium flex items-center mt-1"><Truck size={14} className="mr-1 text-blue-400"/> {req.pickup_date}</p>
@@ -345,7 +347,7 @@ const ResourceTracking: React.FC = () => {
                                     <p className="text-sm text-gray-500 italic border-l-2 border-gray-300 pl-3">"{req.purpose}"</p>
                                 </div>
 
-                                <div className="flex flex-col space-y-3 md:w-56 pt-2">
+                                <div className="flex flex-col space-y-3 lg:w-56 pt-2">
                                     <button 
                                         onClick={() => generateBorrowingSlip(req)}
                                         className="w-full flex items-center justify-center space-x-2 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
@@ -415,10 +417,5 @@ const ResourceTracking: React.FC = () => {
     </div>
   );
 };
-
-// Mini icon component for this file
-const MapPinIcon = ({size, className}: {size: number, className?: string}) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-)
 
 export default ResourceTracking;

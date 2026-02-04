@@ -90,7 +90,7 @@ const UserManagement: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-20">
-      <header className="flex justify-between items-end">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center">
                 <Shield className="mr-3 text-blue-700" />
@@ -100,7 +100,7 @@ const UserManagement: React.FC = () => {
         </div>
         <button 
             onClick={handleOpenModal}
-            className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-xl flex items-center space-x-2"
+            className="w-full sm:w-auto bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-xl flex items-center justify-center space-x-2"
         >
             <Plus size={18} />
             <span>{t.addPersonnel}</span>
@@ -127,67 +127,69 @@ const UserManagement: React.FC = () => {
             </div>
         ) : (
             <div className="glass-panel rounded-3xl overflow-hidden shadow-xl border border-white/50">
-            <table className="w-full text-left border-collapse">
-                <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-200">
-                    <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.officer}</th>
-                    <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.role}</th>
-                    <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.badgeId}</th>
-                    <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.status}</th>
-                    <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider text-right">{t.actions}</th>
-                </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-blue-50/30 transition-colors">
-                    <td className="p-6">
-                        <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 font-bold">
-                            {user.full_name.charAt(0)}
-                        </div>
-                        <div>
-                            <div className="font-semibold text-gray-900">{user.full_name}</div>
-                            <div className="text-xs text-gray-500">{user.email}</div>
-                        </div>
-                        </div>
-                    </td>
-                    <td className="p-6">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                            user.role === 'supervisor' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200'
-                        }`}>
-                            {user.role === 'supervisor' ? 'Official' : 'Field Operator'}
-                        </span>
-                    </td>
-                    <td className="p-6 text-gray-600 font-mono text-sm">{user.badge_number}</td>
-                    <td className="p-6">
-                        <div className="flex items-center text-sm">
-                            {user.status === 'active' ? (
-                                <span className="flex items-center text-green-600 font-medium">
-                                    <UserCheck size={16} className="mr-1.5" /> Active
-                                </span>
-                            ) : (
-                                <span className="flex items-center text-gray-400 font-medium">
-                                    <UserX size={16} className="mr-1.5" /> Inactive
-                                </span>
-                            )}
-                        </div>
-                    </td>
-                    <td className="p-6 text-right">
-                        <button 
-                            onClick={() => handleToggleStatus(user.id, user.status)}
-                            className={`text-sm font-semibold px-4 py-2 rounded-xl transition-all ${
-                                user.status === 'active' 
-                                ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                                : 'bg-green-50 text-green-600 hover:bg-green-100'
-                            }`}
-                        >
-                            {user.status === 'active' ? 'Deactivate' : 'Activate'}
-                        </button>
-                    </td>
+             <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                    <tr className="bg-gray-50/50 border-b border-gray-200">
+                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.officer}</th>
+                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.role}</th>
+                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.badgeId}</th>
+                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.status}</th>
+                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider text-right">{t.actions}</th>
                     </tr>
-                ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                    {users.map((user) => (
+                        <tr key={user.id} className="hover:bg-blue-50/30 transition-colors">
+                        <td className="p-6">
+                            <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 font-bold flex-shrink-0">
+                                {user.full_name.charAt(0)}
+                            </div>
+                            <div>
+                                <div className="font-semibold text-gray-900">{user.full_name}</div>
+                                <div className="text-xs text-gray-500">{user.email}</div>
+                            </div>
+                            </div>
+                        </td>
+                        <td className="p-6">
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
+                                user.role === 'supervisor' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200'
+                            }`}>
+                                {user.role === 'supervisor' ? 'Official' : 'Field Operator'}
+                            </span>
+                        </td>
+                        <td className="p-6 text-gray-600 font-mono text-sm">{user.badge_number}</td>
+                        <td className="p-6">
+                            <div className="flex items-center text-sm">
+                                {user.status === 'active' ? (
+                                    <span className="flex items-center text-green-600 font-medium">
+                                        <UserCheck size={16} className="mr-1.5" /> Active
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center text-gray-400 font-medium">
+                                        <UserX size={16} className="mr-1.5" /> Inactive
+                                    </span>
+                                )}
+                            </div>
+                        </td>
+                        <td className="p-6 text-right">
+                            <button 
+                                onClick={() => handleToggleStatus(user.id, user.status)}
+                                className={`text-sm font-semibold px-4 py-2 rounded-xl transition-all ${
+                                    user.status === 'active' 
+                                    ? 'bg-red-50 text-red-600 hover:bg-red-100' 
+                                    : 'bg-green-50 text-green-600 hover:bg-green-100'
+                                }`}
+                            >
+                                {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                            </button>
+                        </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+              </div>
             </div>
         )}
         </>
@@ -239,7 +241,7 @@ const UserManagement: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                          <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.role}</label>
                             <select 

@@ -51,7 +51,7 @@ const AuditLogs: React.FC = () => {
       ) : (
         <div className="glass-panel rounded-3xl overflow-hidden shadow-xl border border-white/50">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-200">
                     <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">Timestamp</th>
@@ -64,7 +64,7 @@ const AuditLogs: React.FC = () => {
                 <tbody className="divide-y divide-gray-100">
                 {logs.map((log) => (
                     <tr key={log.id} className="hover:bg-blue-50/30 transition-colors group">
-                    <td className="p-6 whitespace-nowrap">
+                    <td className="p-6">
                         <div className="flex flex-col">
                             <span className="font-semibold text-gray-900">
                                 {new Date(log.created_at).toLocaleDateString()}
@@ -74,7 +74,7 @@ const AuditLogs: React.FC = () => {
                             </span>
                         </div>
                     </td>
-                    <td className="p-6 whitespace-nowrap">
+                    <td className="p-6">
                         <div className="flex items-center space-x-2">
                             <div className="bg-gray-200 p-1.5 rounded-full">
                                 <User size={12} className="text-gray-600"/>
@@ -82,12 +82,12 @@ const AuditLogs: React.FC = () => {
                             <span className="text-sm font-medium text-gray-700">{log.performer_name}</span>
                         </div>
                     </td>
-                    <td className="p-6 whitespace-nowrap">
+                    <td className="p-6">
                         <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getActionColor(log.operation)}`}>
                             {log.operation}
                         </span>
                     </td>
-                    <td className="p-6 whitespace-nowrap">
+                    <td className="p-6">
                         <span className="font-mono text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
                             {formatTableName(log.table_name)}
                         </span>

@@ -48,8 +48,14 @@ const AppContent: React.FC = () => {
     return (
         <div className="min-h-screen text-gray-800 font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
             <Sidebar />
-            <main className="pl-20 md:pl-64 transition-all duration-300">
-            <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8">
+            {/* 
+                Responsive Layout:
+                - Mobile: pb-24 (Space for Bottom Nav), pl-0
+                - Tablet (md): pb-8, pl-20 (Space for Slim Sidebar)
+                - Desktop (lg): pl-64 (Space for Full Sidebar)
+            */}
+            <main className="pb-24 md:pb-8 md:pl-20 lg:pl-64 transition-all duration-300">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 <Routes>
                 <Route path="/" element={<ProtectedRoute><CommandCenter /></ProtectedRoute>} />
                 <Route path="/report" element={<ProtectedRoute><IncidentForm /></ProtectedRoute>} />
