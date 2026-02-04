@@ -1,10 +1,12 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { supabaseService } from '../services/supabaseService';
 
 interface AuthContextType {
   user: UserProfile | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<'success' | 'mfa_required'>;
+  verifyLoginMFA: (code: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -30,13 +32,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<'success' | 'mfa_required'> => {
     try {
-      const user = await supabaseService.login(email, password);
-      setUser(user);
+      const { user, mfaRequired } = await supabaseService.login(email, password);
+      // We set the user temporarily so we can display their name during 2FA challenge
+      // But until MFA is verified, Supabase session is technically AAL1 (limited)
+      setUser(user); 
+      return mfaRequired ? 'mfa_required' : 'success';
     } catch (error) {
       throw error;
     }
+  };
+
+  const verifyLoginMFA = async (code: string) => {
+      await supabaseService.challengeMFA(code);
+      // Refresh profile to ensure full session validity
+      const profile = await supabaseService.getCurrentUserProfile();
+      setUser(profile);
   };
 
   const logout = async () => {
@@ -45,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, verifyLoginMFA, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
