@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import { AssetRequest } from '../types';
@@ -16,18 +15,16 @@ const ResourceTracking: React.FC = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<AssetRequest[]>([]);
-  const [dispatchLogs, setDispatchLogs] = useState<any[]>([]); // New state for logs
+  const [dispatchLogs, setDispatchLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  // Tabs: Pending (Needs Approval) | Scheduled (Approved/To Release) | History (Completed/Rejected) | Vehicles
   const [filter, setFilter] = useState<'Pending' | 'Scheduled' | 'History' | 'Vehicles'>('Pending');
 
   useEffect(() => {
     fetchRequests();
     
-    // Setup Realtime for both assets and dispatches
     const channel = supabase
       .channel('assets_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'asset_requests' }, () => fetchRequests())
@@ -41,7 +38,6 @@ const ResourceTracking: React.FC = () => {
     }
   }, []);
 
-  // Fetch Dispatch logs only when tab is active to save resources
   useEffect(() => {
       if (filter === 'Vehicles') {
           fetchDispatchHistory();
@@ -66,8 +62,6 @@ const ResourceTracking: React.FC = () => {
       setLoading(true);
       try {
           const data = await supabaseService.getDispatchHistory();
-          // Filter out logs that don't look like vehicle assignments (e.g. pending ones or just text)
-          // We assume valid vehicles have a " - " separator or are in our known list, but let's just show all completed assignments
           setDispatchLogs(data);
       } catch (err: any) {
           console.error(err);
@@ -111,12 +105,12 @@ const ResourceTracking: React.FC = () => {
 
   const getStatusColor = (status: string) => {
       switch(status) {
-          case 'Pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-          case 'Approved': return 'bg-blue-100 text-blue-700 border-blue-200';
-          case 'Released': return 'bg-purple-100 text-purple-700 border-purple-200';
-          case 'Returned': return 'bg-green-100 text-green-700 border-green-200';
-          case 'Rejected': return 'bg-red-100 text-red-700 border-red-200';
-          default: return 'bg-gray-100 text-gray-700 border-gray-200';
+          case 'Pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+          case 'Approved': return 'bg-blue-100 text-blue-800 border-blue-200';
+          case 'Released': return 'bg-purple-100 text-purple-800 border-purple-200';
+          case 'Returned': return 'bg-green-100 text-green-800 border-green-200';
+          case 'Rejected': return 'bg-red-100 text-red-800 border-red-200';
+          default: return 'bg-gray-100 text-gray-800 border-gray-200';
       }
   };
 
@@ -126,7 +120,6 @@ const ResourceTracking: React.FC = () => {
       History: requests.filter(r => ['Returned', 'Rejected'].includes(r.status)).length
   };
 
-  // Helper to parse unit_name for vehicle table
   const parseVehicleLog = (unitName: string) => {
       const parts = unitName.split(' - ');
       if (parts.length >= 2) {
@@ -141,7 +134,7 @@ const ResourceTracking: React.FC = () => {
              <div className="bg-red-50 p-6 rounded-full mb-6">
                  <AlertTriangle size={48} className="text-red-500" />
              </div>
-             <p className="text-gray-500 max-w-md mb-8">{error}</p>
+             <p className="text-slate-600 max-w-md mb-8">{error}</p>
              <button 
                 onClick={fetchRequests}
                 className="flex items-center space-x-2 px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors shadow-lg"
@@ -157,15 +150,16 @@ const ResourceTracking: React.FC = () => {
     <div className="space-y-8 pb-20">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center">
-                <Package className="mr-3 text-purple-600" />
+            {/* UPDATED TO WHITE TEXT */}
+            <h1 className="text-3xl font-bold text-white tracking-tight flex items-center">
+                <Package className="mr-3 text-purple-400" />
                 {t.resources}
             </h1>
-            <p className="text-gray-500 mt-2">Manage borrowing requests and equipment logs.</p>
+            <p className="text-slate-300 mt-2">Manage borrowing requests and equipment logs.</p>
         </div>
         <button 
             onClick={() => navigate('/resources/new')}
-            className="w-full sm:w-auto mt-2 sm:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-xl flex items-center justify-center space-x-2"
+            className="w-full sm:w-auto mt-2 sm:mt-0 bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-xl flex items-center justify-center space-x-2"
         >
             <Plus size={18} />
             <span>{t.resourceRequest}</span>
@@ -179,7 +173,7 @@ const ResourceTracking: React.FC = () => {
             className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 filter === 'Pending' 
                 ? 'bg-white text-purple-700 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-slate-200 hover:text-white'
             }`}
           >
               <Clock size={16} />
@@ -193,7 +187,7 @@ const ResourceTracking: React.FC = () => {
             className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 filter === 'Scheduled' 
                 ? 'bg-white text-blue-700 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-slate-200 hover:text-white'
             }`}
           >
               <CalendarCheck size={16} />
@@ -206,8 +200,8 @@ const ResourceTracking: React.FC = () => {
             onClick={() => setFilter('History')}
             className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 filter === 'History' 
-                ? 'bg-white text-gray-800 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-slate-800 shadow-sm' 
+                : 'text-slate-200 hover:text-white'
             }`}
           >
               <Archive size={16} />
@@ -218,7 +212,7 @@ const ResourceTracking: React.FC = () => {
             className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 filter === 'Vehicles' 
                 ? 'bg-white text-orange-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-slate-200 hover:text-white'
             }`}
           >
               <Car size={16} />
@@ -227,7 +221,7 @@ const ResourceTracking: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div></div>
+        <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div></div>
       ) : (
         <div className="animate-fade-in">
              
@@ -238,10 +232,10 @@ const ResourceTracking: React.FC = () => {
                      <table className="w-full text-left border-collapse whitespace-nowrap">
                          <thead>
                              <tr className="bg-gray-50/50 border-b border-gray-200">
-                                 <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">Date/Time</th>
-                                 <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">Vehicle</th>
-                                 <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">Personnel / Officer</th>
-                                 <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">Reason / Incident</th>
+                                 <th className="p-6 font-semibold text-slate-600 text-sm uppercase tracking-wider">Date/Time</th>
+                                 <th className="p-6 font-semibold text-slate-600 text-sm uppercase tracking-wider">Vehicle</th>
+                                 <th className="p-6 font-semibold text-slate-600 text-sm uppercase tracking-wider">Personnel / Officer</th>
+                                 <th className="p-6 font-semibold text-slate-600 text-sm uppercase tracking-wider">Reason / Incident</th>
                              </tr>
                          </thead>
                          <tbody className="divide-y divide-gray-100">
@@ -251,8 +245,8 @@ const ResourceTracking: React.FC = () => {
                                      <tr key={log.id} className="hover:bg-orange-50/30 transition-colors">
                                          <td className="p-6">
                                              <div className="flex flex-col">
-                                                 <span className="font-semibold text-gray-900">{new Date(log.created_at).toLocaleDateString()}</span>
-                                                 <span className="text-xs text-gray-500">{new Date(log.created_at).toLocaleTimeString()}</span>
+                                                 <span className="font-semibold text-slate-900">{new Date(log.created_at).toLocaleDateString()}</span>
+                                                 <span className="text-xs text-slate-500">{new Date(log.created_at).toLocaleTimeString()}</span>
                                              </div>
                                          </td>
                                          <td className="p-6">
@@ -260,13 +254,13 @@ const ResourceTracking: React.FC = () => {
                                                  <div className="p-1.5 bg-orange-100 text-orange-600 rounded-lg">
                                                      <Car size={16} />
                                                  </div>
-                                                 <span className="font-bold text-gray-800">{details.vehicle}</span>
+                                                 <span className="font-bold text-slate-800">{details.vehicle}</span>
                                              </div>
                                          </td>
                                          <td className="p-6">
                                              <div className="flex flex-wrap gap-1 max-w-xs whitespace-normal">
                                                  {details.personnel.split(',').map((p, i) => (
-                                                     <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md border border-gray-200 inline-block mt-1">
+                                                     <span key={i} className="text-xs bg-gray-100 text-slate-700 px-2 py-1 rounded-md border border-gray-200 inline-block mt-1">
                                                          {p.trim()}
                                                      </span>
                                                  ))}
@@ -278,11 +272,11 @@ const ResourceTracking: React.FC = () => {
                                                      <span className="text-xs font-bold uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md mb-1 inline-block">
                                                          {log.incidents.type}
                                                      </span>
-                                                     <p className="text-sm text-gray-600 truncate">{log.incidents.narrative}</p>
-                                                     <p className="text-[10px] text-gray-400 mt-0.5"><MapPin size={10} className="inline mr-1"/>{log.incidents.location}</p>
+                                                     <p className="text-sm text-slate-600 truncate">{log.incidents.narrative}</p>
+                                                     <p className="text-[10px] text-slate-400 mt-0.5"><MapPin size={10} className="inline mr-1"/>{log.incidents.location}</p>
                                                  </div>
                                              ) : (
-                                                 <span className="text-gray-400 italic text-sm">No linked incident details</span>
+                                                 <span className="text-slate-400 italic text-sm">No linked incident details</span>
                                              )}
                                          </td>
                                      </tr>
@@ -290,7 +284,7 @@ const ResourceTracking: React.FC = () => {
                              })}
                              {dispatchLogs.length === 0 && (
                                  <tr>
-                                     <td colSpan={4} className="p-12 text-center text-gray-400">
+                                     <td colSpan={4} className="p-12 text-center text-slate-400">
                                          <Car size={32} className="mx-auto mb-2 opacity-30"/>
                                          No vehicle dispatch history found.
                                      </td>
@@ -304,7 +298,7 @@ const ResourceTracking: React.FC = () => {
                  // ASSET REQUESTS VIEW
                  <div className="grid gap-6">
                     {getFilteredRequests().length === 0 && (
-                        <div className="text-center py-16 text-gray-400 glass-panel rounded-3xl border-dashed">
+                        <div className="text-center py-16 text-slate-400 glass-panel rounded-3xl border-dashed">
                             <Package size={48} className="mx-auto mb-4 opacity-20" />
                             <p>No records found in this category.</p>
                         </div>
@@ -317,40 +311,40 @@ const ResourceTracking: React.FC = () => {
                             <div className="flex flex-col lg:flex-row justify-between lg:items-start gap-6 pl-4">
                                 <div className="space-y-4 flex-1">
                                     <div className="flex items-center space-x-3">
-                                        <h3 className="text-xl font-bold text-gray-900">{req.borrower_name}</h3>
+                                        <h3 className="text-xl font-bold text-slate-900">{req.borrower_name}</h3>
                                         <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(req.status)}`}>
                                             {req.status}
                                         </span>
                                     </div>
                                     
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-600">
                                         <div>
-                                            <p className="text-xs font-bold text-gray-400 uppercase">Pickup Date</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase">Pickup Date</p>
                                             <p className="font-medium flex items-center mt-1"><Truck size={14} className="mr-1 text-blue-400"/> {req.pickup_date}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-gray-400 uppercase">Return Date</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase">Return Date</p>
                                             <p className="font-medium flex items-center mt-1"><RotateCcw size={14} className="mr-1 text-green-400"/> {req.return_date}</p>
                                         </div>
                                     </div>
 
                                     <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-100">
-                                        <p className="text-xs font-bold text-gray-400 uppercase mb-2">Items</p>
+                                        <p className="text-xs font-bold text-slate-400 uppercase mb-2">Items</p>
                                         <div className="flex flex-wrap gap-2">
                                             {req.items_requested.map((item, idx) => (
-                                                <span key={idx} className="bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 shadow-sm">
+                                                <span key={idx} className="bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-700 shadow-sm">
                                                     {item.quantity}x {item.item}
                                                 </span>
                                             ))}
                                         </div>
                                     </div>
-                                    <p className="text-sm text-gray-500 italic border-l-2 border-gray-300 pl-3">"{req.purpose}"</p>
+                                    <p className="text-sm text-slate-500 italic border-l-2 border-gray-300 pl-3">"{req.purpose}"</p>
                                 </div>
 
                                 <div className="flex flex-col space-y-3 lg:w-56 pt-2">
                                     <button 
                                         onClick={() => generateBorrowingSlip(req)}
-                                        className="w-full flex items-center justify-center space-x-2 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+                                        className="w-full flex items-center justify-center space-x-2 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-gray-50 transition-colors shadow-sm"
                                     >
                                         <Printer size={16} />
                                         <span>Print Slip</span>

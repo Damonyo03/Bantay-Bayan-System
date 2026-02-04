@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import { useAuth } from '../contexts/AuthContext';
@@ -85,23 +84,28 @@ const ResourceForm: React.FC = () => {
              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 shadow-xl">
                 <CheckCircle size={48} strokeWidth={2} />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">{t.submitRequest} Successful!</h2>
-            <p className="text-gray-500 mb-8">The request is now pending approval from the Barangay Captain or Admin.</p>
-            
-            <div className="flex justify-center space-x-4">
-                <button 
-                    onClick={() => generateBorrowingSlip(successData)}
-                    className="px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold shadow-lg hover:scale-105 transition-transform flex items-center"
-                >
-                    <Printer size={18} className="mr-2" />
-                    Print Borrowing Slip
-                </button>
-                <button 
-                    onClick={() => navigate('/resources')}
-                    className="px-6 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors"
-                >
-                    Back to Dashboard
-                </button>
+            {/* UPDATED TO WHITE TEXT (for headers/success messages if background is dark, though these usually sit on glass panels) */}
+            {/* Wait, this success view is directly on the background? No, it's inside the main container. */}
+            {/* I should wrap this in a glass panel for readability or change text to white. */}
+            <div className="glass-panel p-8 rounded-3xl">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">{t.submitRequest} Successful!</h2>
+                <p className="text-gray-500 mb-8">The request is now pending approval from the Barangay Captain or Admin.</p>
+                
+                <div className="flex justify-center space-x-4">
+                    <button 
+                        onClick={() => generateBorrowingSlip(successData)}
+                        className="px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold shadow-lg hover:scale-105 transition-transform flex items-center"
+                    >
+                        <Printer size={18} className="mr-2" />
+                        Print Borrowing Slip
+                    </button>
+                    <button 
+                        onClick={() => navigate('/resources')}
+                        className="px-6 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors"
+                    >
+                        Back to Dashboard
+                    </button>
+                </div>
             </div>
         </div>
       );
@@ -110,11 +114,12 @@ const ResourceForm: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto pb-20">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center">
-            <Package className="mr-3 text-blue-600" />
+        {/* UPDATED TO WHITE TEXT */}
+        <h1 className="text-3xl font-bold text-white tracking-tight flex items-center">
+            <Package className="mr-3 text-blue-400" />
             {t.resourceRequest}
         </h1>
-        <p className="text-gray-500 mt-2">Request LGU assets for community use.</p>
+        <p className="text-slate-300 mt-2">Request LGU assets for community use.</p>
       </header>
 
       <form onSubmit={handleSubmit} className="glass-panel p-8 rounded-[2rem] shadow-xl space-y-8">

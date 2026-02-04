@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, FileText, Shield, Users, LogOut, FileClock, Globe, Package, Settings, Menu } from 'lucide-react';
+import { LayoutDashboard, FileText, Shield, Users, LogOut, FileClock, Globe, Package, Settings } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -28,20 +28,20 @@ const Sidebar: React.FC = () => {
 
   // --- DESKTOP SIDEBAR ---
   const DesktopSidebar = (
-    <div className="hidden md:flex w-20 lg:w-64 glass-sidebar h-screen fixed left-0 top-0 flex-col p-4 z-40 transition-all">
+    <div className="hidden md:flex w-64 glass-sidebar h-screen fixed left-0 top-0 flex-col p-4 z-40 transition-all">
       {/* Branding */}
-      <div className="flex items-center justify-center lg:justify-start space-x-3 mb-10 px-2 mt-4">
+      <div className="flex items-center justify-start space-x-3 mb-10 px-2 mt-4">
         <div className="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-900/50 flex-shrink-0">
            <Shield className="text-white w-6 h-6" />
         </div>
-        <div className="hidden lg:block">
+        <div>
             <span className="block font-bold text-white text-lg tracking-tight leading-none">Bantay Bayan</span>
             <span className="text-[10px] text-gray-400 font-medium tracking-widest uppercase">Internal System</span>
         </div>
       </div>
 
       {/* Nav Links */}
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
         {navItems.map((item) => (
           <Link
             key={item.path}
@@ -58,7 +58,7 @@ const Sidebar: React.FC = () => {
                  : 'text-gray-400 group-hover:text-white'}`}>
                 <item.icon size={20} />
             </div>
-            <span className="hidden lg:block font-medium text-sm whitespace-nowrap">{item.label}</span>
+            <span className="font-medium text-sm whitespace-nowrap">{item.label}</span>
           </Link>
         ))}
       </nav>
@@ -67,18 +67,18 @@ const Sidebar: React.FC = () => {
       <div className="mt-auto space-y-4 pt-6 border-t border-white/10">
          
          {/* Language Toggle */}
-         <div className="flex items-center justify-center lg:justify-start px-2">
+         <div className="flex items-center justify-start px-2">
             <button 
                 onClick={() => setLanguage(language === 'en' ? 'fil' : 'en')}
-                className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-2 rounded-lg text-xs font-medium transition-colors w-full justify-center lg:justify-start"
+                className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-2 rounded-lg text-xs font-medium transition-colors w-full justify-start"
             >
                 <Globe size={14} />
-                <span className="hidden lg:inline">{language === 'en' ? 'English' : 'Filipino'}</span>
-                <span className="ml-auto opacity-50 hidden lg:inline">{language.toUpperCase()}</span>
+                <span>{language === 'en' ? 'English' : 'Filipino'}</span>
+                <span className="ml-auto opacity-50">{language.toUpperCase()}</span>
             </button>
          </div>
 
-         <div className="hidden lg:flex items-center space-x-3 px-3">
+         <div className="flex items-center space-x-3 px-3">
             <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                 {user?.full_name.charAt(0)}
             </div>
@@ -90,12 +90,12 @@ const Sidebar: React.FC = () => {
 
          <button 
             onClick={logout}
-            className="w-full flex items-center space-x-3 p-3 rounded-xl text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-all group justify-center lg:justify-start"
+            className="w-full flex items-center space-x-3 p-3 rounded-xl text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-all group justify-start"
         >
             <div className="p-1.5 rounded-lg">
                 <LogOut size={20} />
             </div>
-            <span className="hidden lg:block font-medium text-sm">{t.signOut}</span>
+            <span className="font-medium text-sm">{t.signOut}</span>
          </button>
       </div>
     </div>
@@ -112,7 +112,7 @@ const Sidebar: React.FC = () => {
             className={`flex flex-col items-center justify-center p-2 min-w-[64px] rounded-xl transition-all ${
               (item.path === '/' ? location.pathname === '/' : isActive(item.path))
                 ? 'text-blue-600 bg-blue-50/50'
-                : 'text-gray-500'
+                : 'text-slate-500'
             }`}
           >
             <item.icon size={22} strokeWidth={2} />
@@ -123,7 +123,7 @@ const Sidebar: React.FC = () => {
         {/* Mobile Logout Button (Small) */}
         <button 
             onClick={logout}
-            className="flex flex-col items-center justify-center p-2 min-w-[60px] rounded-xl text-gray-400 hover:text-red-500"
+            className="flex flex-col items-center justify-center p-2 min-w-[60px] rounded-xl text-slate-400 hover:text-red-500"
         >
             <LogOut size={20} />
             <span className="text-[10px] font-medium mt-1">Exit</span>

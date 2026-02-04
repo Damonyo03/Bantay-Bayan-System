@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import { UserProfile } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, CreditCard, RefreshCw, AlertCircle } from 'lucide-react';
+import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, CreditCard, RefreshCw } from 'lucide-react';
 
 const UserManagement: React.FC = () => {
   const { t } = useLanguage();
@@ -92,15 +91,16 @@ const UserManagement: React.FC = () => {
     <div className="space-y-8 pb-20">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center">
-                <Shield className="mr-3 text-blue-700" />
+            {/* UPDATED TO WHITE TEXT */}
+            <h1 className="text-3xl font-bold text-white tracking-tight flex items-center">
+                <Shield className="mr-3 text-blue-400" />
                 {t.managePersonnel}
             </h1>
-            <p className="text-gray-500 mt-2">{t.manageAccess}</p>
+            <p className="text-slate-300 mt-2">{t.manageAccess}</p>
         </div>
         <button 
             onClick={handleOpenModal}
-            className="w-full sm:w-auto bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-xl flex items-center justify-center space-x-2"
+            className="w-full sm:w-auto bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-xl flex items-center justify-center space-x-2"
         >
             <Plus size={18} />
             <span>{t.addPersonnel}</span>
@@ -108,7 +108,7 @@ const UserManagement: React.FC = () => {
       </header>
 
       {loading ? (
-        <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div></div>
+        <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div></div>
       ) : (
         <>
         {users.length === 0 ? (
@@ -131,24 +131,24 @@ const UserManagement: React.FC = () => {
                 <table className="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
                     <tr className="bg-gray-50/50 border-b border-gray-200">
-                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.officer}</th>
-                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.role}</th>
-                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.badgeId}</th>
-                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider">{t.status}</th>
-                        <th className="p-6 font-semibold text-gray-600 text-sm uppercase tracking-wider text-right">{t.actions}</th>
+                        <th className="p-6 font-semibold text-slate-600 text-sm uppercase tracking-wider">{t.officer}</th>
+                        <th className="p-6 font-semibold text-slate-600 text-sm uppercase tracking-wider">{t.role}</th>
+                        <th className="p-6 font-semibold text-slate-600 text-sm uppercase tracking-wider">{t.badgeId}</th>
+                        <th className="p-6 font-semibold text-slate-600 text-sm uppercase tracking-wider">{t.status}</th>
+                        <th className="p-6 font-semibold text-slate-600 text-sm uppercase tracking-wider text-right">{t.actions}</th>
                     </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                    {users.map((user) => (
-                        <tr key={user.id} className="hover:bg-blue-50/30 transition-colors">
+                    {users.map((user, index) => (
+                        <tr key={user.id} className={`transition-colors hover:bg-blue-50/50 ${index % 2 === 0 ? 'bg-white/40' : 'bg-slate-50/40'}`}>
                         <td className="p-6">
                             <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 font-bold flex-shrink-0">
                                 {user.full_name.charAt(0)}
                             </div>
                             <div>
-                                <div className="font-semibold text-gray-900">{user.full_name}</div>
-                                <div className="text-xs text-gray-500">{user.email}</div>
+                                <div className="font-semibold text-slate-900">{user.full_name}</div>
+                                <div className="text-xs text-slate-500">{user.email}</div>
                             </div>
                             </div>
                         </td>
@@ -159,15 +159,15 @@ const UserManagement: React.FC = () => {
                                 {user.role === 'supervisor' ? 'Official' : 'Field Operator'}
                             </span>
                         </td>
-                        <td className="p-6 text-gray-600 font-mono text-sm">{user.badge_number}</td>
+                        <td className="p-6 text-slate-600 font-mono text-sm font-medium">{user.badge_number}</td>
                         <td className="p-6">
                             <div className="flex items-center text-sm">
                                 {user.status === 'active' ? (
-                                    <span className="flex items-center text-green-600 font-medium">
+                                    <span className="flex items-center text-green-600 font-bold">
                                         <UserCheck size={16} className="mr-1.5" /> Active
                                     </span>
                                 ) : (
-                                    <span className="flex items-center text-gray-400 font-medium">
+                                    <span className="flex items-center text-slate-400 font-medium">
                                         <UserX size={16} className="mr-1.5" /> Inactive
                                     </span>
                                 )}
@@ -200,20 +200,20 @@ const UserManagement: React.FC = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
              <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-slide-up">
                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 className="font-bold text-lg text-gray-800">{t.createAccount}</h3>
+                    <h3 className="font-bold text-lg text-slate-800">{t.createAccount}</h3>
                     <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-200 rounded-full hover:bg-gray-300">
                         <X size={18} />
                     </button>
                  </div>
                  <form onSubmit={handleCreateUser} className="p-6 space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.fullName}</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.fullName}</label>
                         <div className="relative">
-                            <User className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <User className="absolute left-3 top-3 text-slate-400" size={18} />
                             <input 
                                 required
                                 type="text"
-                                className="w-full bg-gray-100 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20"
+                                className="w-full bg-gray-100 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
                                 value={newUser.fullName}
                                 onChange={e => setNewUser({...newUser, fullName: e.target.value})}
                                 placeholder="e.g., Juan Dela Cruz"
@@ -221,13 +221,13 @@ const UserManagement: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.badgeId} (Auto-Generated)</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.badgeId} (Auto-Generated)</label>
                         <div className="relative flex items-center">
-                            <CreditCard className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <CreditCard className="absolute left-3 top-3 text-slate-400" size={18} />
                             <input 
                                 required
                                 type="text"
-                                className="w-full bg-gray-100 rounded-xl py-3 pl-10 pr-12 outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-600 font-mono font-bold"
+                                className="w-full bg-gray-100 rounded-xl py-3 pl-10 pr-12 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 font-mono font-bold"
                                 value={newUser.badgeNumber}
                                 readOnly
                             />
@@ -243,9 +243,9 @@ const UserManagement: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                          <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.role}</label>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.role}</label>
                             <select 
-                                className="w-full bg-gray-100 rounded-xl py-3 px-4 outline-none"
+                                className="w-full bg-gray-100 rounded-xl py-3 px-4 outline-none text-slate-800"
                                 value={newUser.role}
                                 onChange={e => setNewUser({...newUser, role: e.target.value})}
                             >
@@ -256,13 +256,13 @@ const UserManagement: React.FC = () => {
                     </div>
                     <hr className="border-gray-100" />
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.email}</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.email}</label>
                         <div className="relative">
-                            <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <Mail className="absolute left-3 top-3 text-slate-400" size={18} />
                             <input 
                                 required
                                 type="email"
-                                className="w-full bg-gray-100 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20"
+                                className="w-full bg-gray-100 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
                                 value={newUser.email}
                                 onChange={e => setNewUser({...newUser, email: e.target.value})}
                                 placeholder="official@bantaybayan.gov.ph"
@@ -270,13 +270,13 @@ const UserManagement: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.password}</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.password}</label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <Lock className="absolute left-3 top-3 text-slate-400" size={18} />
                             <input 
                                 required
                                 type="password"
-                                className="w-full bg-gray-100 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20"
+                                className="w-full bg-gray-100 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
                                 value={newUser.password}
                                 onChange={e => setNewUser({...newUser, password: e.target.value})}
                                 placeholder="Min. 8 characters"

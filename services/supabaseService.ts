@@ -3,8 +3,8 @@ import { supabase } from '../lib/supabaseClient';
 import { Incident, IncidentParty, DispatchLog, IncidentWithDetails, UserProfile, AuditLog, AssetRequest, AssetItem } from '../types';
 
 export const supabaseService = {
-  // AUTH
-  login: async (email: string, password: string): Promise<UserProfile> => {
+  // AUTH - CORE
+  login: async (email: string, password: string): Promise<{ user: UserProfile, mfaRequired: boolean }> => {
     // 1. Authenticate with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -14,7 +14,24 @@ export const supabaseService = {
     if (authError) throw new Error(authError.message);
     if (!authData.user) throw new Error("No user returned");
 
-    // 2. Fetch User Profile
+    // 2. Check MFA Status (Assurance Level)
+    const { data: mfaData, error: mfaCheckError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (mfaCheckError) throw new Error(mfaCheckError.message);
+
+    // If nextLevel is 'aal2', it means the user has enrolled in MFA and needs to verify
+    if (mfaData.nextLevel === 'aal2' && mfaData.currentLevel === 'aal1') {
+        // Return provisional user but flag for MFA
+        // We still fetch profile to show name/role on the 2FA screen if needed
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
+        
+        return { user: profile as UserProfile, mfaRequired: true };
+    }
+
+    // 3. Fetch User Profile (Standard Login)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -26,7 +43,22 @@ export const supabaseService = {
     // Update last active
     await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', authData.user.id);
 
-    return profile as UserProfile;
+    return { user: profile as UserProfile, mfaRequired: false };
+  },
+
+  resetPasswordForEmail: async (email: string) => {
+    // Redirects to the /update-password route in the app
+    // Note: You must configure Site URL in Supabase Auth Settings for this to work perfectly in prod
+    const redirectTo = `${window.location.origin}/#/update-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+    });
+    if (error) throw error;
+  },
+
+  updatePassword: async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
   },
 
   getCurrentUserProfile: async (): Promise<UserProfile | null> => {
@@ -44,6 +76,46 @@ export const supabaseService = {
 
   logout: async () => {
     await supabase.auth.signOut();
+  },
+
+  // AUTH - MFA / 2FA
+  enrollMFA: async () => {
+    const { data, error } = await supabase.auth.mfa.enroll({
+        factorType: 'totp'
+    });
+    if (error) throw error;
+    return data; // Returns id, type, totp: { qr_code, secret, uri }
+  },
+
+  verifyMFA: async (factorId: string, code: string) => {
+      // This activates the factor (Challenge + Verify)
+      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
+          factorId,
+          code
+      });
+      if (error) throw error;
+      return data;
+  },
+
+  challengeMFA: async (code: string) => {
+      // Used during Login phase
+      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
+          factorId: (await supabase.auth.mfa.listFactors()).data?.totp[0].id!,
+          code
+      });
+      if (error) throw error;
+      return data;
+  },
+
+  listMFAFactors: async () => {
+      const { data, error } = await supabase.auth.mfa.listFactors();
+      if (error) throw error;
+      return data.totp;
+  },
+
+  unenrollMFA: async (factorId: string) => {
+      const { error } = await supabase.auth.mfa.unenroll({ factorId });
+      if (error) throw error;
   },
 
   // USER MANAGEMENT & SETTINGS
