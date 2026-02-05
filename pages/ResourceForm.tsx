@@ -230,7 +230,7 @@ const ResourceForm: React.FC = () => {
                              onChange={e => handleItemChange(idx, 'item', e.target.value)}
                              className="flex-1 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white"
                          >
-                             {ITEM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                             {ITEM_OPTIONS.map(opt => <option key={opt} value={opt} className="dark:bg-slate-800">{opt}</option>)}
                          </select>
                          <input 
                              type="number"

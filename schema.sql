@@ -61,6 +61,8 @@ create table profiles (
   status user_status default 'inactive', -- Strict default
   badge_number text unique,
   avatar_url text, -- NEW: Store profile picture URL
+  preferred_shift text default '1st', -- Auto-schedule preference
+  preferred_day_off text default 'Sunday', -- Auto-schedule preference
   last_active_at timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -164,9 +166,12 @@ alter table asset_requests enable row level security;
 alter table personnel_schedules enable row level security;
 alter table cctv_requests enable row level security;
 
--- 9. Define RLS Policies (Simplified for demonstration)
+-- 9. Define RLS Policies
 create policy "Public profiles" on profiles for select using ( true );
-create policy "Supervisor update profiles" on profiles for update using (
+
+-- Updated: Allow Self-Update OR Supervisor-Update
+create policy "Update own profile or Supervisor update" on profiles for update using (
+    auth.uid() = id OR
     exists ( select 1 from profiles where id = auth.uid() and role = 'supervisor' )
 );
 

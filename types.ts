@@ -18,6 +18,8 @@ export interface UserProfile {
   status: UserStatus;
   badge_number: string;
   avatar_url?: string; // New field for profile picture
+  preferred_shift?: ShiftType;
+  preferred_day_off?: string; // "Monday", "Tuesday", etc.
   last_active_at: string;
 }
 

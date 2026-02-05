@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset } from 'lucide-react';
+import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, Wand2 } from 'lucide-react';
 
 // Helper to get YYYY-MM-DD in local time
 const getLocalDateStr = (date: Date) => {
@@ -59,6 +59,8 @@ const UserManagement: React.FC = () => {
   const [editFormData, setEditFormData] = useState({
       full_name: '',
       badge_number: '',
+      preferred_shift: '1st',
+      preferred_day_off: 'Sunday'
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -239,6 +241,22 @@ const UserManagement: React.FC = () => {
       }
   };
 
+  const handleAutoSchedule = async () => {
+      if (!confirm("This will overwrite the schedule for the currently displayed week based on user preferences. Continue?")) return;
+      
+      setRosterLoading(true);
+      try {
+          const { start, end } = getWeekRange(currentDate);
+          await supabaseService.generateWeeklySchedule(start, end);
+          showToast("Schedule auto-generated successfully!", "success");
+          fetchSchedules();
+      } catch (error: any) {
+          showToast("Failed to auto-schedule: " + error.message, "error");
+      } finally {
+          setRosterLoading(false);
+      }
+  };
+
   const changeWeek = (direction: 'prev' | 'next') => {
       const newDate = new Date(currentDate);
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
@@ -334,6 +352,8 @@ const UserManagement: React.FC = () => {
       setEditFormData({
           full_name: user.full_name,
           badge_number: user.badge_number || '',
+          preferred_shift: (user.preferred_shift as string) || '1st',
+          preferred_day_off: user.preferred_day_off || 'Sunday'
       });
       setImagePreview(user.avatar_url || null);
       setSelectedFile(null);
@@ -374,7 +394,9 @@ const UserManagement: React.FC = () => {
           await supabaseService.updateProfile(editingUser.id, {
               full_name: editFormData.full_name,
               badge_number: editFormData.badge_number,
-              avatar_url: avatarUrl
+              avatar_url: avatarUrl,
+              preferred_shift: editFormData.preferred_shift,
+              preferred_day_off: editFormData.preferred_day_off
           });
 
           showToast("User details updated successfully", "success");
@@ -637,19 +659,31 @@ const UserManagement: React.FC = () => {
                           <button onClick={() => changeWeek('next')} className="p-2 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm transition-all"><ChevronRight size={20}/></button>
                       </div>
 
-                      {/* Legend */}
-                      <div className="flex flex-wrap justify-center gap-3">
-                          <div className="flex items-center space-x-2 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
-                              <Moon size={14} className="text-indigo-600 dark:text-indigo-400" />
-                              <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">1st (12am-8am)</span>
-                          </div>
-                          <div className="flex items-center space-x-2 bg-sky-50 dark:bg-sky-900/20 px-3 py-1.5 rounded-lg border border-sky-100 dark:border-sky-800">
-                              <Sun size={14} className="text-sky-600 dark:text-sky-400" />
-                              <span className="text-xs font-bold text-sky-700 dark:text-sky-300">2nd (8am-4pm)</span>
-                          </div>
-                          <div className="flex items-center space-x-2 bg-violet-50 dark:bg-violet-900/20 px-3 py-1.5 rounded-lg border border-violet-100 dark:border-violet-800">
-                              <Sunset size={14} className="text-violet-600 dark:text-violet-400" />
-                              <span className="text-xs font-bold text-violet-700 dark:text-violet-300">3rd (4pm-12am)</span>
+                      {/* Legend & Auto-Fill */}
+                      <div className="flex items-center gap-4">
+                          {user?.role === 'supervisor' && (
+                              <button 
+                                  onClick={handleAutoSchedule}
+                                  className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:bg-indigo-700 transition-transform active:scale-95"
+                                  title="Auto-Assign based on Preferences"
+                              >
+                                  <Wand2 size={16} />
+                                  <span className="hidden sm:inline">Auto-Schedule Week</span>
+                              </button>
+                          )}
+                          <div className="flex flex-wrap justify-center gap-3">
+                              <div className="flex items-center space-x-2 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
+                                  <Moon size={14} className="text-indigo-600 dark:text-indigo-400" />
+                                  <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">1st (12-8)</span>
+                              </div>
+                              <div className="flex items-center space-x-2 bg-sky-50 dark:bg-sky-900/20 px-3 py-1.5 rounded-lg border border-sky-100 dark:border-sky-800">
+                                  <Sun size={14} className="text-sky-600 dark:text-sky-400" />
+                                  <span className="text-xs font-bold text-sky-700 dark:text-sky-300">2nd (8-4)</span>
+                              </div>
+                              <div className="flex items-center space-x-2 bg-violet-50 dark:bg-violet-900/20 px-3 py-1.5 rounded-lg border border-violet-100 dark:border-violet-800">
+                                  <Sunset size={14} className="text-violet-600 dark:text-violet-400" />
+                                  <span className="text-xs font-bold text-violet-700 dark:text-violet-300">3rd (4-12)</span>
+                              </div>
                           </div>
                       </div>
                   </div>
@@ -972,31 +1006,67 @@ const UserManagement: React.FC = () => {
                     </div>
 
                     <div className="space-y-5">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.fullName}</label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-3.5 text-slate-400" size={18} />
-                                <input 
-                                    required
-                                    type="text"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-semibold transition-all"
-                                    value={editFormData.full_name}
-                                    onChange={e => setEditFormData({...editFormData, full_name: e.target.value})}
-                                />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.fullName}</label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-3.5 text-slate-400" size={18} />
+                                    <input 
+                                        required
+                                        type="text"
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-semibold transition-all"
+                                        value={editFormData.full_name}
+                                        onChange={e => setEditFormData({...editFormData, full_name: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
+                                <div className="relative">
+                                    <Shield className="absolute left-4 top-3.5 text-slate-400" size={18} />
+                                    <input 
+                                        type="text"
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-mono transition-all"
+                                        value={editFormData.badge_number}
+                                        onChange={e => setEditFormData({...editFormData, badge_number: e.target.value})}
+                                        placeholder="BB-202X-XXX"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
-                            <div className="relative">
-                                <Shield className="absolute left-4 top-3.5 text-slate-400" size={18} />
-                                <input 
-                                    type="text"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-mono transition-all"
-                                    value={editFormData.badge_number}
-                                    onChange={e => setEditFormData({...editFormData, badge_number: e.target.value})}
-                                    placeholder="BB-202X-XXX"
-                                />
+                        {/* AUTO SCHEDULE PREFERENCES */}
+                        <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
+                            <h4 className="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase mb-3 flex items-center">
+                                <Wand2 size={14} className="mr-1.5" />
+                                Auto-Schedule Preferences
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Preferred Shift</label>
+                                    <select
+                                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white text-sm font-medium"
+                                        value={editFormData.preferred_shift}
+                                        onChange={e => setEditFormData({...editFormData, preferred_shift: e.target.value})}
+                                    >
+                                        <option value="1st">1st Shift (12am-8am)</option>
+                                        <option value="2nd">2nd Shift (8am-4pm)</option>
+                                        <option value="3rd">3rd Shift (4pm-12am)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Preferred Day Off</label>
+                                    <select
+                                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white text-sm font-medium"
+                                        value={editFormData.preferred_day_off}
+                                        onChange={e => setEditFormData({...editFormData, preferred_day_off: e.target.value})}
+                                    >
+                                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Sunday'].map(day => (
+                                            <option key={day} value={day}>{day}</option>
+                                        ))}
+                                    </select>
+                                    <p className="text-[10px] text-slate-400 mt-1 italic">Saturdays reserved for Road Clearing.</p>
+                                </div>
                             </div>
                         </div>
                     </div>

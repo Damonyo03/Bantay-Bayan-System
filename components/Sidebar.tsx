@@ -33,8 +33,10 @@ const Sidebar: React.FC = () => {
   // Admin/Supervisor only items
   if (user?.role === 'supervisor') {
       navItems.push({ icon: FileClock, label: t.auditLogs, path: '/audit-logs' });
-      navItems.push({ icon: Settings, label: 'Settings', path: '/settings' });
   }
+
+  // Settings for everyone (Added at the end)
+  navItems.push({ icon: Settings, label: 'Settings', path: '/settings' });
 
   // --- DESKTOP SIDEBAR ---
   const DesktopSidebar = (
