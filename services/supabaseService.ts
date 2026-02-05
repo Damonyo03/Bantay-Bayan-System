@@ -1,6 +1,6 @@
 
 import { supabase } from '../lib/supabaseClient';
-import { Incident, IncidentParty, DispatchLog, IncidentWithDetails, UserProfile, AuditLog, AssetRequest, AssetItem, PersonnelSchedule, CCTVRequest } from '../types';
+import { Incident, IncidentParty, DispatchLog, IncidentWithDetails, UserProfile, AuditLog, AssetRequest, AssetItem, PersonnelSchedule, CCTVRequest, ShiftType } from '../types';
 
 export const supabaseService = {
   // AUTH - CORE
@@ -215,8 +215,8 @@ export const supabaseService = {
       return data;
   },
 
-  // Updated to support avatar_url
-  updateProfile: async (id: string, updates: { full_name?: string; badge_number?: string; avatar_url?: string }) => {
+  // Updated to support avatar_url and schedule preferences
+  updateProfile: async (id: string, updates: { full_name?: string; badge_number?: string; avatar_url?: string; preferred_shift?: string; preferred_day_off?: string }) => {
     const { error } = await supabase
         .from('profiles')
         .update(updates)
@@ -294,6 +294,58 @@ export const supabaseService = {
       
       if (error) throw error;
       return data;
+  },
+
+  // BULK AUTO-SCHEDULE GENERATOR
+  generateWeeklySchedule: async (startDate: Date, endDate: Date) => {
+      // 1. Fetch active users
+      const { data: users, error: userError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('status', 'active');
+      
+      if (userError) throw userError;
+      if (!users || users.length === 0) throw new Error("No active users found.");
+
+      const schedules = [];
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // 2. Loop through dates
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          const dateStr = d.toISOString().split('T')[0];
+          const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+
+          // 3. Loop through users
+          for (const user of users) {
+              let status = 'On Duty';
+              let shift = user.preferred_shift || '1st';
+
+              // Logic: Saturday is Mandatory Road Clearing (8am-10am -> 2nd shift bucket)
+              if (dayName === 'Saturday') {
+                  status = 'Road Clearing';
+                  shift = '2nd'; 
+              } 
+              // Logic: Preferred Day Off
+              else if (dayName === user.preferred_day_off) {
+                  status = 'Day Off';
+              }
+
+              schedules.push({
+                  user_id: user.id,
+                  date: dateStr,
+                  status: status,
+                  shift: shift
+              });
+          }
+      }
+
+      // 4. Bulk Upsert
+      const { error } = await supabase
+          .from('personnel_schedules')
+          .upsert(schedules, { onConflict: 'user_id, date' });
+
+      if (error) throw error;
   },
 
   // INCIDENTS

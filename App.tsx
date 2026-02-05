@@ -129,7 +129,8 @@ const AppContent: React.FC = () => {
                 {/* REMOVED requiredRole="supervisor" to allow operators to see Roster */}
                 <Route path="/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
                 <Route path="/audit-logs" element={<ProtectedRoute requiredRole="supervisor"><AuditLogs /></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute requiredRole="supervisor"><Settings /></ProtectedRoute>} />
+                {/* Settings available to all authenticated users now */}
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/update-password" element={<UpdatePasswordPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
