@@ -102,8 +102,15 @@ const Sidebar: React.FC = () => {
          </div>
 
          <div className="flex items-center space-x-3 px-3">
-            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-white flex-shrink-0">
-                {user?.full_name.charAt(0)}
+            <div className="relative w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden">
+                {user?.avatar_url ? (
+                    /* Key forces re-render when URL changes (timestamp update) */
+                    <img key={user.avatar_url} src={user.avatar_url} alt="User" className="w-full h-full object-cover" />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-white">
+                        {user?.full_name.charAt(0)}
+                    </div>
+                )}
             </div>
             <div className="overflow-hidden">
                 <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{user?.full_name}</p>

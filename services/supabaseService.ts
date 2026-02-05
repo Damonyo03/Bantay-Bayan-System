@@ -7,9 +7,7 @@ export const supabaseService = {
   login: async (identifier: string, password: string): Promise<{ user: UserProfile, mfaRequired: boolean }> => {
     let email = identifier;
 
-    // 1. Check if identifier is a Username (no @ symbol)
     if (!identifier.includes('@')) {
-        // Query profiles to get email associated with username
         const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('email')
@@ -22,7 +20,6 @@ export const supabaseService = {
         email = profileData.email;
     }
 
-    // 2. Authenticate with Supabase Auth using the resolved Email
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -31,11 +28,9 @@ export const supabaseService = {
     if (authError) throw new Error("Invalid credentials");
     if (!authData.user) throw new Error("No user returned");
 
-    // 3. Check MFA Status (Assurance Level)
     const { data: mfaData, error: mfaCheckError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (mfaCheckError) throw new Error(mfaCheckError.message);
 
-    // If nextLevel is 'aal2', it means the user has enrolled in MFA and needs to verify
     if (mfaData.nextLevel === 'aal2' && mfaData.currentLevel === 'aal1') {
         const { data: profile } = await supabase
             .from('profiles')
@@ -46,7 +41,6 @@ export const supabaseService = {
         return { user: profile as UserProfile, mfaRequired: true };
     }
 
-    // 4. Fetch User Profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -55,7 +49,6 @@ export const supabaseService = {
 
     if (profileError) throw new Error("Failed to fetch user profile");
     
-    // Update last active
     await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', authData.user.id);
 
     return { user: profile as UserProfile, mfaRequired: false };
@@ -64,7 +57,6 @@ export const supabaseService = {
   resetPasswordForUser: async (identifier: string) => {
     let email = identifier;
 
-    // If username provided, look up the email
     if (!identifier.includes('@')) {
         const { data: profileData } = await supabase
             .from('profiles')
@@ -73,7 +65,6 @@ export const supabaseService = {
             .single();
         
         if (!profileData) {
-            // Security: Don't reveal if user exists or not, just pretend to send
             return; 
         }
         email = profileData.email;
@@ -110,6 +101,9 @@ export const supabaseService = {
 
   // AUTH - MFA / 2FA
   enrollMFA: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("No active session");
+
     const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp'
     });
@@ -118,6 +112,9 @@ export const supabaseService = {
   },
 
   verifyMFA: async (factorId: string, code: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No active session");
+
       const { data, error } = await supabase.auth.mfa.challengeAndVerify({
           factorId,
           code
@@ -127,8 +124,16 @@ export const supabaseService = {
   },
 
   challengeMFA: async (code: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No active session");
+
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      if (!factors || !factors.totp || factors.totp.length === 0) {
+          throw new Error("No MFA factors found to challenge.");
+      }
+
       const { data, error } = await supabase.auth.mfa.challengeAndVerify({
-          factorId: (await supabase.auth.mfa.listFactors()).data?.totp[0].id!,
+          factorId: factors.totp[0].id,
           code
       });
       if (error) throw error;
@@ -136,12 +141,18 @@ export const supabaseService = {
   },
 
   listMFAFactors: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
+
       const { data, error } = await supabase.auth.mfa.listFactors();
       if (error) throw error;
       return data.totp;
   },
 
   unenrollMFA: async (factorId: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No active session");
+
       const { error } = await supabase.auth.mfa.unenroll({ factorId });
       if (error) throw error;
   },
@@ -167,8 +178,6 @@ export const supabaseService = {
   },
 
   checkUsernameExists: async (username: string): Promise<boolean> => {
-      // Check if username exists in profiles.
-      // Note: RLS allows reading profiles for everyone (public read)
       const { data, error } = await supabase
         .from('profiles')
         .select('username')
@@ -178,9 +187,7 @@ export const supabaseService = {
       return data && data.length > 0;
   },
 
-  // Called by Admin/Supervisor (Sets status: inactive by default now)
   createUser: async (email: string, username: string, password: string, fullName: string, role: string) => {
-    // We pass username in metadata so the trigger can grab it
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -189,7 +196,7 @@ export const supabaseService = {
                 full_name: fullName,
                 username: username,
                 role: role,
-                status: 'inactive' // Defaults to inactive so it goes to Pending tab
+                status: 'inactive'
             }
         }
     });
@@ -197,7 +204,6 @@ export const supabaseService = {
     if (error) throw error;
   },
 
-  // Called by Public Registration (Sets status: inactive)
   registerUser: async (email: string, username: string, password: string, fullName: string) => {
       const { data, error } = await supabase.auth.signUp({
           email,
@@ -206,8 +212,8 @@ export const supabaseService = {
               data: {
                   full_name: fullName,
                   username: username,
-                  role: 'field_operator', // Default public role
-                  status: 'inactive' // Requires approval
+                  role: 'field_operator',
+                  status: 'inactive'
               }
           }
       });
@@ -215,43 +221,56 @@ export const supabaseService = {
       return data;
   },
 
-  // Updated to support avatar_url and schedule preferences
+  // UPDATED: Added select() to verify update success
   updateProfile: async (id: string, updates: { full_name?: string; badge_number?: string; avatar_url?: string; preferred_shift?: string; preferred_day_off?: string }) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .select(); // IMPORTANT: Request the updated row back
     
-    if (error) throw error;
+    if (error) {
+        if (error.message.includes('preferred_day_off') || error.message.includes('schema cache')) {
+            throw new Error("Database schema missing 'preference' columns. Run migrations.sql in Supabase.");
+        }
+        throw error;
+    }
+    
+    // Silent failure check: If RLS blocks update, data is empty but error is null
+    if (!data || data.length === 0) {
+        throw new Error("Update failed. You may not have permission to update this profile.");
+    }
   },
 
   uploadAvatar: async (userId: string, file: File): Promise<string> => {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}_${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      // Check if bucket exists, try to create if not (Best Effort)
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const avatarBucket = buckets?.find(b => b.name === 'avatars');
-      
-      if (!avatarBucket) {
-          // Attempt creation (might fail if no permissions, but worth a try)
-          await supabase.storage.createBucket('avatars', { public: true }).catch(err => console.warn("Bucket creation failed, might exist or insufficient perms:", err));
+      // 1. File Size Validation (Max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+          throw new Error("File size too large. Maximum size is 2MB.");
       }
 
-      // Upload
+      // 2. Define path: userId/timestamp.png
+      const timestamp = new Date().getTime();
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${userId}/${timestamp}.${fileExt}`;
+
+      // 3. Upload file
       const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(filePath, file, { upsert: true });
+          .upload(filePath, file, { 
+              cacheControl: '3600',
+              contentType: file.type,
+              upsert: true
+          });
 
       if (uploadError) {
-          if (uploadError.message.includes('bucket not found')) {
-               throw new Error("Storage bucket 'avatars' missing. Please run the schema.sql script in Supabase.");
+          console.error("Storage upload error:", uploadError);
+          if (uploadError.message.includes('row-level security')) {
+               throw new Error("Permission denied. You can only upload your own avatar.");
           }
-          throw uploadError;
+          throw new Error("Failed to upload image: " + uploadError.message);
       }
 
-      // Get Public URL
+      // 4. Get Public URL
       const { data } = supabase.storage
           .from('avatars')
           .getPublicUrl(filePath);
@@ -271,7 +290,6 @@ export const supabaseService = {
     }
   },
 
-  // DUTY ROSTER / SCHEDULES
   getSchedules: async (startDate: string, endDate: string): Promise<PersonnelSchedule[]> => {
       const { data, error } = await supabase
           .from('personnel_schedules')
@@ -288,7 +306,7 @@ export const supabaseService = {
 
       const { data, error } = await supabase
           .from('personnel_schedules')
-          .upsert(schedule, { onConflict: 'user_id, date' })
+          .upsert(schedule, { onConflict: 'user_id,date' }) 
           .select()
           .single();
       
@@ -296,59 +314,23 @@ export const supabaseService = {
       return data;
   },
 
-  // BULK AUTO-SCHEDULE GENERATOR
-  generateWeeklySchedule: async (startDate: Date, endDate: Date) => {
-      // 1. Fetch active users
-      const { data: users, error: userError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('status', 'active');
-      
-      if (userError) throw userError;
-      if (!users || users.length === 0) throw new Error("No active users found.");
+  saveBatchSchedules: async (schedules: Partial<PersonnelSchedule>[]) => {
+      if (schedules.length === 0) return;
 
-      const schedules = [];
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+      const chunkSize = 50;
+      for (let i = 0; i < schedules.length; i += chunkSize) {
+          const chunk = schedules.slice(i, i + chunkSize);
+          const { error } = await supabase
+              .from('personnel_schedules')
+              .upsert(chunk, { onConflict: 'user_id,date' });
 
-      // 2. Loop through dates
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-          const dateStr = d.toISOString().split('T')[0];
-          const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
-
-          // 3. Loop through users
-          for (const user of users) {
-              let status = 'On Duty';
-              let shift = user.preferred_shift || '1st';
-
-              // Logic: Saturday is Mandatory Road Clearing (8am-10am -> 2nd shift bucket)
-              if (dayName === 'Saturday') {
-                  status = 'Road Clearing';
-                  shift = '2nd'; 
-              } 
-              // Logic: Preferred Day Off
-              else if (dayName === user.preferred_day_off) {
-                  status = 'Day Off';
-              }
-
-              schedules.push({
-                  user_id: user.id,
-                  date: dateStr,
-                  status: status,
-                  shift: shift
-              });
+          if (error) {
+              console.error(`Bulk upsert failed at chunk ${i}:`, error);
+              throw new Error("Failed to save some schedule entries. Please retry.");
           }
       }
-
-      // 4. Bulk Upsert
-      const { error } = await supabase
-          .from('personnel_schedules')
-          .upsert(schedules, { onConflict: 'user_id, date' });
-
-      if (error) throw error;
   },
 
-  // INCIDENTS
   getIncidents: async (): Promise<IncidentWithDetails[]> => {
     const { data, error } = await supabase
       .from('incidents')
@@ -402,7 +384,6 @@ export const supabaseService = {
   },
 
   updateDispatchStatus: async (logId: string, updates: Partial<DispatchLog>) => {
-    // 1. Update Dispatch Log (Authenticated users can always do this via RLS)
     const { data, error } = await supabase
       .from('dispatch_logs')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -412,15 +393,11 @@ export const supabaseService = {
     
     if (error) throw error;
     
-    // 2. Auto-update incident status logic (Best effort - fail safe)
     if (data) {
         try {
-            // If unit arrives on scene, mark incident as Dispatched
             if (updates.status === 'On Scene') {
                 await supabase.from('incidents').update({ status: 'Dispatched' }).eq('id', data.incident_id);
             }
-            
-            // NEW: If clearing a logistics run, close the incident automatically
             if (updates.status === 'Clear') {
                 const { data: incident } = await supabase
                     .from('incidents')
@@ -429,27 +406,23 @@ export const supabaseService = {
                     .single();
                     
                 if (incident && incident.type === 'Logistics') {
-                     // Attempt to close. If user is field_operator and RLS blocks, this will fail silently.
-                     // We catch the error so it doesn't break the UI flow for the Dispatch Log update.
                      await supabase.from('incidents').update({ status: 'Closed' }).eq('id', data.incident_id);
                 }
             }
         } catch (secondaryError) {
-            console.warn("Secondary incident update failed (likely permission issue), but dispatch log was updated.", secondaryError);
+            console.warn("Secondary incident update failed, but dispatch log was updated.", secondaryError);
         }
     }
-    
     return data;
   },
 
   logVehicleDispatch: async (
       loggerId: string,
       vehicle: string, 
-      officers: string, // joined string
+      officers: string,
       purpose: string, 
       location: string
   ) => {
-      // 1. Create Incident
       const caseNum = `LOG-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
       const { data: incident, error: incError } = await supabase
         .from('incidents')
@@ -467,7 +440,6 @@ export const supabaseService = {
       
       if (incError) throw incError;
 
-      // 2. Create Dispatch Log
       const { error: logError } = await supabase
         .from('dispatch_logs')
         .insert({
@@ -620,7 +592,6 @@ export const supabaseService = {
       return data[0];
   },
 
-  // CCTV REQUESTS
   createCCTVRequest: async (
       requestData: Omit<CCTVRequest, 'id' | 'created_at' | 'request_number'>
   ) => {
