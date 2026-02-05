@@ -5,120 +5,7 @@ import { IncidentWithDetails, AssetRequest } from '../types';
 export const generateOfficialReport = (incident: IncidentWithDetails) => {
   const doc = new jsPDF();
   const marginLeft = 20;
-  let yPos = 20;
-
-  // Header - Official Format
-  doc.setFont("times", "bold");
-  doc.setFontSize(10);
-  doc.text("REPUBLIC OF THE PHILIPPINES", 105, yPos, { align: "center" });
-  yPos += 5;
-  doc.text("Province of Rizal", 105, yPos, { align: "center" });
-  yPos += 5;
-  doc.text("Municipality of Cainta", 105, yPos, { align: "center" });
-  yPos += 5;
-  doc.setFontSize(12);
-  doc.text("BARANGAY POST PROPER NORTHSIDE", 105, yPos, { align: "center" });
-  yPos += 15;
-
-  doc.setFontSize(16);
-  doc.text("OFFICIAL INCIDENT RECORD", 105, yPos, { align: "center" });
-  yPos += 10;
-
-  // Divider
-  doc.setLineWidth(0.5);
-  doc.line(20, yPos, 190, yPos);
-  yPos += 10;
-
-  // Incident Meta
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text(`CASE NO: ${incident.case_number}`, 150, yPos);
-  doc.text(`DATE: ${new Date(incident.created_at).toLocaleDateString()}`, marginLeft, yPos);
-  yPos += 6;
-  doc.text(`TIME: ${new Date(incident.created_at).toLocaleTimeString()}`, marginLeft, yPos);
-  yPos += 6;
-  doc.text(`LOCATION: ${incident.location}`, marginLeft, yPos);
-  yPos += 6;
-  doc.text(`CATEGORY: ${incident.type}`, marginLeft, yPos);
-  yPos += 6;
-  doc.text(`REPORTING OFFICER: ${incident.officer_name || incident.officer_id}`, marginLeft, yPos);
-  
-  // Restricted Flag
-  if (incident.is_restricted_entry) {
-      yPos += 10;
-      doc.setTextColor(220, 38, 38); // Red
-      doc.setFontSize(14);
-      doc.text("*** RESTRICTED ENTRY / PERSONA NON GRATA FLAGGED ***", 105, yPos, { align: "center" });
-      doc.setTextColor(0, 0, 0); // Reset
-      doc.setFontSize(11);
-  }
-
-  yPos += 15;
-
-  // Narrative
-  doc.setFont("helvetica", "bold");
-  doc.text("NARRATIVE OF FACTS (Salaysay ng Pangyayari):", marginLeft, yPos);
-  yPos += 8;
-  doc.setFont("helvetica", "normal");
-  const splitText = doc.splitTextToSize(incident.narrative, 170);
-  doc.text(splitText, marginLeft, yPos);
-  yPos += (splitText.length * 6) + 10;
-
-  // Parties
-  if (incident.parties && incident.parties.length > 0) {
-    doc.setFont("helvetica", "bold");
-    doc.text("INVOLVED PARTIES:", marginLeft, yPos);
-    yPos += 8;
-    
-    incident.parties.forEach((party, index) => {
-      doc.setFont("helvetica", "bold");
-      doc.text(`${index + 1}. ${party.name}`, marginLeft + 5, yPos);
-      doc.setFont("helvetica", "normal");
-      doc.text(`   Role: ${party.role} | Age: ${party.age}`, marginLeft + 5, yPos + 5);
-      
-      const stmt = `   Statement: "${party.statement}"`;
-      const splitStmt = doc.splitTextToSize(stmt, 160);
-      doc.text(splitStmt, marginLeft + 5, yPos + 11);
-      
-      yPos += (splitStmt.length * 6) + 16;
-    });
-  }
-
-  // Footer / Signature
-  yPos = 240; 
-  
-  doc.setFont("helvetica", "normal");
-  doc.text("Prepared by:", marginLeft, yPos);
-  doc.text("Noted by:", 120, yPos);
-  
-  yPos += 20;
-  
-  // Officer Signature
-  doc.setFont("helvetica", "bold");
-  doc.text(incident.officer_name || "Authorized Officer", marginLeft, yPos);
-  doc.setLineWidth(0.2);
-  doc.line(marginLeft, yPos - 1, marginLeft + 60, yPos - 1);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.text("Bantay Bayan Officer / Desk Officer", marginLeft, yPos + 4);
-
-  // Chairman Signature
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("HON. RICHARD C. PASADILLA", 120, yPos);
-  doc.line(120, yPos - 1, 190, yPos - 1);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.text("Punong Barangay", 120, yPos + 4);
-
-  // Save
-  doc.save(`Official_Record_${incident.case_number}.pdf`);
-};
-
-export const generateBorrowingSlip = (request: AssetRequest) => {
-  const doc = new jsPDF();
-  const marginLeft = 20;
-  const marginRight = 190;
+  const contentWidth = 170;
   let yPos = 20;
 
   // --- HEADER ---
@@ -126,14 +13,171 @@ export const generateBorrowingSlip = (request: AssetRequest) => {
   doc.setFontSize(10);
   doc.text("REPUBLIC OF THE PHILIPPINES", 105, yPos, { align: "center" });
   yPos += 5;
-  doc.text("Municipality of Cainta", 105, yPos, { align: "center" });
+  doc.text("CITY OF TAGUIG", 105, yPos, { align: "center" });
   yPos += 5;
+  doc.text("BARANGAY POST PROPER NORTHSIDE", 105, yPos, { align: "center" });
+  yPos += 5;
+  doc.setFontSize(9);
+  doc.text("OFFICE OF THE PUNONG BARANGAY", 105, yPos, { align: "center" });
+  yPos += 15;
+
+  // --- TITLE ---
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("OFFICIAL INCIDENT REPORT", 105, yPos, { align: "center" });
+  doc.setLineWidth(0.5);
+  doc.line(65, yPos + 2, 145, yPos + 2);
+  yPos += 15;
+
+  // --- METADATA SECTION ---
+  doc.setFontSize(10);
+  
+  // Left Column
+  doc.text("CASE NUMBER:", marginLeft, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(incident.case_number, marginLeft + 35, yPos);
+  
+  doc.setFont("helvetica", "bold");
+  doc.text("DATE:", marginLeft + 100, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(new Date(incident.created_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' }), marginLeft + 120, yPos);
+
+  yPos += 8;
+
+  doc.setFont("helvetica", "bold");
+  doc.text("TYPE:", marginLeft, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(incident.type, marginLeft + 35, yPos);
+
+  doc.setFont("helvetica", "bold");
+  doc.text("TIME:", marginLeft + 100, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(new Date(incident.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), marginLeft + 120, yPos);
+
+  yPos += 8;
+
+  doc.setFont("helvetica", "bold");
+  doc.text("LOCATION:", marginLeft, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(incident.location, marginLeft + 35, yPos);
+
+  yPos += 8;
+
+  doc.setFont("helvetica", "bold");
+  doc.text("STATUS:", marginLeft, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(incident.status.toUpperCase(), marginLeft + 35, yPos);
+
+  // Restricted Flag
+  if (incident.is_restricted_entry) {
+    doc.setTextColor(200, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.text("[ RESTRICTED ENTRY ]", marginLeft + 100, yPos);
+    doc.setTextColor(0, 0, 0);
+  }
+
+  yPos += 10;
+  doc.setLineWidth(0.2);
+  doc.line(marginLeft, yPos, marginLeft + contentWidth, yPos);
+  yPos += 10;
+
+  // --- INVOLVED PARTIES ---
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
+  doc.text("INVOLVED PARTIES", marginLeft, yPos);
+  yPos += 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  
+  if (incident.parties && incident.parties.length > 0) {
+      incident.parties.forEach((party) => {
+          const partyInfo = `• ${party.name.toUpperCase()} (${party.role}) - ${party.age ? party.age + ' yo' : 'N/A'}`;
+          doc.text(partyInfo, marginLeft + 5, yPos);
+          yPos += 5;
+          if (party.contact_info) {
+               doc.setFontSize(9);
+               doc.setTextColor(80);
+               doc.text(`   Contact: ${party.contact_info}`, marginLeft + 8, yPos);
+               doc.setTextColor(0);
+               doc.setFontSize(10);
+               yPos += 5;
+          }
+      });
+  } else {
+      doc.text("No specific parties recorded.", marginLeft + 5, yPos);
+      yPos += 5;
+  }
+  yPos += 5;
+
+  // --- NARRATIVE ---
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("NARRATIVE OF FACTS", marginLeft, yPos);
+  yPos += 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  const splitNarrative = doc.splitTextToSize(incident.narrative, contentWidth);
+  doc.text(splitNarrative, marginLeft, yPos);
+  
+  yPos += (splitNarrative.length * 5) + 20;
+
+  // --- FOOTER ---
+  // Ensure footer doesn't overflow
+  if (yPos > 230) {
+      doc.addPage();
+      yPos = 40;
+  } else {
+      yPos = Math.max(yPos, 220); // Push to bottom if space allows
+  }
+
+  doc.setFontSize(10);
+  
+  // Left Signature
+  doc.text("Prepared by:", marginLeft, yPos);
+  yPos += 20;
+  doc.setFont("helvetica", "bold");
+  doc.text((incident.officer_name || "Officer-on-Duty").toUpperCase(), marginLeft, yPos);
+  doc.setLineWidth(0.2);
+  doc.line(marginLeft, yPos + 1, marginLeft + 60, yPos + 1);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Desk Officer / Bantay Bayan", marginLeft, yPos + 5);
+
+  // Right Signature
+  yPos -= 20;
+  const rightColX = 120;
+  doc.setFontSize(10);
+  doc.text("Noted by:", rightColX, yPos);
+  yPos += 20;
+  doc.setFont("helvetica", "bold");
+  doc.text("HON. RICHARD C. PASADILLA", rightColX, yPos);
+  doc.line(rightColX, yPos + 1, rightColX + 60, yPos + 1);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Punong Barangay", rightColX, yPos + 5);
+
+  doc.save(`Report_${incident.case_number}.pdf`);
+};
+
+export const generateBorrowingSlip = (request: AssetRequest) => {
+  const doc = new jsPDF();
+  const marginLeft = 20;
+  let yPos = 20;
+
+  // --- HEADER ---
+  doc.setFont("times", "bold");
+  doc.setFontSize(10);
+  doc.text("REPUBLIC OF THE PHILIPPINES", 105, yPos, { align: "center" });
+  yPos += 5;
+  doc.text("CITY OF TAGUIG", 105, yPos, { align: "center" });
+  yPos += 5;
   doc.text("BARANGAY POST PROPER NORTHSIDE", 105, yPos, { align: "center" });
   yPos += 12;
 
-  // Box for Title
-  doc.setFillColor(50, 50, 50);
+  // Title Box
+  doc.setFillColor(30, 41, 59); // Slate-800
   doc.rect(20, yPos, 170, 10, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
@@ -210,13 +254,14 @@ export const generateBorrowingSlip = (request: AssetRequest) => {
       }
   }
 
-  yPos += 10;
+  yPos += 15;
 
   // --- DATES ---
   doc.setFont("helvetica", "bold");
   doc.text("SCHEDULE:", marginLeft, yPos);
   yPos += 5;
   
+  doc.setLineWidth(0.1);
   doc.rect(marginLeft, yPos, 80, 15);
   doc.text("PICK-UP DATE:", marginLeft + 5, yPos + 5);
   doc.setFont("helvetica", "normal");
@@ -258,15 +303,184 @@ export const generateBorrowingSlip = (request: AssetRequest) => {
 
   // Right: Approver
   yPos -= 15;
+  const rightColX = 120;
   doc.setFontSize(10);
-  doc.text("Approved & Released By:", 120, yPos);
+  doc.text("Approved & Released By:", rightColX, yPos);
   yPos += 15;
   doc.setFont("helvetica", "bold");
-  doc.text("HON. RICHARD C. PASADILLA", 120, yPos);
-  doc.line(120, yPos + 1, 180, yPos + 1);
+  doc.text("HON. RICHARD C. PASADILLA", rightColX, yPos);
+  doc.line(rightColX, yPos + 1, rightColX + 60, yPos + 1);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.text("Punong Barangay / Authorized Staff", 120, yPos + 5);
+  doc.text("Punong Barangay / Authorized Staff", rightColX, yPos + 5);
 
   doc.save(`Borrowing_Slip_${request.borrower_name.replace(/\s/g, '_')}.pdf`);
-}
+};
+
+export const generateCCTVForm = (data: any) => {
+  const doc = new jsPDF();
+  const marginLeft = 20;
+  let yPos = 20;
+
+  // --- HEADER ---
+  doc.setFont("times", "bold");
+  doc.setFontSize(10);
+  doc.text("REPUBLIC OF THE PHILIPPINES", 105, yPos, { align: "center" });
+  yPos += 5;
+  doc.text("CITY OF TAGUIG", 105, yPos, { align: "center" });
+  yPos += 5;
+  doc.text("BARANGAY POST PROPER NORTHSIDE", 105, yPos, { align: "center" });
+  yPos += 12;
+
+  // Title
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("POST PROPER NORTHSIDE CCTV FORM", 105, yPos, { align: "center" });
+  doc.setLineWidth(0.5);
+  doc.line(55, yPos + 2, 155, yPos + 2);
+  yPos += 15;
+
+  // --- REQUESTER INFO ---
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("REQUESTER INFORMATION", marginLeft, yPos);
+  yPos += 8;
+
+  doc.setFont("helvetica", "normal");
+  
+  // Name
+  doc.text("Name:", marginLeft + 5, yPos);
+  doc.setFont("helvetica", "bold");
+  doc.text(`${data.lastName.toUpperCase()}, ${data.firstName.toUpperCase()} ${data.middleInitial ? data.middleInitial.toUpperCase() + '.' : ''}`, marginLeft + 35, yPos);
+  doc.line(marginLeft + 35, yPos + 1, marginLeft + 120, yPos + 1); // Underline
+  
+  yPos += 10;
+
+  // Address
+  doc.setFont("helvetica", "normal");
+  doc.text("Address:", marginLeft + 5, yPos);
+  doc.setFont("helvetica", "bold");
+  doc.text(`${data.addressNo} ${data.street}, ${data.barangay}, ${data.city}`, marginLeft + 35, yPos);
+  doc.line(marginLeft + 35, yPos + 1, marginLeft + 180, yPos + 1); // Underline
+
+  yPos += 15;
+
+  // --- INCIDENT TYPE ---
+  doc.setFont("helvetica", "bold");
+  doc.text("INCIDENT TYPE", marginLeft, yPos);
+  yPos += 8;
+
+  const incidentTypes = [
+      'Robbery', 'Hold-up', 'Theft', 
+      'Physical Injuries', 'Vehicle Accident', 'Budol-budol',
+      'Carnapping', 'Murder', 'Lost Item/s'
+  ];
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+
+  // 3 columns grid
+  let col = 0;
+  let startY = yPos;
+  
+  incidentTypes.forEach((type, index) => {
+      const x = marginLeft + 5 + (col * 60);
+      const isChecked = data.incidentTypes.includes(type);
+      
+      // Checkbox
+      doc.rect(x, yPos - 3, 4, 4);
+      if (isChecked) {
+          doc.setFontSize(8);
+          doc.text("X", x + 0.8, yPos);
+          doc.setFontSize(10);
+      }
+      
+      doc.text(type, x + 6, yPos);
+
+      col++;
+      if (col > 2) {
+          col = 0;
+          yPos += 8;
+      }
+  });
+
+  // Others Field
+  if (col === 0) yPos += 0; // Already moved down
+  const isOthersChecked = data.others !== '';
+  doc.rect(marginLeft + 5, yPos - 3, 4, 4);
+  if (isOthersChecked) {
+      doc.setFontSize(8);
+      doc.text("X", marginLeft + 5.8, yPos);
+      doc.setFontSize(10);
+  }
+  doc.text("Others:", marginLeft + 11, yPos);
+  doc.line(marginLeft + 25, yPos + 1, marginLeft + 100, yPos + 1);
+  if(data.others) {
+      doc.text(data.others, marginLeft + 27, yPos);
+  }
+
+  yPos += 15;
+
+  // --- INCIDENT DETAILS ---
+  doc.setFont("helvetica", "bold");
+  doc.text("INCIDENT DETAILS", marginLeft, yPos);
+  yPos += 8;
+
+  doc.setFont("helvetica", "normal");
+  
+  // Date & Time
+  doc.text("Date of Incident:", marginLeft + 5, yPos);
+  doc.text(data.dateOfIncident, marginLeft + 40, yPos);
+  doc.line(marginLeft + 38, yPos + 1, marginLeft + 90, yPos + 1);
+
+  doc.text("Time:", marginLeft + 100, yPos);
+  doc.text(data.timeOfIncident, marginLeft + 115, yPos);
+  doc.line(marginLeft + 112, yPos + 1, marginLeft + 160, yPos + 1);
+
+  yPos += 10;
+
+  // Place
+  doc.text("Place of Incident:", marginLeft + 5, yPos);
+  doc.text(data.placeOfIncident, marginLeft + 40, yPos);
+  doc.line(marginLeft + 38, yPos + 1, marginLeft + 180, yPos + 1);
+
+  yPos += 10;
+
+  // Purpose
+  doc.text("Purpose of Request:", marginLeft + 5, yPos);
+  doc.text(data.purpose, marginLeft + 45, yPos);
+  doc.line(marginLeft + 42, yPos + 1, marginLeft + 180, yPos + 1);
+
+  yPos += 30;
+
+  // --- FOOTER / SIGNATURES ---
+  
+  // Left: Requester
+  doc.setFontSize(10);
+  doc.text("I hereby certify that the above information is true and correct.", marginLeft, yPos - 10);
+  
+  yPos += 15;
+  doc.setFont("helvetica", "bold");
+  doc.text(`${data.firstName} ${data.lastName}`.toUpperCase(), marginLeft, yPos);
+  doc.setLineWidth(0.2);
+  doc.line(marginLeft, yPos + 1, marginLeft + 60, yPos + 1);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Signature of Requester", marginLeft, yPos + 5);
+
+  // Right: Approver
+  yPos += 10; 
+  // Align to right but usually approvals are bottom right or centered bottom
+  const rightColX = 120;
+  
+  doc.setFontSize(10);
+  doc.text("Approved By:", rightColX, yPos - 10);
+  doc.setFont("helvetica", "bold");
+  doc.text("HON. RICHARD C. PASADILLA", rightColX, yPos);
+  doc.line(rightColX, yPos + 1, rightColX + 60, yPos + 1);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Punong Barangay", rightColX, yPos + 5);
+
+  doc.save(`CCTV_Request_${data.lastName}.pdf`);
+};
