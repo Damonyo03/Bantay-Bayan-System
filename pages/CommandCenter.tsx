@@ -192,11 +192,13 @@ const CommandCenter: React.FC = () => {
   };
 
   // Filter for dashboard display
-  const allActiveIncidents = incidents.filter(i => i.status !== 'Closed');
+  // Active incidents are strictly 'Pending' or 'Dispatched'. 
+  // 'Resolved' and 'Closed' cases are considered inactive/archived.
+  const allActiveIncidents = incidents.filter(i => ['Pending', 'Dispatched'].includes(i.status));
   const pendingAssets = assetRequests.filter(r => r.status === 'Pending');
 
-  // List View Filter: Show only 'Pending' and 'Dispatched'. 
-  const dashboardListIncidents = incidents.filter(i => ['Pending', 'Dispatched'].includes(i.status));
+  // List View Filter: Same logic as stats, show only 'Pending' and 'Dispatched'. 
+  const dashboardListIncidents = allActiveIncidents;
 
   const scrollToBlotter = () => {
     document.getElementById('blotter-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -204,58 +206,58 @@ const CommandCenter: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-20">
-      <header className="flex flex-col md:flex-row md:justify-between md:items-end">
+      <header className="flex flex-col md:flex-row md:justify-between md:items-end gap-2">
         <div>
             {/* TEXT COLOR UPDATED TO WHITE FOR DARK BACKGROUND */}
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">{t.dashboard}</h1>
-            <p className="text-slate-500 dark:text-slate-300 mt-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white tracking-tight">{t.dashboard}</h1>
+            <p className="text-slate-500 dark:text-slate-300 mt-1 md:mt-2 text-sm md:text-base">
                 {t.welcome}, {user?.full_name}.
             </p>
         </div>
       </header>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Active Incidents - Scroll to Blotter */}
         <div 
             onClick={scrollToBlotter}
-            className="glass-panel p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group"
+            className="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group"
         >
-            <div className="p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-2xl group-hover:scale-110 transition-transform">
+            <div className="p-3 md:p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-2xl group-hover:scale-110 transition-transform">
                 <AlertCircle size={24} />
             </div>
             <div>
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.activeIncidents}</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-white">{allActiveIncidents.length}</p>
+                <p className="text-xs md:text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.activeIncidents}</p>
+                <p className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{allActiveIncidents.length}</p>
             </div>
         </div>
 
         {/* Pending Requests - Navigate to Resources */}
         <div 
             onClick={() => navigate('/resources')}
-            className="glass-panel p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group"
+            className="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group"
         >
-            <div className="p-4 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-2xl group-hover:scale-110 transition-transform">
+            <div className="p-3 md:p-4 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-2xl group-hover:scale-110 transition-transform">
                 <Package size={24} />
             </div>
             <div>
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Requests</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-white">{pendingAssets.length}</p>
+                <p className="text-xs md:text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Requests</p>
+                <p className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{pendingAssets.length}</p>
             </div>
         </div>
 
         {/* On Duty - Open Modal */}
         <div 
             onClick={() => setShowOnDutyModal(true)}
-            className="glass-panel p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group"
+            className="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group sm:col-span-2 lg:col-span-1"
         >
-            <div className="p-4 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-2xl group-hover:scale-110 transition-transform relative">
+            <div className="p-3 md:p-4 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-2xl group-hover:scale-110 transition-transform relative">
                 <Users size={24} />
                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-green-500 rounded-full border border-white animate-pulse"></span>
             </div>
             <div>
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.onDuty}</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-white">{onDutyPersonnel.length}</p>
+                <p className="text-xs md:text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.onDuty}</p>
+                <p className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{onDutyPersonnel.length}</p>
             </div>
         </div>
       </div>
@@ -265,11 +267,10 @@ const CommandCenter: React.FC = () => {
              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-800 dark:border-white"></div>
          </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             
             {/* LEFT COL: INCIDENTS (Blotter) */}
-            <div className="lg:col-span-2 space-y-6" id="blotter-section">
-                 {/* TEXT COLOR UPDATED TO WHITE */}
+            <div className="xl:col-span-2 space-y-6" id="blotter-section">
                  <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center justify-between">
                     {t.recentEntries}
                  </h2>
@@ -284,10 +285,10 @@ const CommandCenter: React.FC = () => {
                     )}
 
                     {dashboardListIncidents.slice(0, 10).map((incident) => (
-                        <div key={incident.id} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 transition-all hover:shadow-lg">
-                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                        <div key={incident.id} className="glass-panel p-5 md:p-6 rounded-3xl border border-white/60 dark:border-white/10 transition-all hover:shadow-lg">
+                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 md:gap-6">
                                 <div className="flex-1 space-y-3">
-                                    <div className="flex items-center space-x-3">
+                                    <div className="flex flex-wrap items-center gap-2">
                                         <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-bold">{incident.case_number}</span>
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getStatusColor(incident.status)}`}>
                                         {incident.status}
@@ -296,23 +297,21 @@ const CommandCenter: React.FC = () => {
                                             <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-600 text-white shadow-sm">Restricted</span>
                                         )}
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">{incident.type}</h3>
+                                    <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white">{incident.type}</h3>
                                     <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm line-clamp-2 font-medium">{incident.narrative}</p>
-                                    <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 font-bold pt-2">
-                                        <MapPin size={14} className="mr-1" />
-                                        {incident.location}
-                                        <span className="mx-2">•</span>
-                                        <Clock size={14} className="mr-1" />
-                                        {new Date(incident.created_at).toLocaleString()}
+                                    <div className="flex flex-wrap items-center text-xs text-slate-500 dark:text-slate-400 font-bold pt-2 gap-2">
+                                        <span className="flex items-center"><MapPin size={14} className="mr-1" />{incident.location}</span>
+                                        <span className="hidden md:inline">•</span>
+                                        <span className="flex items-center"><Clock size={14} className="mr-1" />{new Date(incident.created_at).toLocaleString()}</span>
                                     </div>
                                 </div>
                                 
                                 {/* Right Column: Admin Actions & Dispatch */}
-                                <div className="md:w-60 flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-700 pt-4 md:pt-0 md:pl-6 flex flex-col justify-between">
+                                <div className="w-full md:w-60 flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-700 pt-4 md:pt-0 md:pl-6 flex flex-col gap-3">
                                     
                                     {/* SUPERVISOR EDIT ACTIONS */}
                                     {user?.role === 'supervisor' && (
-                                        <div className="flex space-x-2 mb-4">
+                                        <div className="flex space-x-2">
                                             <button 
                                                 onClick={() => setEditingIncident(incident)}
                                                 className="flex-1 flex items-center justify-center space-x-1 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-xl text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
@@ -337,7 +336,7 @@ const CommandCenter: React.FC = () => {
                                         <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
                                             <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Dispatch Unit</p>
                                             <div className="flex items-center space-x-2 mb-2">
-                                                <Car size={16} className="text-slate-600 dark:text-slate-300"/>
+                                                <Car size={16} className="text-slate-600 dark:text-slate-300 flex-shrink-0"/>
                                                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{incident.dispatch_logs[0].unit_name}</span>
                                             </div>
                                             <button
@@ -386,7 +385,7 @@ const CommandCenter: React.FC = () => {
                             <div key={log.id} className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-lg transition-all group">
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex items-center space-x-3">
-                                        <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400 flex items-center justify-center flex-shrink-0">
                                             <Car size={20} />
                                         </div>
                                         <div>

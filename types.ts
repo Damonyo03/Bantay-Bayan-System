@@ -17,6 +17,7 @@ export interface UserProfile {
   role: UserRole;
   status: UserStatus;
   badge_number: string;
+  avatar_url?: string; // New field for profile picture
   last_active_at: string;
 }
 
@@ -72,6 +73,19 @@ export interface AssetRequest {
   updated_at: string;
   // Joined fields
   logger_name?: string; 
+}
+
+export interface CCTVRequest {
+  id: string;
+  request_number: string;
+  requester_name: string;
+  contact_info?: string;
+  incident_type: string;
+  incident_date: string;
+  incident_time: string;
+  location: string;
+  purpose: string;
+  created_at: string;
 }
 
 export interface PersonnelSchedule {

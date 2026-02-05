@@ -1,9 +1,13 @@
 
 import React, { useState, useRef } from 'react';
-import { Video, Printer, Save, CheckSquare, Square, RefreshCcw, Calendar, Clock, Shield } from 'lucide-react';
+import { supabaseService } from '../services/supabaseService';
+import { Video, Printer, CheckSquare, Square, RefreshCcw, Calendar, Clock, Shield, Save } from 'lucide-react';
 import { generateCCTVForm } from '../utils/pdfGenerator';
+import { useToast } from '../contexts/ToastContext';
 
 const CCTVRequestForm: React.FC = () => {
+  const { showToast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     lastName: '',
     firstName: '',
@@ -46,7 +50,7 @@ const CCTVRequestForm: React.FC = () => {
       setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handlePrint = (e: React.FormEvent) => {
+  const handleProcess = async (e: React.FormEvent) => {
       e.preventDefault();
       
       if (!hasConsented) {
@@ -54,11 +58,41 @@ const CCTVRequestForm: React.FC = () => {
           return;
       }
 
-      if (!formData.lastName || !formData.firstName || !formData.dateOfIncident) {
-          alert("Please fill in the required fields (Name, Incident Date)");
+      if (!formData.lastName || !formData.firstName || !formData.dateOfIncident || !formData.purpose) {
+          alert("Please fill in the required fields (Name, Incident Date, Purpose)");
           return;
       }
-      generateCCTVForm(formData);
+
+      setIsSubmitting(true);
+      try {
+          // 1. Construct payload for DB
+          // Combine incident types into a single string for storage
+          let incidentTypeStr = formData.incidentTypes.join(', ');
+          if (formData.others) incidentTypeStr += (incidentTypeStr ? ', ' : '') + formData.others;
+
+          const payload = {
+              requester_name: `${formData.lastName}, ${formData.firstName} ${formData.middleInitial}`,
+              contact_info: '', // Form doesn't have contact info field currently, defaulting blank or adding it
+              incident_type: incidentTypeStr || 'Unspecified',
+              incident_date: formData.dateOfIncident,
+              incident_time: formData.timeOfIncident,
+              location: formData.placeOfIncident,
+              purpose: formData.purpose
+          };
+
+          // 2. Save to Supabase
+          await supabaseService.createCCTVRequest(payload);
+          showToast("Request saved to digital records", "success");
+
+          // 3. Generate PDF
+          generateCCTVForm(formData);
+
+      } catch (error: any) {
+          console.error(error);
+          showToast("Failed to save record: " + error.message, "error");
+      } finally {
+          setIsSubmitting(false);
+      }
   };
 
   const handleReset = () => {
@@ -105,7 +139,7 @@ const CCTVRequestForm: React.FC = () => {
     <div className="max-w-4xl mx-auto pb-20 animate-fade-in">
       <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
-            {/* Dark text for Light mode visibility */}
+            {/* Dark text for Light mode visibility, White for Dark mode */}
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center">
                 <Video className="mr-3 text-red-500 dark:text-red-400" />
                 CCTV Request Form
@@ -118,7 +152,7 @@ const CCTVRequestForm: React.FC = () => {
         
         {/* Requester Info */}
         <section>
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Requester Information</h3>
+            <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Requester Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 <div className="md:col-span-5">
                     <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Last Name</label>
@@ -155,7 +189,7 @@ const CCTVRequestForm: React.FC = () => {
                     <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">House No. & Street</label>
                     <input 
                         type="text"
-                        className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white"
+                        className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white placeholder:text-slate-400"
                         value={formData.street}
                         onChange={e => handleChange('street', e.target.value)}
                         placeholder="e.g. 123 Kalayaan St."
@@ -186,7 +220,7 @@ const CCTVRequestForm: React.FC = () => {
 
         {/* Incident Type */}
         <section>
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Incident Type</h3>
+            <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Incident Type</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {INCIDENT_OPTIONS.map(option => (
                     <div 
@@ -216,16 +250,16 @@ const CCTVRequestForm: React.FC = () => {
 
         {/* Incident Details */}
         <section>
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Incident Details</h3>
+            <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Incident Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Date of Incident</label>
                     <div className="relative" onClick={(e) => openPicker(e, dateInputRef)}>
-                        <Calendar className="absolute left-3 top-3.5 text-gray-400 pointer-events-none" size={18} />
+                        <Calendar className="absolute left-3 top-3.5 text-slate-600 dark:text-gray-400 pointer-events-none" size={18} />
                         <input 
                             ref={dateInputRef}
                             type="date"
-                            className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white font-medium cursor-pointer"
+                            className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white font-medium cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
                             value={formData.dateOfIncident}
                             onChange={e => handleChange('dateOfIncident', e.target.value)}
                         />
@@ -234,11 +268,11 @@ const CCTVRequestForm: React.FC = () => {
                 <div>
                     <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Time of Incident</label>
                     <div className="relative" onClick={(e) => openPicker(e, timeInputRef)}>
-                        <Clock className="absolute left-3 top-3.5 text-gray-400 pointer-events-none" size={18} />
+                        <Clock className="absolute left-3 top-3.5 text-slate-600 dark:text-gray-400 pointer-events-none" size={18} />
                         <input 
                             ref={timeInputRef}
                             type="time"
-                            className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white font-medium cursor-pointer"
+                            className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white font-medium cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
                             value={formData.timeOfIncident}
                             onChange={e => handleChange('timeOfIncident', e.target.value)}
                         />
@@ -248,7 +282,7 @@ const CCTVRequestForm: React.FC = () => {
                     <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Place of Incident</label>
                     <input 
                         type="text"
-                        className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white"
+                        className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white placeholder:text-slate-400"
                         value={formData.placeOfIncident}
                         onChange={e => handleChange('placeOfIncident', e.target.value)}
                         placeholder="Specific location or landmarks"
@@ -257,7 +291,7 @@ const CCTVRequestForm: React.FC = () => {
                 <div className="md:col-span-2">
                     <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Purpose of Request</label>
                     <textarea 
-                        className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 h-24 resize-none text-slate-800 dark:text-white"
+                        className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 h-24 resize-none text-slate-800 dark:text-white placeholder:text-slate-400"
                         value={formData.purpose}
                         onChange={e => handleChange('purpose', e.target.value)}
                         placeholder="Reason for requesting footage..."
@@ -291,16 +325,22 @@ const CCTVRequestForm: React.FC = () => {
                 <span>Reset Form</span>
             </button>
             <button 
-                onClick={handlePrint}
-                disabled={!hasConsented}
+                onClick={handleProcess}
+                disabled={!hasConsented || isSubmitting}
                 className={`px-8 py-4 rounded-xl font-bold flex items-center space-x-2 shadow-lg transition-all ${
                     hasConsented 
                     ? 'bg-slate-900 dark:bg-blue-600 text-white hover:bg-black dark:hover:bg-blue-700 hover:scale-105 shadow-slate-900/20' 
                     : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
                 }`}
             >
-                <Printer size={20} />
-                <span>Generate & Print Form</span>
+                {isSubmitting ? (
+                    <span>Processing...</span>
+                ) : (
+                    <>
+                        <Save size={20} />
+                        <span>Save & Print</span>
+                    </>
+                )}
             </button>
         </div>
 

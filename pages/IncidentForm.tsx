@@ -122,26 +122,26 @@ const IncidentForm: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Category (Uri)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2 ml-1">Category (Uri)</label>
                 <select 
                   className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-slate-500/20 outline-none transition-all font-medium text-slate-800 dark:text-white"
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as IncidentType })}
                 >
-                  <option>Medical</option>
-                  <option>Fire</option>
-                  <option>Theft</option>
-                  <option>Disturbance</option>
-                  <option>Traffic</option>
-                  <option>Other</option>
+                  <option className="dark:text-slate-900">Medical</option>
+                  <option className="dark:text-slate-900">Fire</option>
+                  <option className="dark:text-slate-900">Theft</option>
+                  <option className="dark:text-slate-900">Disturbance</option>
+                  <option className="dark:text-slate-900">Traffic</option>
+                  <option className="dark:text-slate-900">Other</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Location (Lugar)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2 ml-1">Location (Lugar)</label>
                 <input 
                   type="text" 
-                  className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-slate-500/20 outline-none text-slate-800 dark:text-white"
+                  className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-slate-500/20 outline-none text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   placeholder="Street, Block, Lot"
@@ -149,15 +149,15 @@ const IncidentForm: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Action Taken</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2 ml-1">Action Taken</label>
                 <select 
                   className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-slate-500/20 outline-none text-slate-800 dark:text-white"
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                 >
-                  <option value="Pending">Record Only (Pending)</option>
-                  <option value="Dispatched">Dispatch Patrol</option>
-                  <option value="Resolved">Amicably Settled</option>
+                  <option value="Pending" className="dark:text-slate-900">Record Only (Pending)</option>
+                  <option value="Dispatched" className="dark:text-slate-900">Dispatch Patrol</option>
+                  <option value="Resolved" className="dark:text-slate-900">Amicably Settled</option>
                 </select>
               </div>
 
@@ -181,9 +181,9 @@ const IncidentForm: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Narrative (Salaysay)</label>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2 ml-1">Narrative (Salaysay)</label>
               <textarea 
-                className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 h-40 focus:ring-2 focus:ring-slate-500/20 outline-none resize-none font-normal leading-relaxed text-slate-800 dark:text-white"
+                className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 h-40 focus:ring-2 focus:ring-slate-500/20 outline-none resize-none font-normal leading-relaxed text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 value={formData.narrative}
                 onChange={(e) => setFormData({ ...formData, narrative: e.target.value })}
                 placeholder="State the facts clearly..."
@@ -220,7 +220,7 @@ const IncidentForm: React.FC = () => {
 
             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {parties.length === 0 && (
-                <div className="text-center py-12 text-slate-400 border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-2xl bg-gray-50/50 dark:bg-slate-800/50">
+                <div className="text-center py-12 text-slate-400 dark:text-slate-500 border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-2xl bg-gray-50/50 dark:bg-slate-800/50">
                   No parties recorded.
                 </div>
               )}
@@ -236,17 +236,17 @@ const IncidentForm: React.FC = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <div className="md:col-span-4">
-                      <label className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase mb-1 block">Full Name</label>
+                      <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Full Name</label>
                       <input 
                         type="text" 
                         value={party.name}
                         onChange={(e) => handlePartyChange(idx, 'name', e.target.value)}
-                        className="w-full bg-white/80 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none font-semibold text-slate-800 dark:text-white"
+                        className="w-full bg-white/80 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none font-semibold text-slate-800 dark:text-white placeholder:text-slate-400"
                         placeholder="Last, First MI"
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase mb-1 block">Age</label>
+                      <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Age</label>
                       <input 
                         type="number" 
                         value={party.age || ''}
@@ -255,36 +255,36 @@ const IncidentForm: React.FC = () => {
                       />
                     </div>
                     <div className="md:col-span-3">
-                      <label className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase mb-1 block">Role</label>
+                      <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Role</label>
                       <select 
                         value={party.role}
                         onChange={(e) => handlePartyChange(idx, 'role', e.target.value)}
                         className="w-full bg-white/80 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-slate-800 dark:text-white"
                       >
-                        <option>Complainant</option>
-                        <option>Respondent</option>
-                        <option>Suspect</option>
-                        <option>Witness</option>
-                        <option>Victim</option>
+                        <option className="dark:text-slate-900">Complainant</option>
+                        <option className="dark:text-slate-900">Respondent</option>
+                        <option className="dark:text-slate-900">Suspect</option>
+                        <option className="dark:text-slate-900">Witness</option>
+                        <option className="dark:text-slate-900">Victim</option>
                       </select>
                     </div>
                     <div className="md:col-span-3">
-                        <label className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase mb-1 block">Contact #</label>
+                        <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Contact #</label>
                         <input 
                             type="text" 
                             value={party.contact_info || ''}
                             onChange={(e) => handlePartyChange(idx, 'contact_info', e.target.value)}
-                            className="w-full bg-white/80 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-slate-800 dark:text-white"
+                            className="w-full bg-white/80 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-slate-800 dark:text-white placeholder:text-slate-400"
                             placeholder="0912..."
                         />
                     </div>
                     <div className="md:col-span-12">
-                      <label className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase mb-1 block">Statement / Remarks</label>
+                      <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Statement / Remarks</label>
                       <input 
                         type="text" 
                         value={party.statement}
                         onChange={(e) => handlePartyChange(idx, 'statement', e.target.value)}
-                        className="w-full bg-white/80 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-slate-800 dark:text-white"
+                        className="w-full bg-white/80 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-slate-800 dark:text-white placeholder:text-slate-400"
                         placeholder="Initial statement..."
                       />
                     </div>

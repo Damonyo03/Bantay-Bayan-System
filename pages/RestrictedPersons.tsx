@@ -77,9 +77,9 @@ const RestrictedPersons: React.FC = () => {
 
                                 <div className="space-y-3">
                                     <div className="bg-white/50 dark:bg-white/5 p-3 rounded-xl border border-gray-200 dark:border-slate-700">
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Involved In</p>
-                                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{person.incidents?.type}</p>
-                                        <div className="flex items-center text-xs text-slate-500 mt-1">
+                                        <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">Involved In</p>
+                                        <p className="text-sm font-semibold text-slate-800 dark:text-white">{person.incidents?.type}</p>
+                                        <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1">
                                             <FileText size={12} className="mr-1"/>
                                             <span className="font-mono">{person.incidents?.case_number}</span>
                                         </div>

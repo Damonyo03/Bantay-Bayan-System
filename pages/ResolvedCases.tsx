@@ -1,28 +1,41 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabaseService } from '../services/supabaseService';
-import { IncidentWithDetails } from '../types';
+import { IncidentWithDetails, CCTVRequest } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { Archive, MapPin, Clock, Printer, RotateCcw, AlertTriangle, CheckCircle, FileCheck } from 'lucide-react';
+import { Archive, MapPin, Clock, Printer, RotateCcw, FileCheck, Video, Search, Filter, FolderOpen, Calendar, User, Eye, ArrowUpDown } from 'lucide-react';
 import { generateOfficialReport } from '../utils/pdfGenerator';
 import { supabase } from '../lib/supabaseClient';
+
+type TabType = 'incidents' | 'cctv';
+type SortOption = 'date_desc' | 'date_asc' | 'case_asc' | 'case_desc';
 
 const ResolvedCases: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { showToast } = useToast();
   
+  const [activeTab, setActiveTab] = useState<TabType>('incidents');
   const [archives, setArchives] = useState<IncidentWithDetails[]>([]);
+  const [cctvRequests, setCctvRequests] = useState<CCTVRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Sorting and Filtering
+  const [filterType, setFilterType] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortOption, setSortOption] = useState<SortOption>('date_desc');
 
   const fetchArchives = async () => {
       setIsLoading(true);
       try {
-          // Fetch both Resolved and Closed
-          const data = await supabaseService.getIncidentsByStatus(['Resolved', 'Closed']);
-          setArchives(data);
+          const [incidentData, cctvData] = await Promise.all([
+              supabaseService.getIncidentsByStatus(['Resolved', 'Closed']),
+              supabaseService.getCCTVRequests()
+          ]);
+          setArchives(incidentData);
+          setCctvRequests(cctvData);
       } catch (error) {
           console.error("Failed to fetch archives", error);
       } finally {
@@ -33,10 +46,10 @@ const ResolvedCases: React.FC = () => {
   useEffect(() => {
     fetchArchives();
 
-    // Subscribe to changes in incidents so if a case is resolved, it appears here immediately
     const channel = supabase
       .channel('archives_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, () => fetchArchives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cctv_requests' }, () => fetchArchives())
       .subscribe();
 
     return () => {
@@ -50,7 +63,6 @@ const ResolvedCases: React.FC = () => {
       try {
           await supabaseService.updateIncident(incident.id, { status: 'Pending' });
           showToast("Case reopened and moved to Active Dashboard", "success");
-          // Explicitly refresh to ensure UI updates immediately
           fetchArchives();
       } catch (err: any) {
           console.error(err);
@@ -58,38 +70,159 @@ const ResolvedCases: React.FC = () => {
       }
   };
 
+  // --- FILTER & SORT LOGIC ---
+  const getFilteredData = () => {
+      let data: any[] = [];
+
+      // 1. Filter
+      if (activeTab === 'incidents') {
+          data = archives.filter(item => {
+              const matchesType = filterType === 'All' || item.type === filterType;
+              const matchesSearch = item.narrative.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                    item.case_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    item.location.toLowerCase().includes(searchQuery.toLowerCase());
+              return matchesType && matchesSearch;
+          });
+      } else {
+          data = cctvRequests.filter(item => {
+              const matchesType = filterType === 'All' || item.incident_type.includes(filterType);
+              const matchesSearch = item.requester_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    item.purpose.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    item.request_number.toLowerCase().includes(searchQuery.toLowerCase());
+              return matchesType && matchesSearch;
+          });
+      }
+
+      // 2. Sort
+      return data.sort((a, b) => {
+          if (sortOption === 'date_desc') {
+              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          }
+          if (sortOption === 'date_asc') {
+              return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          }
+          
+          const numA = activeTab === 'incidents' ? (a as IncidentWithDetails).case_number : (a as CCTVRequest).request_number;
+          const numB = activeTab === 'incidents' ? (b as IncidentWithDetails).case_number : (b as CCTVRequest).request_number;
+
+          if (sortOption === 'case_asc') {
+              return numA.localeCompare(numB);
+          }
+          if (sortOption === 'case_desc') {
+              return numB.localeCompare(numA);
+          }
+          return 0;
+      });
+  };
+
+  const getIncidentOptions = () => ['Medical', 'Fire', 'Theft', 'Disturbance', 'Traffic', 'Other'];
+
   return (
     <div className="space-y-8 pb-20 animate-fade-in">
-      <header>
-        {/* Dark Text for Light Mode */}
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center">
-            <Archive className="mr-3 text-green-500 dark:text-green-400" />
-            {t.archives}
-        </h1>
-        <p className="text-slate-600 dark:text-slate-300 mt-2">{t.resolvedCasesDesc}</p>
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center">
+                <FolderOpen className="mr-3 text-slate-600 dark:text-slate-400" />
+                Digital Records Storage
+            </h1>
+            <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm md:text-base">Centralized archive for resolved incidents and CCTV logs.</p>
+        </div>
+        
+        {/* TABS */}
+        <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-xl flex space-x-1 w-full md:w-auto">
+            <button 
+                onClick={() => { setActiveTab('incidents'); setFilterType('All'); }}
+                className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center ${
+                    activeTab === 'incidents' 
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+            >
+                <Archive size={16} className="mr-2" />
+                Incidents
+            </button>
+            <button 
+                onClick={() => { setActiveTab('cctv'); setFilterType('All'); }}
+                className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center ${
+                    activeTab === 'cctv' 
+                    ? 'bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 shadow-sm' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+            >
+                <Video size={16} className="mr-2" />
+                CCTV
+            </button>
+        </div>
       </header>
+
+      {/* FILTER & SORT BAR */}
+      <div className="glass-panel p-4 rounded-2xl border border-white/60 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center">
+          {/* Search */}
+          <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+              <input 
+                  type="text" 
+                  placeholder="Search case #, names, or details..." 
+                  className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+              />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                {/* Filter */}
+                <div className="flex items-center space-x-3 w-full sm:w-auto">
+                    <Filter size={18} className="text-gray-400" />
+                    <span className="text-sm font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">Filter:</span>
+                    <select 
+                        value={filterType}
+                        onChange={(e) => setFilterType(e.target.value)}
+                        className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 px-4 outline-none text-sm font-bold text-slate-900 dark:text-white w-full sm:w-48 transition-colors cursor-pointer"
+                    >
+                        <option value="All" className="dark:bg-slate-800">All Types</option>
+                        {getIncidentOptions().map(opt => <option key={opt} value={opt} className="dark:bg-slate-800">{opt}</option>)}
+                    </select>
+                </div>
+
+                {/* Sort */}
+                <div className="flex items-center space-x-3 w-full sm:w-auto">
+                    <ArrowUpDown size={18} className="text-gray-400" />
+                    <span className="text-sm font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">Sort:</span>
+                    <select 
+                        value={sortOption}
+                        onChange={(e) => setSortOption(e.target.value as SortOption)}
+                        className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 px-4 outline-none text-sm font-bold text-slate-900 dark:text-white w-full sm:w-48 transition-colors cursor-pointer"
+                    >
+                        <option value="date_desc" className="dark:bg-slate-800">Date (Newest)</option>
+                        <option value="date_asc" className="dark:bg-slate-800">Date (Oldest)</option>
+                        <option value="case_asc" className="dark:bg-slate-800">{activeTab === 'incidents' ? 'Case #' : 'Request #'} (Asc)</option>
+                        <option value="case_desc" className="dark:bg-slate-800">{activeTab === 'incidents' ? 'Case #' : 'Request #'} (Desc)</option>
+                    </select>
+                </div>
+          </div>
+      </div>
 
       {isLoading ? (
          <div className="flex items-center justify-center h-64">
              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-800 dark:border-white"></div>
          </div>
       ) : (
-        <div className="grid gap-6">
-            {archives.length === 0 && (
-                <div className="glass-panel p-12 text-center rounded-3xl border-dashed border-gray-300 dark:border-slate-700 text-slate-400">
+        <div className="space-y-6">
+            {getFilteredData().length === 0 && (
+                <div className="glass-panel p-16 text-center rounded-3xl border-dashed border-gray-300 dark:border-slate-700 text-slate-400">
                     <FileCheck size={48} className="mx-auto mb-4 opacity-30" />
-                    <p>No resolved or closed cases found.</p>
+                    <p>No records found matching your criteria.</p>
                 </div>
             )}
 
-            {archives.map((incident) => (
-                <div key={incident.id} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-lg transition-all relative overflow-hidden">
-                    {/* Status Strip */}
+            {/* INCIDENTS LIST */}
+            {activeTab === 'incidents' && (getFilteredData() as IncidentWithDetails[]).map((incident) => (
+                <div key={incident.id} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-lg transition-all relative overflow-hidden group">
                     <div className={`absolute left-0 top-0 bottom-0 w-2 ${incident.status === 'Resolved' ? 'bg-green-500' : 'bg-gray-500'}`} />
 
                     <div className="pl-4 flex flex-col lg:flex-row justify-between lg:items-center gap-6">
                         <div className="flex-1 space-y-2">
-                            <div className="flex items-center space-x-3 mb-2">
+                            <div className="flex items-center space-x-3 mb-2 flex-wrap">
                                 <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">{incident.case_number}</span>
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
                                     incident.status === 'Resolved' 
@@ -108,14 +241,14 @@ const ResolvedCases: React.FC = () => {
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white">{incident.type}</h3>
                             <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed max-w-2xl">{incident.narrative}</p>
                             
-                            <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 font-bold pt-2 space-x-4">
+                            <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 font-bold pt-2 space-x-4 flex-wrap">
                                 <span className="flex items-center"><MapPin size={14} className="mr-1" />{incident.location}</span>
                                 <span className="flex items-center"><Clock size={14} className="mr-1" />{new Date(incident.created_at).toLocaleDateString()}</span>
                                 <span className="flex items-center px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-md">Officer: {incident.officer_name}</span>
                             </div>
                         </div>
 
-                        <div className="flex flex-row lg:flex-col space-x-3 lg:space-x-0 lg:space-y-3 shrink-0">
+                        <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
                             <button 
                                 onClick={() => generateOfficialReport(incident)}
                                 className="flex-1 lg:w-40 flex items-center justify-center space-x-2 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
@@ -133,6 +266,44 @@ const ResolvedCases: React.FC = () => {
                                     <span>{t.reopenCase}</span>
                                 </button>
                             )}
+                        </div>
+                    </div>
+                </div>
+            ))}
+
+            {/* CCTV LOGS LIST */}
+            {activeTab === 'cctv' && (getFilteredData() as CCTVRequest[]).map((req) => (
+                <div key={req.id} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-lg transition-all relative group">
+                    <div className="absolute left-0 top-0 bottom-0 w-2 bg-red-500" />
+                    
+                    <div className="pl-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2 flex-wrap">
+                                <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">{req.request_number}</span>
+                                <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase">CCTV Request</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <User size={18} className="text-slate-400" />
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{req.requester_name}</h3>
+                            </div>
+                            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 italic">"{req.purpose}"</p>
+                            
+                            <div className="flex flex-wrap gap-4 mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                <span className="flex items-center bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded">
+                                    <Eye size={12} className="mr-1" /> Type: {req.incident_type}
+                                </span>
+                                <span className="flex items-center bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded">
+                                    <Calendar size={12} className="mr-1" /> {req.incident_date} {req.incident_time}
+                                </span>
+                                <span className="flex items-center bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded">
+                                    <MapPin size={12} className="mr-1" /> {req.location}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div className="shrink-0 text-left md:text-right">
+                            <span className="text-xs text-gray-400 font-mono block mb-1">Filed On</span>
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{new Date(req.created_at).toLocaleDateString()}</span>
                         </div>
                     </div>
                 </div>
