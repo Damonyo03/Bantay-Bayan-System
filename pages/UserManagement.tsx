@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, Wand2 } from 'lucide-react';
+import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, CalendarRange, CheckCircle } from 'lucide-react';
 
 // Helper to get YYYY-MM-DD in local time
 const getLocalDateStr = (date: Date) => {
@@ -19,7 +19,7 @@ const getLocalDateStr = (date: Date) => {
 const UserManagement: React.FC = () => {
   const { t } = useLanguage();
   const { showToast } = useToast();
-  const { user } = useAuth();
+  const { user } = useAuth(); // Current logged-in user
   
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,8 +28,12 @@ const UserManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'personnel' | 'pending' | 'roster'>('roster');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Roster State
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // Roster State - Initialize to start of today (midnight)
+  const [currentDate, setCurrentDate] = useState(() => {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d;
+  });
   const [schedules, setSchedules] = useState<PersonnelSchedule[]>([]);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [rosterError, setRosterError] = useState<string | null>(null);
@@ -37,10 +41,17 @@ const UserManagement: React.FC = () => {
   // Today's schedule for status checks
   const [todaySchedule, setTodaySchedule] = useState<PersonnelSchedule[]>([]);
 
-  // Edit Schedule Modal
+  // Edit Schedule Modal (Single Cell)
   const [editingSchedule, setEditingSchedule] = useState<{userId: string, date: Date, name: string} | null>(null);
   const [newShift, setNewShift] = useState<ShiftType>('1st');
   const [newStatus, setNewStatus] = useState<DutyStatus>('On Duty');
+
+  // Bulk Schedule Modal State
+  const [bulkUser, setBulkUser] = useState<{id: string, name: string} | null>(null);
+  const [bulkConfig, setBulkConfig] = useState({
+      shift: '1st' as ShiftType,
+      daysOff: [] as string[] // Array of day names e.g. ['Sunday']
+  });
 
   // Create User Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,30 +69,33 @@ const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [editFormData, setEditFormData] = useState({
       full_name: '',
-      badge_number: '',
-      preferred_shift: '1st',
-      preferred_day_off: 'Sunday'
+      badge_number: ''
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  // 1. Set Initial Tab based on Role (Run once when user loads)
   useEffect(() => {
-    // If supervisor, default to personnel directory, else roster
     if (user?.role === 'supervisor') {
         setActiveTab('personnel');
     } else {
         setActiveTab('roster');
     }
+  }, [user]);
 
+  // 2. Data Fetching & Subscriptions
+  useEffect(() => {
     fetchUsers();
     fetchTodaySchedule();
     
     const interval = setInterval(fetchTodaySchedule, 60000);
 
     const channel = supabase
-        .channel('users_realtime')
+        .channel('users_management_realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
             fetchUsers();
             if (payload.eventType === 'INSERT') {
@@ -91,14 +105,18 @@ const UserManagement: React.FC = () => {
                 }
             }
         })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'personnel_schedules' }, () => {
+            fetchTodaySchedule();
+        })
         .subscribe();
 
     return () => {
         clearInterval(interval);
         supabase.removeChannel(channel);
     };
-  }, []);
+  }, []); 
 
+  // 3. Fetch Schedules when switching to Roster or Changing Dates
   useEffect(() => {
       if (activeTab === 'roster') {
           fetchSchedules();
@@ -158,12 +176,20 @@ const UserManagement: React.FC = () => {
 
   // --- ROSTER LOGIC ---
   const getWeekRange = (date: Date) => {
+      // Ensure we work with a midnight-normalized start date
       const start = new Date(date);
-      const day = start.getDay(); 
+      start.setHours(0, 0, 0, 0);
+      
+      const day = start.getDay(); // 0 = Sunday
+      // Logic: Start week on Monday
       const diff = start.getDate() - (day === 0 ? 6 : day - 1);
+      
       start.setDate(diff);
+      
       const end = new Date(start);
-      end.setDate(end.getDate() + 6);
+      end.setDate(end.getDate() + 6); // End on Sunday
+      end.setHours(23, 59, 59, 999); // Include full end day
+      
       return { start, end };
   };
 
@@ -234,24 +260,71 @@ const UserManagement: React.FC = () => {
           });
           showToast("Schedule updated", "success");
           setEditingSchedule(null);
-          fetchSchedules();
-          fetchTodaySchedule();
+          fetchSchedules(); 
       } catch (error) {
           showToast("Failed to save schedule", "error");
       }
   };
 
-  const handleAutoSchedule = async () => {
-      if (!confirm("This will overwrite the schedule for the currently displayed week based on user preferences. Continue?")) return;
-      
+  // --- BULK SCHEDULE LOGIC (ADMIN ONLY) ---
+  const handleOpenBulk = (u: UserProfile) => {
+      // STRICT CHECK: Only supervisor can open this
+      if (user?.role !== 'supervisor') {
+          showToast("Unauthorized: Access Restricted to Admin.", "error");
+          return;
+      }
+      setBulkUser({ id: u.id, name: u.full_name });
+      setBulkConfig({ shift: '1st', daysOff: ['Sunday'] });
+  };
+
+  const toggleDayOff = (day: string) => {
+      setBulkConfig(prev => {
+          if (prev.daysOff.includes(day)) {
+              return { ...prev, daysOff: prev.daysOff.filter(d => d !== day) };
+          } else {
+              return { ...prev, daysOff: [...prev.daysOff, day] };
+          }
+      });
+  };
+
+  const handleBulkApply = async () => {
+      if (!bulkUser) return;
+      // Double check permission before saving
+      if (user?.role !== 'supervisor') return;
+
       setRosterLoading(true);
       try {
           const { start, end } = getWeekRange(currentDate);
-          await supabaseService.generateWeeklySchedule(start, end);
-          showToast("Schedule auto-generated successfully!", "success");
+          const schedulesPayload: Partial<PersonnelSchedule>[] = [];
+          
+          // Loop through the displayed week
+          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+              const dateStr = getLocalDateStr(d);
+              const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+              
+              let status = 'On Duty';
+              let shift = bulkConfig.shift;
+
+              if (bulkConfig.daysOff.includes(dayName)) {
+                  status = 'Day Off';
+              } else if (dayName === 'Saturday') {
+                  status = 'Road Clearing'; // Override for Saturday Policy
+              }
+
+              schedulesPayload.push({
+                  user_id: bulkUser.id,
+                  date: dateStr,
+                  status: status as DutyStatus,
+                  shift: shift
+              });
+          }
+
+          await supabaseService.saveBatchSchedules(schedulesPayload);
+          showToast("Weekly schedule applied.", "success");
+          setBulkUser(null);
           fetchSchedules();
-      } catch (error: any) {
-          showToast("Failed to auto-schedule: " + error.message, "error");
+      } catch (e: any) {
+          showToast("Failed to apply schedule", "error");
       } finally {
           setRosterLoading(false);
       }
@@ -290,7 +363,6 @@ const UserManagement: React.FC = () => {
       try {
         await supabaseService.updateUserStatus(id, newStatus);
         showToast(`User ${newStatus === 'active' ? 'activated' : 'deactivated'}.`, "success");
-        // Refetch to ensure UI is in sync
         fetchUsers();
       } catch (error) {
         showToast("Failed to update status", "error");
@@ -308,13 +380,11 @@ const UserManagement: React.FC = () => {
 
       setIsCreating(true);
       try {
-          // Check username availability locally first to save a network call/error
           const exists = users.some(u => u.username === newUser.username || u.email === newUser.email);
           if (exists) {
               throw new Error("Username or Email is already in use (checked local cache).");
           }
 
-          // Check against DB via service if RLS allows
           const isTaken = await supabaseService.checkUsernameExists(newUser.username);
           if (isTaken) {
               throw new Error("Username is already taken.");
@@ -329,13 +399,8 @@ const UserManagement: React.FC = () => {
           );
           
           showToast("Account created successfully. User is Pending approval.", "success");
-          
-          // Reset and switch to Pending tab
           setIsModalOpen(false);
           setNewUser({ email: '', username: '', password: '', fullName: '', role: 'field_operator' });
-          
-          // Force refresh (though realtime should handle it)
-          await fetchUsers();
           setActiveTab('pending'); 
           
       } catch (error: any) {
@@ -351,9 +416,7 @@ const UserManagement: React.FC = () => {
       setEditingUser(user);
       setEditFormData({
           full_name: user.full_name,
-          badge_number: user.badge_number || '',
-          preferred_shift: (user.preferred_shift as string) || '1st',
-          preferred_day_off: user.preferred_day_off || 'Sunday'
+          badge_number: user.badge_number || ''
       });
       setImagePreview(user.avatar_url || null);
       setSelectedFile(null);
@@ -368,7 +431,6 @@ const UserManagement: React.FC = () => {
               return;
           }
           setSelectedFile(file);
-          // Create preview
           const reader = new FileReader();
           reader.onloadend = () => {
               setImagePreview(reader.result as string);
@@ -385,26 +447,29 @@ const UserManagement: React.FC = () => {
       try {
           let avatarUrl = editingUser.avatar_url;
 
-          // 1. Upload new image if selected
           if (selectedFile) {
               avatarUrl = await supabaseService.uploadAvatar(editingUser.id, selectedFile);
           }
 
-          // 2. Update profile
+          // Handle badge number uniqueness: convert empty string to null
+          const badgePayload = editFormData.badge_number.trim() === '' ? null : editFormData.badge_number.trim();
+
           await supabaseService.updateProfile(editingUser.id, {
               full_name: editFormData.full_name,
-              badge_number: editFormData.badge_number,
-              avatar_url: avatarUrl,
-              preferred_shift: editFormData.preferred_shift,
-              preferred_day_off: editFormData.preferred_day_off
+              badge_number: badgePayload as string,
+              avatar_url: avatarUrl
           });
 
           showToast("User details updated successfully", "success");
-          fetchUsers(); // Refresh list
+          fetchUsers();
           setIsEditModalOpen(false);
       } catch (error: any) {
           console.error("Update failed", error);
-          showToast(error.message || "Failed to update profile", "error");
+          if (error.message?.includes('badge_number')) {
+              showToast("Badge Number is already in use.", "error");
+          } else {
+              showToast(error.message || "Failed to update profile", "error");
+          }
       } finally {
           setIsSavingEdit(false);
       }
@@ -414,7 +479,6 @@ const UserManagement: React.FC = () => {
   const pendingUsers = users.filter(u => u.status === 'inactive');
   const activeUsers = users.filter(u => u.status === 'active');
   
-  // Filter Logic for Directory
   const filteredUsers = (activeTab === 'pending' ? pendingUsers : activeUsers).filter(u => {
       const q = searchQuery.toLowerCase();
       return u.full_name.toLowerCase().includes(q) || 
@@ -422,6 +486,7 @@ const UserManagement: React.FC = () => {
              u.email.toLowerCase().includes(q);
   });
 
+  // ... (JSX is identical to previous, just wrapped with this logic)
   return (
     <div className="space-y-8 pb-20 animate-fade-in">
       <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
@@ -435,7 +500,6 @@ const UserManagement: React.FC = () => {
             </p>
         </div>
         
-        {/* Only show tab switcher if supervisor */}
         {user?.role === 'supervisor' && (
             <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl w-full xl:w-auto overflow-x-auto no-scrollbar">
                 <button 
@@ -542,48 +606,46 @@ const UserManagement: React.FC = () => {
                             </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
-                            {filteredUsers.map((user) => {
-                                const liveStatus = getUserLiveStatus(user.id);
+                            {filteredUsers.map((rowUser) => {
+                                const liveStatus = getUserLiveStatus(rowUser.id);
                                 return (
-                                <tr key={user.id} className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                                <tr key={rowUser.id} className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                                 <td className="p-5">
                                     <div className="flex items-center space-x-4">
-                                        {/* AVATAR DISPLAY */}
                                         <div className="relative">
-                                            {user.avatar_url ? (
+                                            {rowUser.avatar_url ? (
                                                 <img 
-                                                    src={user.avatar_url} 
-                                                    alt={user.full_name} 
+                                                    src={rowUser.avatar_url} 
+                                                    alt={rowUser.full_name} 
                                                     className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-md"
                                                 />
                                             ) : (
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center text-slate-700 dark:text-white font-bold border-2 border-white dark:border-slate-700 shadow-md">
-                                                    {user.full_name.charAt(0)}
+                                                    {rowUser.full_name.charAt(0)}
                                                 </div>
                                             )}
-                                            {/* Online/Status Indicator Dot */}
-                                            {user.status === 'active' && (
+                                            {rowUser.status === 'active' && (
                                                 <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-slate-800 ${liveStatus.color.replace('text-', 'bg-').split(' ')[0]}`}></span>
                                             )}
                                         </div>
                                         <div>
-                                            <div className="font-bold text-slate-900 dark:text-white text-sm md:text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{user.full_name}</div>
-                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{user.username ? `@${user.username}` : user.email}</div>
+                                            <div className="font-bold text-slate-900 dark:text-white text-sm md:text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{rowUser.full_name}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{rowUser.username ? `@${rowUser.username}` : rowUser.email}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="p-5">
                                     <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
-                                        user.role === 'supervisor' 
+                                        rowUser.role === 'supervisor' 
                                         ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800' 
                                         : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
                                     }`}>
-                                        {user.role === 'supervisor' ? 'Official' : 'Field Operator'}
+                                        {rowUser.role === 'supervisor' ? 'Official' : 'Field Operator'}
                                     </span>
                                 </td>
-                                <td className="p-5 text-slate-700 dark:text-slate-300 font-mono text-sm font-semibold hidden md:table-cell">{user.badge_number || '---'}</td>
+                                <td className="p-5 text-slate-700 dark:text-slate-300 font-mono text-sm font-semibold hidden md:table-cell">{rowUser.badge_number || '---'}</td>
                                 <td className="p-5">
-                                    {user.status === 'active' ? (
+                                    {rowUser.status === 'active' ? (
                                         <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${liveStatus.bg} ${liveStatus.color.replace('text-', 'border-transparent text-')}`}>
                                             <Clock size={12} className="mr-1.5" />
                                             {liveStatus.label}
@@ -597,7 +659,7 @@ const UserManagement: React.FC = () => {
                                 </td>
                                 <td className="p-5 hidden lg:table-cell">
                                     <div className="flex items-center text-sm">
-                                        {user.status === 'active' ? (
+                                        {rowUser.status === 'active' ? (
                                             <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-bold">
                                                 <UserCheck size={16} className="mr-1.5" /> Active
                                             </span>
@@ -610,9 +672,8 @@ const UserManagement: React.FC = () => {
                                 </td>
                                 <td className="p-5 text-right">
                                     <div className="flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                                        {/* EDIT BUTTON */}
                                         <button 
-                                            onClick={() => handleEditUser(user)}
+                                            onClick={() => handleEditUser(rowUser)}
                                             className="p-2 text-slate-500 hover:text-blue-600 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors shadow-sm"
                                             title="Edit Profile"
                                         >
@@ -620,14 +681,14 @@ const UserManagement: React.FC = () => {
                                         </button>
                                         
                                         <button 
-                                            onClick={() => handleToggleStatus(user.id, user.status)}
+                                            onClick={() => handleToggleStatus(rowUser.id, rowUser.status)}
                                             className={`text-xs font-bold px-3 py-2 rounded-lg transition-all shadow-sm border flex items-center justify-center ${
-                                                user.status === 'active' 
+                                                rowUser.status === 'active' 
                                                 ? 'bg-white dark:bg-slate-700 text-red-600 border-gray-200 dark:border-slate-600 hover:bg-red-50 dark:hover:bg-red-900/30' 
                                                 : 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'
                                             }`}
                                         >
-                                            {user.status === 'active' ? 'Deactivate' : 'Approve'}
+                                            {rowUser.status === 'active' ? 'Deactivate' : 'Approve'}
                                         </button>
                                     </div>
                                 </td>
@@ -646,7 +707,7 @@ const UserManagement: React.FC = () => {
           <div className="animate-fade-in">
               <div className="glass-panel p-4 md:p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl overflow-hidden min-h-[600px]">
                   
-                  {/* Enhanced Calendar Header */}
+                  {/* Calendar Header */}
                   <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
                       <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-2xl p-1.5 shadow-inner w-full md:w-auto justify-between">
                           <button onClick={() => changeWeek('prev')} className="p-2 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm transition-all"><ChevronLeft size={20}/></button>
@@ -657,34 +718,6 @@ const UserManagement: React.FC = () => {
                               </span>
                           </div>
                           <button onClick={() => changeWeek('next')} className="p-2 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm transition-all"><ChevronRight size={20}/></button>
-                      </div>
-
-                      {/* Legend & Auto-Fill */}
-                      <div className="flex items-center gap-4">
-                          {user?.role === 'supervisor' && (
-                              <button 
-                                  onClick={handleAutoSchedule}
-                                  className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:bg-indigo-700 transition-transform active:scale-95"
-                                  title="Auto-Assign based on Preferences"
-                              >
-                                  <Wand2 size={16} />
-                                  <span className="hidden sm:inline">Auto-Schedule Week</span>
-                              </button>
-                          )}
-                          <div className="flex flex-wrap justify-center gap-3">
-                              <div className="flex items-center space-x-2 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
-                                  <Moon size={14} className="text-indigo-600 dark:text-indigo-400" />
-                                  <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">1st (12-8)</span>
-                              </div>
-                              <div className="flex items-center space-x-2 bg-sky-50 dark:bg-sky-900/20 px-3 py-1.5 rounded-lg border border-sky-100 dark:border-sky-800">
-                                  <Sun size={14} className="text-sky-600 dark:text-sky-400" />
-                                  <span className="text-xs font-bold text-sky-700 dark:text-sky-300">2nd (8-4)</span>
-                              </div>
-                              <div className="flex items-center space-x-2 bg-violet-50 dark:bg-violet-900/20 px-3 py-1.5 rounded-lg border border-violet-100 dark:border-violet-800">
-                                  <Sunset size={14} className="text-violet-600 dark:text-violet-400" />
-                                  <span className="text-xs font-bold text-violet-700 dark:text-violet-300">3rd (4-12)</span>
-                              </div>
-                          </div>
                       </div>
                   </div>
 
@@ -706,7 +739,7 @@ const UserManagement: React.FC = () => {
                       <table className="w-full border-collapse">
                           <thead>
                               <tr>
-                                  <th className="p-4 text-left min-w-[200px] bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-widest sticky left-0 z-20 border-r border-slate-200 dark:border-slate-700 shadow-[4px_0_10px_-4px_rgba(0,0,0,0.1)] backdrop-blur-md">
+                                  <th className="p-4 text-left min-w-[200px] bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-widest sticky left-0 z-30 border-r border-slate-200 dark:border-slate-700 shadow-[4px_0_10px_-4px_rgba(0,0,0,0.1)] backdrop-blur-md">
                                       Personnel
                                   </th>
                                   {Array.from({length: 7}).map((_, i) => {
@@ -716,7 +749,6 @@ const UserManagement: React.FC = () => {
                                       const todayStr = getLocalDateStr(new Date());
                                       const currentStr = getLocalDateStr(d);
                                       const isToday = todayStr === currentStr;
-                                      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
 
                                       return (
                                           <th key={i} className={`p-4 min-w-[140px] font-bold text-center border-l border-slate-100 dark:border-slate-700 transition-colors relative group
@@ -740,26 +772,38 @@ const UserManagement: React.FC = () => {
                               </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                              {users.filter(u => u.status === 'active').map((user) => (
-                                  <tr key={user.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                              {users.filter(u => u.status === 'active').map((rowUser) => (
+                                  <tr key={rowUser.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                       {/* Sticky Name Column */}
-                                      <td className="p-4 sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-colors">
+                                      <td className="p-4 sticky left-0 z-20 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-colors shadow-[4px_0_10px_-4px_rgba(0,0,0,0.05)]">
                                           <div className="flex items-center space-x-3">
                                               <div className="relative">
-                                                  {user.avatar_url ? (
-                                                      <img src={user.avatar_url} className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-600" alt="" />
+                                                  {rowUser.avatar_url ? (
+                                                      <img src={rowUser.avatar_url} className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-600" alt="" />
                                                   ) : (
                                                       <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs text-slate-600 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-600">
-                                                          {user.full_name.charAt(0)}
+                                                          {rowUser.full_name.charAt(0)}
                                                       </div>
                                                   )}
                                                   {/* Status Dot */}
                                                   <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
                                               </div>
-                                              <div>
-                                                  <div className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate w-32">{user.full_name}</div>
-                                                  <div className="text-[10px] text-slate-400 font-mono tracking-wide">{user.badge_number || 'NO BADGE'}</div>
+                                              <div className="min-w-[120px]">
+                                                  <div className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate w-32">{rowUser.full_name}</div>
+                                                  <div className="text-[10px] text-slate-400 font-mono tracking-wide">{rowUser.badge_number || 'NO BADGE'}</div>
                                               </div>
+                                              
+                                              {/* BULK EDIT BUTTON (Supervisor Only) */}
+                                              {/* GUI FIX: More prominent button, better spacing */}
+                                              {user?.role === 'supervisor' && (
+                                                  <button 
+                                                    onClick={(e) => { e.stopPropagation(); handleOpenBulk(rowUser); }}
+                                                    className="ml-auto p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-all shadow-sm border border-indigo-100 dark:border-indigo-800/50 flex items-center justify-center"
+                                                    title="Plan Week"
+                                                  >
+                                                      <CalendarRange size={16} />
+                                                  </button>
+                                              )}
                                           </div>
                                       </td>
 
@@ -771,9 +815,8 @@ const UserManagement: React.FC = () => {
                                           const currentStr = getLocalDateStr(d);
                                           const isToday = todayStr === currentStr;
 
-                                          const schedule = getScheduleForCell(user.id, i);
+                                          const schedule = getScheduleForCell(rowUser.id, i);
                                           
-                                          // Styling Logic
                                           let content = (
                                               <div className="w-full h-14 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center">
                                                   <span className="text-slate-300 dark:text-slate-600 text-lg opacity-50">+</span>
@@ -800,7 +843,6 @@ const UserManagement: React.FC = () => {
                                                       </div>
                                                   );
                                               } else {
-                                                  // Regular Shift
                                                   let bgClass = "";
                                                   let textClass = "";
                                                   let icon = null;
@@ -838,7 +880,7 @@ const UserManagement: React.FC = () => {
                                           return (
                                               <td 
                                                 key={i} 
-                                                onClick={() => handleCellClick(user.id, i)}
+                                                onClick={() => handleCellClick(rowUser.id, i)}
                                                 className={`p-2 border-l border-slate-100 dark:border-slate-700 transition-all
                                                     ${user?.role === 'supervisor' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800' : ''}
                                                     ${isToday ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}
@@ -860,126 +902,18 @@ const UserManagement: React.FC = () => {
           </div>
       )}
 
-      {/* CREATE USER MODAL */}
-      {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-             <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-lg shadow-2xl overflow-hidden animate-slide-up border border-white/20">
-                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-900/50">
-                    <h3 className="font-bold text-xl text-slate-800 dark:text-white">{t.createAccount}</h3>
-                    <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-200 dark:bg-slate-700 rounded-full hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-600 dark:text-gray-300 transition-colors">
-                        <X size={18} />
-                    </button>
-                 </div>
-                 <form onSubmit={handleCreateUser} className="p-8 space-y-5 max-h-[80vh] overflow-y-auto">
-                    {/* Form content same as before, style tweaks applied globally by glass-panel */}
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.fullName}</label>
-                        <div className="relative group">
-                            <User className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                            <input 
-                                required
-                                type="text"
-                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-semibold transition-all"
-                                value={newUser.fullName}
-                                onChange={e => setNewUser({...newUser, fullName: e.target.value})}
-                                placeholder="e.g., Juan Dela Cruz"
-                            />
-                        </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">Username</label>
-                            <div className="relative group">
-                                <Fingerprint className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                                <input 
-                                    required
-                                    type="text"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-semibold transition-all"
-                                    value={newUser.username}
-                                    onChange={e => setNewUser({...newUser, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')})}
-                                    placeholder="jdelacruz"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.role}</label>
-                            <div className="relative">
-                                <select 
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-4 outline-none text-slate-800 dark:text-white font-semibold appearance-none transition-all focus:ring-2 focus:ring-blue-500/20"
-                                    value={newUser.role}
-                                    onChange={e => setNewUser({...newUser, role: e.target.value})}
-                                >
-                                    <option value="field_operator">Field Operator</option>
-                                    <option value="supervisor">Supervisor / Official</option>
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-500">
-                                    <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
-                                </div>
-                            </div>
-                         </div>
-                    </div>
-                    
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.email}</label>
-                        <div className="relative group">
-                            <Mail className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                            <input 
-                                required
-                                type="email"
-                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-semibold transition-all"
-                                value={newUser.email}
-                                onChange={e => setNewUser({...newUser, email: e.target.value})}
-                                placeholder="official@bantaybayan.gov.ph"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.password}</label>
-                        <div className="relative group">
-                            <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                            <input 
-                                required
-                                type="password"
-                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white transition-all"
-                                value={newUser.password}
-                                onChange={e => setNewUser({...newUser, password: e.target.value})}
-                                placeholder="••••••••"
-                                minLength={8}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="pt-4">
-                        <button 
-                            type="submit"
-                            disabled={isCreating}
-                            className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-500/30 transition-all transform active:scale-[0.98]"
-                        >
-                            {isCreating ? 'Creating Account...' : t.create}
-                        </button>
-                    </div>
-                 </form>
-             </div>
-          </div>
-      )}
-
-      {/* EDIT USER MODAL - Kept mostly same but wrapped in improved container styles above */}
+      {/* Edit User Modal (Cleaned Up) */}
       {isEditModalOpen && editingUser && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
              <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-lg shadow-2xl overflow-hidden animate-slide-up border border-white/20">
                  <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-900/50">
-                    <h3 className="font-bold text-xl text-slate-800 dark:text-white flex items-center">
-                        <Edit size={20} className="mr-2 text-blue-500" />
-                        Edit Profile
-                    </h3>
+                    <h3 className="font-bold text-xl text-slate-800 dark:text-white">Edit Profile</h3>
                     <button onClick={() => setIsEditModalOpen(false)} className="p-2 bg-gray-200 dark:bg-slate-700 rounded-full hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-600 dark:text-gray-300 transition-colors">
                         <X size={18} />
                     </button>
                  </div>
                  
-                 <form onSubmit={handleSaveEdit} className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
-                    {/* AVATAR UPLOAD SECTION */}
+                 <form onSubmit={handleSaveEdit} className="p-8 space-y-6">
                     <div className="flex flex-col items-center">
                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                             <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-slate-700 shadow-xl bg-slate-100 dark:bg-slate-700">
@@ -994,112 +928,41 @@ const UserManagement: React.FC = () => {
                             <div className="absolute bottom-0 right-0 bg-blue-600 text-white p-2.5 rounded-full shadow-lg hover:bg-blue-700 transition-colors border-2 border-white dark:border-slate-800">
                                 <Camera size={16} />
                             </div>
-                            <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                className="hidden" 
-                                accept="image/*"
-                                onChange={handleFileChange}
-                            />
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
                         </div>
-                        <p className="text-xs font-bold text-blue-600 dark:text-blue-400 mt-3 uppercase tracking-wide">Change Photo</p>
                     </div>
 
-                    <div className="space-y-5">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.fullName}</label>
-                                <div className="relative">
-                                    <User className="absolute left-4 top-3.5 text-slate-400" size={18} />
-                                    <input 
-                                        required
-                                        type="text"
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-semibold transition-all"
-                                        value={editFormData.full_name}
-                                        onChange={e => setEditFormData({...editFormData, full_name: e.target.value})}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
-                                <div className="relative">
-                                    <Shield className="absolute left-4 top-3.5 text-slate-400" size={18} />
-                                    <input 
-                                        type="text"
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-mono transition-all"
-                                        value={editFormData.badge_number}
-                                        onChange={e => setEditFormData({...editFormData, badge_number: e.target.value})}
-                                        placeholder="BB-202X-XXX"
-                                    />
-                                </div>
-                            </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.fullName}</label>
+                            <input 
+                                required type="text"
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-semibold transition-all"
+                                value={editFormData.full_name}
+                                onChange={e => setEditFormData({...editFormData, full_name: e.target.value})}
+                            />
                         </div>
-
-                        {/* AUTO SCHEDULE PREFERENCES */}
-                        <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
-                            <h4 className="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase mb-3 flex items-center">
-                                <Wand2 size={14} className="mr-1.5" />
-                                Auto-Schedule Preferences
-                            </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Preferred Shift</label>
-                                    <select
-                                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white text-sm font-medium"
-                                        value={editFormData.preferred_shift}
-                                        onChange={e => setEditFormData({...editFormData, preferred_shift: e.target.value})}
-                                    >
-                                        <option value="1st">1st Shift (12am-8am)</option>
-                                        <option value="2nd">2nd Shift (8am-4pm)</option>
-                                        <option value="3rd">3rd Shift (4pm-12am)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Preferred Day Off</label>
-                                    <select
-                                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white text-sm font-medium"
-                                        value={editFormData.preferred_day_off}
-                                        onChange={e => setEditFormData({...editFormData, preferred_day_off: e.target.value})}
-                                    >
-                                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Sunday'].map(day => (
-                                            <option key={day} value={day}>{day}</option>
-                                        ))}
-                                    </select>
-                                    <p className="text-[10px] text-slate-400 mt-1 italic">Saturdays reserved for Road Clearing.</p>
-                                </div>
-                            </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
+                            <input 
+                                type="text"
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-mono transition-all"
+                                value={editFormData.badge_number}
+                                onChange={e => setEditFormData({...editFormData, badge_number: e.target.value})}
+                            />
                         </div>
                     </div>
 
                     <div className="pt-4 flex gap-4">
-                        <button 
-                            type="button"
-                            onClick={() => setIsEditModalOpen(false)}
-                            className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit"
-                            disabled={isSavingEdit}
-                            className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-500/30 flex items-center justify-center space-x-2 disabled:opacity-70 transition-all"
-                        >
-                            {isSavingEdit ? (
-                                <span>Saving...</span>
-                            ) : (
-                                <>
-                                    <Save size={18} />
-                                    <span>Save Changes</span>
-                                </>
-                            )}
-                        </button>
+                        <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
+                        <button type="submit" disabled={isSavingEdit} className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 shadow-xl">{isSavingEdit ? 'Saving...' : 'Save Changes'}</button>
                     </div>
                  </form>
              </div>
           </div>
       )}
 
-      {/* Editing Schedule Modal */}
+      {/* Single Edit Schedule Modal */}
       {editingSchedule && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
              <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-sm shadow-2xl animate-slide-up p-8 border border-white/20">
@@ -1115,32 +978,12 @@ const UserManagement: React.FC = () => {
                      <div>
                          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">Duty Status</label>
                          <div className="grid grid-cols-2 gap-3">
-                             <button
-                                onClick={() => setNewStatus('On Duty')}
-                                className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'On Duty' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}
-                             >
-                                 On Duty
-                             </button>
-                             <button
-                                onClick={() => setNewStatus('Road Clearing')}
-                                className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'Road Clearing' ? 'bg-amber-100 border-amber-500 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}
-                             >
-                                 Road Ops
-                             </button>
+                             <button onClick={() => setNewStatus('On Duty')} className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'On Duty' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}>On Duty</button>
+                             <button onClick={() => setNewStatus('Road Clearing')} className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'Road Clearing' ? 'bg-amber-100 border-amber-500 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}>Road Ops</button>
                              {editingSchedule.date.getDay() !== 6 && (
-                                <button
-                                    onClick={() => setNewStatus('Day Off')}
-                                    className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'Day Off' ? 'bg-slate-200 border-slate-400 text-slate-700 dark:bg-slate-700 dark:border-slate-500 dark:text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}
-                                >
-                                    Day Off
-                                </button>
+                                <button onClick={() => setNewStatus('Day Off')} className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'Day Off' ? 'bg-slate-200 border-slate-400 text-slate-700 dark:bg-slate-700 dark:border-slate-500 dark:text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}>Day Off</button>
                              )}
-                             <button
-                                onClick={() => setNewStatus('Leave')}
-                                className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'Leave' ? 'bg-red-100 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}
-                             >
-                                 On Leave
-                             </button>
+                             <button onClick={() => setNewStatus('Leave')} className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'Leave' ? 'bg-red-100 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}>On Leave</button>
                          </div>
                      </div>
                      
@@ -1148,41 +991,17 @@ const UserManagement: React.FC = () => {
                          <div className="animate-fade-in">
                              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">Shift Assignment</label>
                              <div className="grid grid-cols-1 gap-2">
-                                 <button 
-                                    onClick={() => setNewShift('1st')}
-                                    className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '1st' ? 'bg-indigo-100 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}
-                                 >
-                                     <div className={`p-2 rounded-lg mr-3 ${newShift === '1st' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}>
-                                         <Moon size={16} />
-                                     </div>
-                                     <div className="text-left">
-                                         <div className="text-sm font-bold">1st Shift</div>
-                                         <div className="text-[10px] opacity-80">12:00 AM - 8:00 AM</div>
-                                     </div>
+                                 <button onClick={() => setNewShift('1st')} className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '1st' ? 'bg-indigo-100 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}>
+                                     <div className={`p-2 rounded-lg mr-3 ${newShift === '1st' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}><Moon size={16} /></div>
+                                     <div className="text-left"><div className="text-sm font-bold">1st Shift</div><div className="text-[10px] opacity-80">12:00 AM - 8:00 AM</div></div>
                                  </button>
-                                 <button 
-                                    onClick={() => setNewShift('2nd')}
-                                    className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '2nd' ? 'bg-sky-100 border-sky-500 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}
-                                 >
-                                     <div className={`p-2 rounded-lg mr-3 ${newShift === '2nd' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}>
-                                         <Sun size={16} />
-                                     </div>
-                                     <div className="text-left">
-                                         <div className="text-sm font-bold">2nd Shift</div>
-                                         <div className="text-[10px] opacity-80">8:00 AM - 4:00 PM</div>
-                                     </div>
+                                 <button onClick={() => setNewShift('2nd')} className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '2nd' ? 'bg-sky-100 border-sky-500 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}>
+                                     <div className={`p-2 rounded-lg mr-3 ${newShift === '2nd' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}><Sun size={16} /></div>
+                                     <div className="text-left"><div className="text-sm font-bold">2nd Shift</div><div className="text-[10px] opacity-80">8:00 AM - 4:00 PM</div></div>
                                  </button>
-                                 <button 
-                                    onClick={() => setNewShift('3rd')}
-                                    className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '3rd' ? 'bg-violet-100 border-violet-500 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}
-                                 >
-                                     <div className={`p-2 rounded-lg mr-3 ${newShift === '3rd' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}>
-                                         <Sunset size={16} />
-                                     </div>
-                                     <div className="text-left">
-                                         <div className="text-sm font-bold">3rd Shift</div>
-                                         <div className="text-[10px] opacity-80">4:00 PM - 12:00 AM</div>
-                                     </div>
+                                 <button onClick={() => setNewShift('3rd')} className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '3rd' ? 'bg-violet-100 border-violet-500 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}>
+                                     <div className={`p-2 rounded-lg mr-3 ${newShift === '3rd' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}><Sunset size={16} /></div>
+                                     <div className="text-left"><div className="text-sm font-bold">3rd Shift</div><div className="text-[10px] opacity-80">4:00 PM - 12:00 AM</div></div>
                                  </button>
                              </div>
                          </div>
@@ -1190,17 +1009,68 @@ const UserManagement: React.FC = () => {
                  </div>
 
                  <div className="flex space-x-3 mt-8">
-                     <button 
-                        onClick={() => setEditingSchedule(null)}
-                        className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                     >
-                         Cancel
-                     </button>
-                     <button 
-                        onClick={handleSaveSchedule}
-                        className="flex-1 py-3.5 bg-slate-900 dark:bg-blue-600 text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-lg"
-                     >
-                         Save
+                     <button onClick={() => setEditingSchedule(null)} className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
+                     <button onClick={handleSaveSchedule} className="flex-1 py-3.5 bg-slate-900 dark:bg-blue-600 text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-lg">Save</button>
+                 </div>
+             </div>
+          </div>
+      )}
+
+      {/* Bulk Schedule Modal */}
+      {bulkUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+             <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-md shadow-2xl animate-slide-up p-8 border border-white/20">
+                 <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded text-[10px] font-bold uppercase tracking-wider">
+                            Supervisor Action
+                        </span>
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Plan Week for {bulkUser.name.split(' ')[0]}</h3>
+                    <p className="text-sm font-medium text-slate-500">
+                        Set schedule for {formatDateShort(currentWeekRange.start)} - {formatDateShort(currentWeekRange.end)}
+                    </p>
+                 </div>
+                 
+                 <div className="space-y-6">
+                     <div>
+                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">Default Shift</label>
+                         <select
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white font-medium"
+                            value={bulkConfig.shift}
+                            onChange={e => setBulkConfig({...bulkConfig, shift: e.target.value as ShiftType})}
+                         >
+                             <option value="1st">1st Shift (12am - 8am)</option>
+                             <option value="2nd">2nd Shift (8am - 4pm)</option>
+                             <option value="3rd">3rd Shift (4pm - 12am)</option>
+                         </select>
+                     </div>
+
+                     <div>
+                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">Days Off</label>
+                         <div className="flex flex-wrap gap-2">
+                             {WEEKDAYS.map(day => (
+                                 <button
+                                    key={day}
+                                    onClick={() => toggleDayOff(day)}
+                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                                        bulkConfig.daysOff.includes(day)
+                                        ? 'bg-slate-800 text-white dark:bg-white dark:text-slate-900'
+                                        : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                                    }`}
+                                 >
+                                     {day.substring(0,3)}
+                                 </button>
+                             ))}
+                         </div>
+                     </div>
+                 </div>
+
+                 <div className="flex space-x-3 mt-8">
+                     <button onClick={() => setBulkUser(null)} className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
+                     <button onClick={handleBulkApply} className="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-lg flex items-center justify-center space-x-2">
+                         <CheckCircle size={18} />
+                         <span>Apply to Week</span>
                      </button>
                  </div>
              </div>

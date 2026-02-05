@@ -6,7 +6,7 @@ import { useToast } from '../contexts/ToastContext';
 import { Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, Check, ShieldAlert, Trash2, QrCode, Camera } from 'lucide-react';
 
 const Settings: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { showToast } = useToast();
   
   const [profileLoading, setProfileLoading] = useState(false);
@@ -15,6 +15,7 @@ const Settings: React.FC = () => {
   // Profile Form State
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [badgeNumber, setBadgeNumber] = useState(user?.badge_number || '');
+  
   const [imagePreview, setImagePreview] = useState<string | null>(user?.avatar_url || null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,13 +32,42 @@ const Settings: React.FC = () => {
   const [verifyCode, setVerifyCode] = useState('');
 
   useEffect(() => {
-    loadMFAFactors();
-  }, []);
+    if (user) {
+        loadMFAFactors();
+    }
+  }, [user]);
+
+  // Effect 1: Sync Form Data (Text) only when User object changes explicitly
+  useEffect(() => {
+      if (user) {
+          setFullName(prev => (prev === '' || prev === user.full_name) ? user.full_name || '' : prev);
+          setBadgeNumber(prev => (prev === '' || prev === user.badge_number) ? user.badge_number || '' : prev);
+          setEmail(prev => (prev === '' || prev === user.email) ? user.email || '' : prev);
+      }
+  }, [user]);
+
+  // Effect 2: Handle Image Preview Logic
+  useEffect(() => {
+      if (selectedFile) {
+          // If local file selected, show it
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              setImagePreview(reader.result as string);
+          };
+          reader.readAsDataURL(selectedFile);
+      } else if (user?.avatar_url) {
+          // If no local file selected, rely on the URL from the DB.
+          // The URL saved in DB now includes ?t=timestamp (from supabaseService), so it auto-busts cache.
+          setImagePreview(user.avatar_url);
+      } else {
+          setImagePreview(null);
+      }
+  }, [user, selectedFile]);
 
   const loadMFAFactors = async () => {
       try {
           const factors = await supabaseService.listMFAFactors();
-          setMfaFactors(factors);
+          setMfaFactors(factors || []);
       } catch (e) {
           console.error("Failed to load MFA factors", e);
       }
@@ -51,36 +81,54 @@ const Settings: React.FC = () => {
               return;
           }
           setSelectedFile(file);
-          // Create preview
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              setImagePreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
+          // Preview is handled by Effect 2
       }
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!user) return;
+      
+      if (!fullName.trim()) {
+          showToast("Full Name cannot be empty.", "error");
+          return;
+      }
+
       setProfileLoading(true);
       try {
           let avatarUrl = user.avatar_url;
 
           // 1. Upload new image if selected
           if (selectedFile) {
+              // This returns URL with ?t=...
               avatarUrl = await supabaseService.uploadAvatar(user.id, selectedFile);
           }
 
           // 2. Update profile
+          // Send null if badgeNumber is empty string to avoid unique constraint violation on empty strings
+          const badgePayload = badgeNumber.trim() === '' ? null : badgeNumber.trim();
+
           await supabaseService.updateProfile(user.id, {
-              full_name: fullName,
-              badge_number: badgeNumber,
-              avatar_url: avatarUrl
+              full_name: fullName.trim(),
+              badge_number: badgePayload as string, 
+              avatar_url: avatarUrl // Saves new timestamped URL to DB
           });
+
+          // 3. Refresh Context
+          await refreshUser();
+          
+          setSelectedFile(null); // Clear selection after success
+          if (fileInputRef.current) fileInputRef.current.value = ''; // Reset file input
+
           showToast("Profile updated successfully", "success");
       } catch (error: any) {
-          showToast(error.message || "Failed to update profile", "error");
+          console.error("Update profile error:", error);
+          // Handle specific uniqueness error
+          if (error.message?.includes('badge_number')) {
+              showToast("Badge Number is already in use.", "error");
+          } else {
+              showToast(error.message || "Failed to update profile", "error");
+          }
       } finally {
           setProfileLoading(false);
       }
@@ -115,6 +163,7 @@ const Settings: React.FC = () => {
       setSecurityLoading(true);
       try {
           await supabaseService.updateUserCredentials(updates);
+          await refreshUser();
           showToast("Credentials updated. You may need to login again.", "success");
           setPassword(''); // Clear password field
       } catch (error: any) {
@@ -164,18 +213,17 @@ const Settings: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto pb-20 animate-fade-in">
       <header className="mb-8">
-        {/* UPDATED TO WHITE TEXT */}
-        <h1 className="text-3xl font-bold text-white tracking-tight flex items-center">
-            <SettingsIcon className="mr-3 text-slate-200" />
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center">
+            <SettingsIcon className="mr-3 text-slate-600 dark:text-slate-200" />
             Account Settings
         </h1>
-        <p className="text-slate-300 mt-2">Manage your personal profile and security preferences.</p>
+        <p className="text-slate-600 dark:text-slate-300 mt-2">Manage your personal profile and security preferences.</p>
       </header>
 
       <div className="grid grid-cols-1 gap-8">
           
           {/* PROFILE SECTION */}
-          <div className="glass-panel p-8 rounded-[2rem] shadow-xl border border-white/60">
+          <div className="glass-panel p-8 rounded-[2rem] shadow-xl border border-white/60 dark:border-white/10">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
                   <User className="mr-2 text-blue-600 dark:text-blue-400" size={24} />
                   Public Profile
@@ -185,12 +233,17 @@ const Settings: React.FC = () => {
                   {/* AVATAR UPLOAD */}
                   <div className="flex flex-col items-center">
                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-700 shadow-xl bg-slate-100 dark:bg-slate-700">
+                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-700 shadow-xl bg-slate-100 dark:bg-slate-700 relative">
                                 {imagePreview ? (
-                                    <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+                                    <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" key={imagePreview} />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-400 dark:text-slate-500">
                                         <User size={64} />
+                                    </div>
+                                )}
+                                {profileLoading && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                                     </div>
                                 )}
                             </div>
@@ -256,7 +309,7 @@ const Settings: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* MFA / 2FA SECTION */}
-            <div className="glass-panel p-8 rounded-[2rem] shadow-xl border border-white/60">
+            <div className="glass-panel p-8 rounded-[2rem] shadow-xl border border-white/60 dark:border-white/10">
                   <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
                       <Smartphone className="mr-2 text-purple-600 dark:text-purple-400" size={24} />
                       Two-Factor Authentication
@@ -338,7 +391,7 @@ const Settings: React.FC = () => {
             </div>
 
             {/* PASSWORD SECTION */}
-            <div className="glass-panel p-8 rounded-[2rem] shadow-xl border border-white/60">
+            <div className="glass-panel p-8 rounded-[2rem] shadow-xl border border-white/60 dark:border-white/10">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
                     <Lock className="mr-2 text-red-600 dark:text-red-400" size={24} />
                     Credentials

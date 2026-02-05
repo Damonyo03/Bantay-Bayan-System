@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { supabaseService } from '../services/supabaseService';
+import { supabase } from '../lib/supabaseClient';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -9,6 +10,7 @@ interface AuthContextType {
   verifyLoginMFA: (code: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,6 +19,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // 1. Initial Load
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -37,6 +40,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
   }, []);
+
+  // 2. Real-time Profile Subscription
+  // This ensures that if the avatar or details are updated (even in another tab), 
+  // the state updates immediately in this session.
+  useEffect(() => {
+      if (!user?.id) return;
+
+      const channel = supabase
+          .channel(`profile_changes:${user.id}`)
+          .on(
+              'postgres_changes',
+              { 
+                  event: 'UPDATE', 
+                  schema: 'public', 
+                  table: 'profiles', 
+                  filter: `id=eq.${user.id}` 
+              },
+              (payload) => {
+                  // Automatically update local state with new DB data
+                  console.log("Real-time profile update:", payload.new);
+                  setUser(payload.new as UserProfile);
+              }
+          )
+          .subscribe();
+
+      return () => {
+          supabase.removeChannel(channel);
+      };
+  }, [user?.id]);
 
   const login = async (email: string, password: string): Promise<'success' | 'mfa_required'> => {
     try {
@@ -68,8 +100,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const refreshUser = async () => {
+      try {
+          const profile = await supabaseService.getCurrentUserProfile();
+          if (profile) {
+              setUser(profile);
+          }
+      } catch (error) {
+          console.error("Failed to refresh user profile", error);
+      }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, verifyLoginMFA, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, verifyLoginMFA, logout, isLoading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
