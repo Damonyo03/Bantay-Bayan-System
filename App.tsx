@@ -116,7 +116,7 @@ const AppContent: React.FC = () => {
     return (
         <div className="min-h-screen text-slate-800 dark:text-slate-100 font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
             <Sidebar />
-            <main className="pb-24 md:pb-8 md:pl-64 transition-all duration-300">
+            <main className="pb-32 md:pb-8 md:pl-64 transition-all duration-300">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 <Routes>
                 <Route path="/" element={<ProtectedRoute><CommandCenter /></ProtectedRoute>} />
@@ -126,7 +126,8 @@ const AppContent: React.FC = () => {
                 <Route path="/resources/new" element={<ProtectedRoute><ResourceForm /></ProtectedRoute>} />
                 <Route path="/archives" element={<ProtectedRoute><ResolvedCases /></ProtectedRoute>} />
                 <Route path="/restricted" element={<ProtectedRoute><RestrictedPersons /></ProtectedRoute>} />
-                <Route path="/users" element={<ProtectedRoute requiredRole="supervisor"><UserManagement /></ProtectedRoute>} />
+                {/* REMOVED requiredRole="supervisor" to allow operators to see Roster */}
+                <Route path="/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
                 <Route path="/audit-logs" element={<ProtectedRoute requiredRole="supervisor"><AuditLogs /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute requiredRole="supervisor"><Settings /></ProtectedRoute>} />
                 <Route path="/update-password" element={<UpdatePasswordPage />} />

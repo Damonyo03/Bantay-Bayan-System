@@ -486,17 +486,17 @@ const ResourceTracking: React.FC = () => {
                                     
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-600 dark:text-slate-300">
                                         <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase">Pickup Date</p>
+                                            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Pickup Date</p>
                                             <p className="font-medium flex items-center mt-1"><Truck size={14} className="mr-1 text-blue-400"/> {req.pickup_date}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase">Return Date</p>
+                                            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Return Date</p>
                                             <p className="font-medium flex items-center mt-1"><RotateCcw size={14} className="mr-1 text-green-400"/> {req.return_date}</p>
                                         </div>
                                     </div>
 
                                     <div className="bg-gray-50/80 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
-                                        <p className="text-xs font-bold text-slate-400 uppercase mb-2">Items</p>
+                                        <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Items</p>
                                         <div className="flex flex-wrap gap-2">
                                             {req.items_requested.map((item, idx) => (
                                                 <span key={idx} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm">

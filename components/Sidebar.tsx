@@ -22,11 +22,16 @@ const Sidebar: React.FC = () => {
     { icon: Package, label: t.resources, path: '/resources' },
     { icon: Archive, label: t.archives, path: '/archives' },
     { icon: AlertOctagon, label: t.restrictedList, path: '/restricted' },
+    // Personnel/Roster accessible to all (Role logic inside)
+    { 
+        icon: Users, 
+        label: user?.role === 'supervisor' ? t.personnel : 'Duty Roster', 
+        path: '/users' 
+    },
   ];
 
   // Admin/Supervisor only items
   if (user?.role === 'supervisor') {
-      navItems.push({ icon: Users, label: t.personnel, path: '/users' });
       navItems.push({ icon: FileClock, label: t.auditLogs, path: '/audit-logs' });
       navItems.push({ icon: Settings, label: 'Settings', path: '/settings' });
   }

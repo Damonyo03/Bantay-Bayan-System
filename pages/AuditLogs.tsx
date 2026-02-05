@@ -80,7 +80,7 @@ const AuditLogs: React.FC = () => {
                             <div className="bg-gray-200 dark:bg-slate-700 p-1.5 rounded-full">
                                 <User size={12} className="text-slate-600 dark:text-slate-300"/>
                             </div>
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{log.performer_name}</span>
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{log.performer_name}</span>
                         </div>
                     </td>
                     <td className="p-6">
@@ -89,7 +89,7 @@ const AuditLogs: React.FC = () => {
                         </span>
                     </td>
                     <td className="p-6">
-                        <span className="font-mono text-sm text-slate-600 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                        <span className="font-mono text-sm text-slate-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">
                             {formatTableName(log.table_name)}
                         </span>
                     </td>

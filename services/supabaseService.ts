@@ -1,6 +1,6 @@
 
 import { supabase } from '../lib/supabaseClient';
-import { Incident, IncidentParty, DispatchLog, IncidentWithDetails, UserProfile, AuditLog, AssetRequest, AssetItem, PersonnelSchedule } from '../types';
+import { Incident, IncidentParty, DispatchLog, IncidentWithDetails, UserProfile, AuditLog, AssetRequest, AssetItem, PersonnelSchedule, CCTVRequest } from '../types';
 
 export const supabaseService = {
   // AUTH - CORE
@@ -215,13 +215,48 @@ export const supabaseService = {
       return data;
   },
 
-  updateProfile: async (id: string, updates: { full_name?: string; badge_number?: string }) => {
+  // Updated to support avatar_url
+  updateProfile: async (id: string, updates: { full_name?: string; badge_number?: string; avatar_url?: string }) => {
     const { error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', id);
     
     if (error) throw error;
+  },
+
+  uploadAvatar: async (userId: string, file: File): Promise<string> => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Check if bucket exists, try to create if not (Best Effort)
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const avatarBucket = buckets?.find(b => b.name === 'avatars');
+      
+      if (!avatarBucket) {
+          // Attempt creation (might fail if no permissions, but worth a try)
+          await supabase.storage.createBucket('avatars', { public: true }).catch(err => console.warn("Bucket creation failed, might exist or insufficient perms:", err));
+      }
+
+      // Upload
+      const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+          if (uploadError.message.includes('bucket not found')) {
+               throw new Error("Storage bucket 'avatars' missing. Please run the schema.sql script in Supabase.");
+          }
+          throw uploadError;
+      }
+
+      // Get Public URL
+      const { data } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+      return data.publicUrl;
   },
 
   updateUserCredentials: async (updates: { email?: string; password?: string }) => {
@@ -531,6 +566,34 @@ export const supabaseService = {
       }
       
       return data[0];
+  },
+
+  // CCTV REQUESTS
+  createCCTVRequest: async (
+      requestData: Omit<CCTVRequest, 'id' | 'created_at' | 'request_number'>
+  ) => {
+      const caseNum = `CCTV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const { data, error } = await supabase
+        .from('cctv_requests')
+        .insert({
+            ...requestData,
+            request_number: caseNum
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+  },
+
+  getCCTVRequests: async (): Promise<CCTVRequest[]> => {
+      const { data, error } = await supabase
+        .from('cctv_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
   },
 
   getAuditLogs: async (): Promise<AuditLog[]> => {

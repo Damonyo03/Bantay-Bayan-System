@@ -14,6 +14,7 @@ DROP SEQUENCE IF EXISTS public.badge_seq;
 -- 2. DROP PUBLIC TABLES & TYPES (Cascade)
 DROP TABLE IF EXISTS audit_logs CASCADE;
 DROP TABLE IF EXISTS asset_requests CASCADE;
+DROP TABLE IF EXISTS cctv_requests CASCADE; -- New table
 DROP TABLE IF EXISTS dispatch_logs CASCADE;
 DROP TABLE IF EXISTS incident_parties CASCADE;
 DROP TABLE IF EXISTS incidents CASCADE;
@@ -59,6 +60,7 @@ create table profiles (
   role user_role default 'field_operator',
   status user_status default 'inactive', -- Strict default
   badge_number text unique,
+  avatar_url text, -- NEW: Store profile picture URL
   last_active_at timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -115,6 +117,20 @@ create table asset_requests (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- CCTV REQUESTS (NEW)
+create table cctv_requests (
+  id uuid default uuid_generate_v4() primary key,
+  request_number text unique not null,
+  requester_name text not null,
+  contact_info text,
+  incident_type text not null,
+  incident_date date not null,
+  incident_time text,
+  location text not null,
+  purpose text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- PERSONNEL SCHEDULES
 create table personnel_schedules (
   id uuid default uuid_generate_v4() primary key,
@@ -146,6 +162,7 @@ alter table dispatch_logs enable row level security;
 alter table audit_logs enable row level security;
 alter table asset_requests enable row level security;
 alter table personnel_schedules enable row level security;
+alter table cctv_requests enable row level security;
 
 -- 9. Define RLS Policies (Simplified for demonstration)
 create policy "Public profiles" on profiles for select using ( true );
@@ -180,6 +197,9 @@ create policy "Auth read schedules" on personnel_schedules for select using ( au
 create policy "Supervisor manage schedules" on personnel_schedules for all using (
     exists ( select 1 from profiles where id = auth.uid() and role = 'supervisor' )
 );
+
+create policy "Auth read cctv" on cctv_requests for select using ( auth.role() = 'authenticated' );
+create policy "Auth create cctv" on cctv_requests for insert with check ( auth.role() = 'authenticated' );
 
 -- 10. ROBUST USER CREATION TRIGGER
 -- IMPORTANT: 'security definer' runs with owner privileges.
@@ -257,12 +277,41 @@ create trigger audit_dispatch_logs_trigger after insert or update or delete on d
 create trigger audit_profiles_trigger after update on profiles for each row execute procedure public.log_audit_event();
 create trigger audit_assets_trigger after insert or update or delete on asset_requests for each row execute procedure public.log_audit_event();
 create trigger audit_schedules_trigger after insert or update or delete on personnel_schedules for each row execute procedure public.log_audit_event();
+create trigger audit_cctv_trigger after insert or update or delete on cctv_requests for each row execute procedure public.log_audit_event();
 
--- 12. ENABLE REALTIME (Critical for Dashboard updates)
+-- 12. STORAGE BUCKET SETUP
+-- Insert bucket if it doesn't exist
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+-- 13. STORAGE POLICIES
+-- Drop existing to avoid conflicts on reset
+drop policy if exists "Avatar Public Access" on storage.objects;
+drop policy if exists "Avatar Auth Upload" on storage.objects;
+drop policy if exists "Avatar Auth Update" on storage.objects;
+
+-- Allow public access to view avatars
+create policy "Avatar Public Access"
+  on storage.objects for select
+  using ( bucket_id = 'avatars' );
+
+-- Allow authenticated users to upload their own avatar
+create policy "Avatar Auth Upload"
+  on storage.objects for insert
+  with check ( bucket_id = 'avatars' and auth.role() = 'authenticated' );
+
+-- Allow authenticated users to update
+create policy "Avatar Auth Update"
+  on storage.objects for update
+  using ( bucket_id = 'avatars' and auth.role() = 'authenticated' );
+
+-- 14. ENABLE REALTIME
 alter publication supabase_realtime add table incidents;
 alter publication supabase_realtime add table dispatch_logs;
 alter publication supabase_realtime add table asset_requests;
 alter publication supabase_realtime add table personnel_schedules;
 alter publication supabase_realtime add table profiles;
+alter publication supabase_realtime add table cctv_requests;
 
 NOTIFY pgrst, 'reload schema';
