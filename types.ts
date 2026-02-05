@@ -1,13 +1,18 @@
 
-export type IncidentType = 'Medical' | 'Fire' | 'Theft' | 'Disturbance' | 'Traffic' | 'Other';
+export type IncidentType = 'Medical' | 'Fire' | 'Theft' | 'Disturbance' | 'Traffic' | 'Logistics' | 'Other';
 export type IncidentStatus = 'Pending' | 'Dispatched' | 'Resolved' | 'Closed';
 export type UserRole = 'supervisor' | 'field_operator';
 export type UserStatus = 'active' | 'inactive';
 export type AssetStatus = 'Pending' | 'Approved' | 'Released' | 'Returned' | 'Rejected';
 
+// NEW TYPES FOR SCHEDULE
+export type ShiftType = '1st' | '2nd' | '3rd';
+export type DutyStatus = 'On Duty' | 'Day Off' | 'Leave' | 'Road Clearing';
+
 export interface UserProfile {
   id: string;
   email: string;
+  username?: string; // Added username field
   full_name: string;
   role: UserRole;
   status: UserStatus;
@@ -33,7 +38,7 @@ export interface IncidentParty {
   incident_id: string;
   name: string;
   age: number;
-  role: 'Complainant' | 'Respondent' | 'Witness' | 'Victim';
+  role: 'Complainant' | 'Respondent' | 'Witness' | 'Victim' | 'Suspect';
   statement: string;
   contact_info?: string;
 }
@@ -44,6 +49,7 @@ export interface DispatchLog {
   unit_name: string;
   status: 'En Route' | 'On Scene' | 'Clear' | 'Returning';
   updated_at: string;
+  created_at: string;
 }
 
 export interface AssetItem {
@@ -66,6 +72,15 @@ export interface AssetRequest {
   updated_at: string;
   // Joined fields
   logger_name?: string; 
+}
+
+export interface PersonnelSchedule {
+  id: string;
+  user_id: string;
+  date: string; // YYYY-MM-DD
+  shift: ShiftType;
+  status: DutyStatus;
+  created_at: string;
 }
 
 export interface AuditLog {

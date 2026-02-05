@@ -57,21 +57,34 @@ const Settings: React.FC = () => {
       }
   };
 
+  const validatePassword = (pwd: string) => {
+      // Min 8 chars, 1 Uppercase, 1 Number, 1 Special Char
+      const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      return regex.test(pwd);
+  };
+
   const handleUpdateSecurity = async (e: React.FormEvent) => {
       e.preventDefault();
+      
+      const updates: any = {};
+      if (email !== user?.email) updates.email = email;
+      if (password) {
+          if (!validatePassword(password)) {
+              showToast("Password must be at least 8 characters, include an uppercase letter, a number, and a special character.", "error");
+              return;
+          }
+          updates.password = password;
+      }
+
+      if (Object.keys(updates).length === 0) {
+          showToast("No changes detected", "info");
+          return;
+      }
+
       if (!confirm("Are you sure you want to change your login credentials?")) return;
       
       setSecurityLoading(true);
       try {
-          const updates: any = {};
-          if (email !== user?.email) updates.email = email;
-          if (password) updates.password = password;
-
-          if (Object.keys(updates).length === 0) {
-              showToast("No changes detected", "info");
-              return;
-          }
-
           await supabaseService.updateUserCredentials(updates);
           showToast("Credentials updated. You may need to login again.", "success");
           setPassword(''); // Clear password field
@@ -300,7 +313,7 @@ const Settings: React.FC = () => {
                                 minLength={8}
                             />
                         </div>
-                        <p className="text-[10px] text-gray-500 mt-1 ml-1">Must be at least 8 characters long.</p>
+                        <p className="text-[10px] text-gray-500 mt-1 ml-1">Must be at least 8 chars, 1 Uppercase, 1 Number, 1 Special.</p>
                     </div>
                     <div className="pt-4">
                         <button 

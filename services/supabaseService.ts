@@ -1,27 +1,42 @@
 
 import { supabase } from '../lib/supabaseClient';
-import { Incident, IncidentParty, DispatchLog, IncidentWithDetails, UserProfile, AuditLog, AssetRequest, AssetItem } from '../types';
+import { Incident, IncidentParty, DispatchLog, IncidentWithDetails, UserProfile, AuditLog, AssetRequest, AssetItem, PersonnelSchedule } from '../types';
 
 export const supabaseService = {
   // AUTH - CORE
-  login: async (email: string, password: string): Promise<{ user: UserProfile, mfaRequired: boolean }> => {
-    // 1. Authenticate with Supabase Auth
+  login: async (identifier: string, password: string): Promise<{ user: UserProfile, mfaRequired: boolean }> => {
+    let email = identifier;
+
+    // 1. Check if identifier is a Username (no @ symbol)
+    if (!identifier.includes('@')) {
+        // Query profiles to get email associated with username
+        const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('username', identifier)
+            .single();
+        
+        if (profileError || !profileData) {
+            throw new Error("Invalid username or password");
+        }
+        email = profileData.email;
+    }
+
+    // 2. Authenticate with Supabase Auth using the resolved Email
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (authError) throw new Error(authError.message);
+    if (authError) throw new Error("Invalid credentials");
     if (!authData.user) throw new Error("No user returned");
 
-    // 2. Check MFA Status (Assurance Level)
+    // 3. Check MFA Status (Assurance Level)
     const { data: mfaData, error: mfaCheckError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (mfaCheckError) throw new Error(mfaCheckError.message);
 
     // If nextLevel is 'aal2', it means the user has enrolled in MFA and needs to verify
     if (mfaData.nextLevel === 'aal2' && mfaData.currentLevel === 'aal1') {
-        // Return provisional user but flag for MFA
-        // We still fetch profile to show name/role on the 2FA screen if needed
         const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -31,7 +46,7 @@ export const supabaseService = {
         return { user: profile as UserProfile, mfaRequired: true };
     }
 
-    // 3. Fetch User Profile (Standard Login)
+    // 4. Fetch User Profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -46,9 +61,24 @@ export const supabaseService = {
     return { user: profile as UserProfile, mfaRequired: false };
   },
 
-  resetPasswordForEmail: async (email: string) => {
-    // Redirects to the /update-password route in the app
-    // Note: You must configure Site URL in Supabase Auth Settings for this to work perfectly in prod
+  resetPasswordForUser: async (identifier: string) => {
+    let email = identifier;
+
+    // If username provided, look up the email
+    if (!identifier.includes('@')) {
+        const { data: profileData } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('username', identifier)
+            .single();
+        
+        if (!profileData) {
+            // Security: Don't reveal if user exists or not, just pretend to send
+            return; 
+        }
+        email = profileData.email;
+    }
+
     const redirectTo = `${window.location.origin}/#/update-password`;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
@@ -84,11 +114,10 @@ export const supabaseService = {
         factorType: 'totp'
     });
     if (error) throw error;
-    return data; // Returns id, type, totp: { qr_code, secret, uri }
+    return data;
   },
 
   verifyMFA: async (factorId: string, code: string) => {
-      // This activates the factor (Challenge + Verify)
       const { data, error } = await supabase.auth.mfa.challengeAndVerify({
           factorId,
           code
@@ -98,7 +127,6 @@ export const supabaseService = {
   },
 
   challengeMFA: async (code: string) => {
-      // Used during Login phase
       const { data, error } = await supabase.auth.mfa.challengeAndVerify({
           factorId: (await supabase.auth.mfa.listFactors()).data?.totp[0].id!,
           code
@@ -138,28 +166,55 @@ export const supabaseService = {
     if (error) throw error;
   },
 
-  createUser: async (email: string, password: string, fullName: string, role: string, badgeNumber: string) => {
+  checkUsernameExists: async (username: string): Promise<boolean> => {
+      // Check if username exists in profiles.
+      // Note: RLS allows reading profiles for everyone (public read)
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username);
+      
+      if (error) return false;
+      return data && data.length > 0;
+  },
+
+  // Called by Admin/Supervisor (Sets status: inactive by default now)
+  createUser: async (email: string, username: string, password: string, fullName: string, role: string) => {
+    // We pass username in metadata so the trigger can grab it
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
             data: {
                 full_name: fullName,
+                username: username,
+                role: role,
+                status: 'inactive' // Defaults to inactive so it goes to Pending tab
             }
         }
     });
 
     if (error) throw error;
-    
-    if (data.user) {
-        await supabase.from('profiles').update({
-            role: role,
-            badge_number: badgeNumber
-        }).eq('id', data.user.id);
-    }
   },
 
-  // Update Public Profile Data (Name, Badge)
+  // Called by Public Registration (Sets status: inactive)
+  registerUser: async (email: string, username: string, password: string, fullName: string) => {
+      const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+              data: {
+                  full_name: fullName,
+                  username: username,
+                  role: 'field_operator', // Default public role
+                  status: 'inactive' // Requires approval
+              }
+          }
+      });
+      if (error) throw error;
+      return data;
+  },
+
   updateProfile: async (id: string, updates: { full_name?: string; badge_number?: string }) => {
     const { error } = await supabase
         .from('profiles')
@@ -169,18 +224,41 @@ export const supabaseService = {
     if (error) throw error;
   },
 
-  // Update Auth Credentials (Email, Password)
   updateUserCredentials: async (updates: { email?: string; password?: string }) => {
     const { error } = await supabase.auth.updateUser(updates);
     if (error) throw error;
     
-    // If email was updated, we also update it in the profiles table for consistency
     if (updates.email) {
        const { data: { user } } = await supabase.auth.getUser();
        if (user) {
            await supabase.from('profiles').update({ email: updates.email }).eq('id', user.id);
        }
     }
+  },
+
+  // DUTY ROSTER / SCHEDULES
+  getSchedules: async (startDate: string, endDate: string): Promise<PersonnelSchedule[]> => {
+      const { data, error } = await supabase
+          .from('personnel_schedules')
+          .select('*')
+          .gte('date', startDate)
+          .lte('date', endDate);
+      
+      if (error) throw error;
+      return data as PersonnelSchedule[];
+  },
+
+  upsertSchedule: async (schedule: Partial<PersonnelSchedule>) => {
+      if (!schedule.user_id || !schedule.date) throw new Error("Missing required fields");
+
+      const { data, error } = await supabase
+          .from('personnel_schedules')
+          .upsert(schedule, { onConflict: 'user_id, date' })
+          .select()
+          .single();
+      
+      if (error) throw error;
+      return data;
   },
 
   // INCIDENTS
@@ -205,6 +283,28 @@ export const supabaseService = {
     }));
   },
 
+  getIncidentsByStatus: async (statuses: string[]): Promise<IncidentWithDetails[]> => {
+    const { data, error } = await supabase
+      .from('incidents')
+      .select(`
+        *,
+        profiles:officer_id (full_name),
+        dispatch_logs (*),
+        incident_parties (*)
+      `)
+      .in('status', statuses)
+      .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data.map((inc: any) => ({
+      ...inc,
+      officer_name: inc.profiles?.full_name || 'Unknown Officer',
+      dispatch_logs: inc.dispatch_logs || [],
+      parties: inc.incident_parties || []
+    }));
+  },
+
   updateIncident: async (id: string, updates: Partial<Incident>) => {
       const { error } = await supabase
         .from('incidents')
@@ -215,6 +315,7 @@ export const supabaseService = {
   },
 
   updateDispatchStatus: async (logId: string, updates: Partial<DispatchLog>) => {
+    // 1. Update Dispatch Log (Authenticated users can always do this via RLS)
     const { data, error } = await supabase
       .from('dispatch_logs')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -224,14 +325,75 @@ export const supabaseService = {
     
     if (error) throw error;
     
-    if (updates.status === 'On Scene' && data) {
-       await supabase.from('incidents').update({ status: 'Dispatched' }).eq('id', data.incident_id);
+    // 2. Auto-update incident status logic (Best effort - fail safe)
+    if (data) {
+        try {
+            // If unit arrives on scene, mark incident as Dispatched
+            if (updates.status === 'On Scene') {
+                await supabase.from('incidents').update({ status: 'Dispatched' }).eq('id', data.incident_id);
+            }
+            
+            // NEW: If clearing a logistics run, close the incident automatically
+            if (updates.status === 'Clear') {
+                const { data: incident } = await supabase
+                    .from('incidents')
+                    .select('type')
+                    .eq('id', data.incident_id)
+                    .single();
+                    
+                if (incident && incident.type === 'Logistics') {
+                     // Attempt to close. If user is field_operator and RLS blocks, this will fail silently.
+                     // We catch the error so it doesn't break the UI flow for the Dispatch Log update.
+                     await supabase.from('incidents').update({ status: 'Closed' }).eq('id', data.incident_id);
+                }
+            }
+        } catch (secondaryError) {
+            console.warn("Secondary incident update failed (likely permission issue), but dispatch log was updated.", secondaryError);
+        }
     }
     
     return data;
   },
 
-  // New function for Vehicle Logs
+  logVehicleDispatch: async (
+      loggerId: string,
+      vehicle: string, 
+      officers: string, // joined string
+      purpose: string, 
+      location: string
+  ) => {
+      // 1. Create Incident
+      const caseNum = `LOG-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const { data: incident, error: incError } = await supabase
+        .from('incidents')
+        .insert({
+            case_number: caseNum,
+            type: 'Logistics',
+            narrative: purpose,
+            location: location,
+            status: 'Dispatched',
+            officer_id: loggerId,
+            is_restricted_entry: false
+        })
+        .select()
+        .single();
+      
+      if (incError) throw incError;
+
+      // 2. Create Dispatch Log
+      const { error: logError } = await supabase
+        .from('dispatch_logs')
+        .insert({
+            incident_id: incident.id,
+            unit_name: `${vehicle} - ${officers}`,
+            status: 'En Route',
+            updated_at: new Date().toISOString()
+        });
+
+      if (logError) throw logError;
+      return incident;
+  },
+
   getDispatchHistory: async () => {
       const { data, error } = await supabase
         .from('dispatch_logs')
@@ -301,7 +463,27 @@ export const supabaseService = {
     };
   },
 
-  // ASSET REQUESTS (RESOURCE TRACKING)
+  getRestrictedPersons: async () => {
+    const { data, error } = await supabase
+      .from('incident_parties')
+      .select(`
+        *,
+        incidents!inner (
+          case_number,
+          is_restricted_entry,
+          created_at,
+          type,
+          narrative
+        )
+      `)
+      .eq('incidents.is_restricted_entry', true)
+      .in('role', ['Respondent', 'Suspect'])
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
   getAssetRequests: async (): Promise<AssetRequest[]> => {
       const { data, error } = await supabase
         .from('asset_requests')
@@ -333,8 +515,6 @@ export const supabaseService = {
   },
 
   updateAssetRequestStatus: async (id: string, status: string) => {
-      // We perform a select() after update to ensure the row was actually found and updated
-      // according to RLS policies.
       const { data, error } = await supabase
         .from('asset_requests')
         .update({ 
@@ -346,7 +526,6 @@ export const supabaseService = {
 
       if (error) throw error;
       
-      // If no data returned, it means RLS filtered out the update (permission denied)
       if (!data || data.length === 0) {
           throw new Error("Update failed. You may not have permission to update this record.");
       }
@@ -354,7 +533,6 @@ export const supabaseService = {
       return data[0];
   },
 
-  // AUDIT LOGS
   getAuditLogs: async (): Promise<AuditLog[]> => {
     const { data, error } = await supabase
       .from('audit_logs')

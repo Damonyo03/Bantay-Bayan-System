@@ -21,7 +21,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       try {
         const profile = await supabaseService.getCurrentUserProfile();
-        setUser(profile);
+        // Even on auto-login/refresh, check status
+        if (profile && profile.status !== 'active') {
+            await supabaseService.logout();
+            setUser(null);
+        } else {
+            setUser(profile);
+        }
       } catch (error) {
         console.error("Auth initialization failed", error);
       } finally {
@@ -35,6 +41,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<'success' | 'mfa_required'> => {
     try {
       const { user, mfaRequired } = await supabaseService.login(email, password);
+      
+      if (user.status !== 'active') {
+          await supabaseService.logout();
+          throw new Error("Your account is pending approval or inactive. Contact the administrator.");
+      }
+
       // We set the user temporarily so we can display their name during 2FA challenge
       // But until MFA is verified, Supabase session is technically AAL1 (limited)
       setUser(user); 

@@ -7,12 +7,14 @@ export const translations = {
     blotter: "Blotter / Report",
     personnel: "Personnel",
     auditLogs: "Audit Logs",
+    archives: "Resolved Cases",
+    restrictedList: "Watchlist",
     signOut: "Sign Out",
     welcome: "Welcome back",
     activeIncidents: "Active Incidents",
     weeklyReports: "Weekly Reports",
     onDuty: "On Duty",
-    recentEntries: "Recent Blotter Entries",
+    recentEntries: "Active Blotter Entries",
     responseUnits: "Response Units",
     noDispatch: "No active dispatch",
     recordsManagement: "Records Management",
@@ -53,18 +55,25 @@ export const translations = {
     overview: "Overview",
     newItem: "Add Item",
     quantity: "Qty",
+    // Archives
+    resolvedCasesDesc: "Archive of resolved and closed incidents.",
+    reopenCase: "Reopen Case",
+    // Restricted
+    restrictedDesc: "List of individuals involved in incidents marked as 'Restricted Entry' (Suspects/Respondents).",
   },
   fil: {
     dashboard: "Sentro ng Komand",
     blotter: "Blotter / Ulat",
     personnel: "Tauhan",
     auditLogs: "Talaan ng Audit",
+    archives: "Mga Nalutas na Kaso",
+    restrictedList: "Watchlist",
     signOut: "Mag-logout",
     welcome: "Maligayang pagbabalik",
     activeIncidents: "Aktibong Insidente",
     weeklyReports: "Lingguhang Ulat",
     onDuty: "Naka-duty",
-    recentEntries: "Mga Kamakailang Blotter",
+    recentEntries: "Aktibong Blotter",
     responseUnits: "Mga Yunit ng Responde",
     noDispatch: "Walang aktibong dispatch",
     recordsManagement: "Pamamahala ng Rekord",
@@ -105,5 +114,10 @@ export const translations = {
     overview: "Pangkalahatan",
     newItem: "Magdagdag ng Gamit",
     quantity: "Dami",
+    // Archives
+    resolvedCasesDesc: "Arkibo ng mga nalutas at saradong insidente.",
+    reopenCase: "Buksan Muli ang Kaso",
+    // Restricted
+    restrictedDesc: "Listahan ng mga taong sangkot sa insidenteng may 'Restricted Entry' (Suspects/Respondents).",
   }
 };
