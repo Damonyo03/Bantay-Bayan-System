@@ -1,12 +1,15 @@
 
-import { supabase } from '../lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
+import { supabase, supabaseUrl, supabaseKey } from '../lib/supabaseClient';
 import { Incident, IncidentParty, DispatchLog, IncidentWithDetails, UserProfile, AuditLog, AssetRequest, AssetItem, PersonnelSchedule, CCTVRequest, ShiftType } from '../types';
 
 export const supabaseService = {
-  // AUTH - CORE
+  // --- AUTHENTICATION ---
+  
   login: async (identifier: string, password: string): Promise<{ user: UserProfile, mfaRequired: boolean }> => {
     let email = identifier;
 
+    // Allow login by Username
     if (!identifier.includes('@')) {
         const { data: profileData, error: profileError } = await supabase
             .from('profiles')
@@ -14,9 +17,7 @@ export const supabaseService = {
             .eq('username', identifier)
             .single();
         
-        if (profileError || !profileData) {
-            throw new Error("Invalid username or password");
-        }
+        if (profileError || !profileData) throw new Error("Invalid username or password");
         email = profileData.email;
     }
 
@@ -28,52 +29,45 @@ export const supabaseService = {
     if (authError) throw new Error("Invalid credentials");
     if (!authData.user) throw new Error("No user returned");
 
+    // MFA Check
     const { data: mfaData, error: mfaCheckError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (mfaCheckError) throw new Error(mfaCheckError.message);
 
     if (mfaData.nextLevel === 'aal2' && mfaData.currentLevel === 'aal1') {
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', authData.user.id)
-            .single();
-        
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
         return { user: profile as UserProfile, mfaRequired: true };
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authData.user.id)
-      .single();
-
+    const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
     if (profileError) throw new Error("Failed to fetch user profile");
     
+    // Update Last Active
     await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', authData.user.id);
 
     return { user: profile as UserProfile, mfaRequired: false };
   },
 
+  getCurrentUserProfile: async (): Promise<UserProfile | null> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return null;
+
+    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+    return data as UserProfile;
+  },
+
+  logout: async () => {
+    await supabase.auth.signOut();
+  },
+
   resetPasswordForUser: async (identifier: string) => {
     let email = identifier;
-
     if (!identifier.includes('@')) {
-        const { data: profileData } = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('username', identifier)
-            .single();
-        
-        if (!profileData) {
-            return; 
-        }
-        email = profileData.email;
+        const { data } = await supabase.from('profiles').select('email').eq('username', identifier).single();
+        if (!data) return; 
+        email = data.email;
     }
-
     const redirectTo = `${window.location.origin}/#/update-password`;
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
-    });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
   },
 
@@ -82,60 +76,25 @@ export const supabaseService = {
     if (error) throw error;
   },
 
-  getCurrentUserProfile: async (): Promise<UserProfile | null> => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) return null;
+  // --- MFA / 2FA ---
 
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
-    
-    return data as UserProfile;
-  },
-
-  logout: async () => {
-    await supabase.auth.signOut();
-  },
-
-  // AUTH - MFA / 2FA
   enrollMFA: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error("No active session");
-
-    const { data, error } = await supabase.auth.mfa.enroll({
-        factorType: 'totp'
-    });
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
     if (error) throw error;
     return data;
   },
 
   verifyMFA: async (factorId: string, code: string) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No active session");
-
-      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
-          factorId,
-          code
-      });
+      const { data, error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code });
       if (error) throw error;
       return data;
   },
 
   challengeMFA: async (code: string) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No active session");
-
       const { data: factors } = await supabase.auth.mfa.listFactors();
-      if (!factors || !factors.totp || factors.totp.length === 0) {
-          throw new Error("No MFA factors found to challenge.");
-      }
+      if (!factors || !factors.totp || factors.totp.length === 0) throw new Error("No MFA factors found.");
 
-      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
-          factorId: factors.totp[0].id,
-          code
-      });
+      const { data, error } = await supabase.auth.mfa.challengeAndVerify({ factorId: factors.totp[0].id, code });
       if (error) throw error;
       return data;
   },
@@ -143,65 +102,63 @@ export const supabaseService = {
   listMFAFactors: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return [];
-
       const { data, error } = await supabase.auth.mfa.listFactors();
       if (error) throw error;
       return data.totp;
   },
 
   unenrollMFA: async (factorId: string) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No active session");
-
       const { error } = await supabase.auth.mfa.unenroll({ factorId });
       if (error) throw error;
   },
 
-  // USER MANAGEMENT & SETTINGS
+  // --- USER MANAGEMENT ---
+
   getUsers: async (): Promise<UserProfile[]> => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('full_name');
-    
+    const { data, error } = await supabase.from('profiles').select('*').order('full_name');
     if (error) throw error;
     return data as UserProfile[];
   },
 
   updateUserStatus: async (id: string, status: 'active' | 'inactive') => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ status })
-      .eq('id', id);
-    
+    const { error } = await supabase.from('profiles').update({ status }).eq('id', id);
     if (error) throw error;
   },
 
   checkUsernameExists: async (username: string): Promise<boolean> => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', username);
-      
+      const { data, error } = await supabase.from('profiles').select('username').eq('username', username);
       if (error) return false;
       return data && data.length > 0;
   },
 
   createUser: async (email: string, username: string, password: string, fullName: string, role: string) => {
-    const { data, error } = await supabase.auth.signUp({
+    // Isolated client for admin creation to prevent session overwrites
+    const tempClient = createClient(supabaseUrl, supabaseKey, {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    });
+
+    const { data, error } = await tempClient.auth.signUp({
         email,
         password,
         options: {
-            data: {
-                full_name: fullName,
-                username: username,
-                role: role,
-                status: 'inactive'
-            }
+            data: { full_name: fullName, username: username, role: role, status: 'inactive' }
         }
     });
 
     if (error) throw error;
+
+    // Fallback: Ensure profile exists if trigger fails
+    if (data.user) {
+        const { error: insertError } = await supabase.from('profiles').insert({
+            id: data.user.id,
+            email: email,
+            username: username,
+            full_name: fullName,
+            role: role,
+            status: 'inactive'
+        });
+        if (insertError && !insertError.message.includes('duplicate key')) console.warn(insertError.message);
+    }
   },
 
   registerUser: async (email: string, username: string, password: string, fullName: string) => {
@@ -209,141 +166,74 @@ export const supabaseService = {
           email,
           password,
           options: {
-              data: {
-                  full_name: fullName,
-                  username: username,
-                  role: 'field_operator',
-                  status: 'inactive'
-              }
+              data: { full_name: fullName, username: username, role: 'field_operator', status: 'inactive' }
           }
       });
       if (error) throw error;
       return data;
   },
 
-  // UPDATED: Added select() to verify update success
-  updateProfile: async (id: string, updates: { full_name?: string; badge_number?: string; avatar_url?: string; preferred_shift?: string; preferred_day_off?: string }) => {
-    const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', id)
-        .select(); // IMPORTANT: Request the updated row back
-    
-    if (error) {
-        if (error.message.includes('preferred_day_off') || error.message.includes('schema cache')) {
-            throw new Error("Database schema missing 'preference' columns. Run migrations.sql in Supabase.");
-        }
-        throw error;
-    }
-    
-    // Silent failure check: If RLS blocks update, data is empty but error is null
-    if (!data || data.length === 0) {
-        throw new Error("Update failed. You may not have permission to update this profile.");
-    }
+  updateProfile: async (id: string, updates: Partial<UserProfile>) => {
+    const { data, error } = await supabase.from('profiles').update(updates).eq('id', id).select();
+    if (error) throw error;
+    if (!data || data.length === 0) throw new Error("Update failed. Permission denied.");
   },
 
   uploadAvatar: async (userId: string, file: File): Promise<string> => {
-      // 1. File Size Validation (Max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-          throw new Error("File size too large. Maximum size is 2MB.");
-      }
-
-      // 2. Define path: userId/timestamp.png
+      if (file.size > 2 * 1024 * 1024) throw new Error("File too large (Max 2MB).");
+      
       const timestamp = new Date().getTime();
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}/${timestamp}.${fileExt}`;
 
-      // 3. Upload file
       const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(filePath, file, { 
-              cacheControl: '3600',
-              contentType: file.type,
-              upsert: true
-          });
+          .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
-      if (uploadError) {
-          console.error("Storage upload error:", uploadError);
-          if (uploadError.message.includes('row-level security')) {
-               throw new Error("Permission denied. You can only upload your own avatar.");
-          }
-          throw new Error("Failed to upload image: " + uploadError.message);
-      }
+      if (uploadError) throw new Error("Upload failed: " + uploadError.message);
 
-      // 4. Get Public URL
-      const { data } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(filePath);
-
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
       return data.publicUrl;
   },
 
   updateUserCredentials: async (updates: { email?: string; password?: string }) => {
     const { error } = await supabase.auth.updateUser(updates);
     if (error) throw error;
-    
     if (updates.email) {
        const { data: { user } } = await supabase.auth.getUser();
-       if (user) {
-           await supabase.from('profiles').update({ email: updates.email }).eq('id', user.id);
-       }
+       if (user) await supabase.from('profiles').update({ email: updates.email }).eq('id', user.id);
     }
   },
 
+  // --- SCHEDULES ---
+
   getSchedules: async (startDate: string, endDate: string): Promise<PersonnelSchedule[]> => {
-      const { data, error } = await supabase
-          .from('personnel_schedules')
-          .select('*')
-          .gte('date', startDate)
-          .lte('date', endDate);
-      
+      const { data, error } = await supabase.from('personnel_schedules').select('*').gte('date', startDate).lte('date', endDate);
       if (error) throw error;
       return data as PersonnelSchedule[];
   },
 
   upsertSchedule: async (schedule: Partial<PersonnelSchedule>) => {
-      if (!schedule.user_id || !schedule.date) throw new Error("Missing required fields");
-
-      const { data, error } = await supabase
-          .from('personnel_schedules')
-          .upsert(schedule, { onConflict: 'user_id,date' }) 
-          .select()
-          .single();
-      
+      const { data, error } = await supabase.from('personnel_schedules').upsert(schedule, { onConflict: 'user_id,date' }).select().single();
       if (error) throw error;
       return data;
   },
 
   saveBatchSchedules: async (schedules: Partial<PersonnelSchedule>[]) => {
       if (schedules.length === 0) return;
-
-      const chunkSize = 50;
-      for (let i = 0; i < schedules.length; i += chunkSize) {
-          const chunk = schedules.slice(i, i + chunkSize);
-          const { error } = await supabase
-              .from('personnel_schedules')
-              .upsert(chunk, { onConflict: 'user_id,date' });
-
-          if (error) {
-              console.error(`Bulk upsert failed at chunk ${i}:`, error);
-              throw new Error("Failed to save some schedule entries. Please retry.");
-          }
-      }
+      const { error } = await supabase.from('personnel_schedules').upsert(schedules, { onConflict: 'user_id,date' });
+      if (error) throw new Error("Bulk save failed.");
   },
+
+  // --- INCIDENTS & OPERATIONS ---
 
   getIncidents: async (): Promise<IncidentWithDetails[]> => {
     const { data, error } = await supabase
       .from('incidents')
-      .select(`
-        *,
-        profiles:officer_id (full_name),
-        dispatch_logs (*),
-        incident_parties (*)
-      `)
+      .select(`*, profiles:officer_id (full_name), dispatch_logs (*), incident_parties (*)`)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-
     return data.map((inc: any) => ({
       ...inc,
       officer_name: inc.profiles?.full_name || 'Unknown Officer',
@@ -355,17 +245,11 @@ export const supabaseService = {
   getIncidentsByStatus: async (statuses: string[]): Promise<IncidentWithDetails[]> => {
     const { data, error } = await supabase
       .from('incidents')
-      .select(`
-        *,
-        profiles:officer_id (full_name),
-        dispatch_logs (*),
-        incident_parties (*)
-      `)
+      .select(`*, profiles:officer_id (full_name), dispatch_logs (*), incident_parties (*)`)
       .in('status', statuses)
       .order('updated_at', { ascending: false });
 
     if (error) throw error;
-
     return data.map((inc: any) => ({
       ...inc,
       officer_name: inc.profiles?.full_name || 'Unknown Officer',
@@ -375,54 +259,53 @@ export const supabaseService = {
   },
 
   updateIncident: async (id: string, updates: Partial<Incident>) => {
-      const { error } = await supabase
-        .from('incidents')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id);
-
+      const { error } = await supabase.from('incidents').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id);
       if (error) throw error;
   },
 
+  // --- CLEAN CLEAR FUNCTION ---
+  clearRestrictedStatus: async (incidentId: string) => {
+      const { data, error } = await supabase
+          .from('incidents')
+          .update({ 
+              is_restricted_entry: false,
+              updated_at: new Date().toISOString()
+          })
+          .eq('id', incidentId)
+          .select();
+
+      if (error) throw new Error(error.message);
+      
+      // Verification: If no rows were returned, the update didn't happen (permission or ID issue)
+      if (!data || data.length === 0) {
+          throw new Error("Update failed. Permission denied or record not found.");
+      }
+      
+      return { success: true };
+  },
+
+  // --- DISPATCH & LOGISTICS ---
+
   updateDispatchStatus: async (logId: string, updates: Partial<DispatchLog>) => {
-    const { data, error } = await supabase
-      .from('dispatch_logs')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', logId)
-      .select()
-      .single();
-    
+    const { data, error } = await supabase.from('dispatch_logs').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', logId).select().single();
     if (error) throw error;
     
+    // Auto-update incident status logic
     if (data) {
-        try {
-            if (updates.status === 'On Scene') {
-                await supabase.from('incidents').update({ status: 'Dispatched' }).eq('id', data.incident_id);
+        if (updates.status === 'On Scene') {
+            await supabase.from('incidents').update({ status: 'Dispatched' }).eq('id', data.incident_id);
+        }
+        if (updates.status === 'Clear') {
+            const { data: incident } = await supabase.from('incidents').select('type').eq('id', data.incident_id).single();
+            if (incident && incident.type === 'Logistics') {
+                 await supabase.from('incidents').update({ status: 'Closed' }).eq('id', data.incident_id);
             }
-            if (updates.status === 'Clear') {
-                const { data: incident } = await supabase
-                    .from('incidents')
-                    .select('type')
-                    .eq('id', data.incident_id)
-                    .single();
-                    
-                if (incident && incident.type === 'Logistics') {
-                     await supabase.from('incidents').update({ status: 'Closed' }).eq('id', data.incident_id);
-                }
-            }
-        } catch (secondaryError) {
-            console.warn("Secondary incident update failed, but dispatch log was updated.", secondaryError);
         }
     }
     return data;
   },
 
-  logVehicleDispatch: async (
-      loggerId: string,
-      vehicle: string, 
-      officers: string,
-      purpose: string, 
-      location: string
-  ) => {
+  logVehicleDispatch: async (loggerId: string, vehicle: string, officers: string, purpose: string, location: string) => {
       const caseNum = `LOG-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
       const { data: incident, error: incError } = await supabase
         .from('incidents')
@@ -435,205 +318,99 @@ export const supabaseService = {
             officer_id: loggerId,
             is_restricted_entry: false
         })
-        .select()
-        .single();
+        .select().single();
       
       if (incError) throw incError;
 
-      const { error: logError } = await supabase
-        .from('dispatch_logs')
-        .insert({
+      const { error: logError } = await supabase.from('dispatch_logs').insert({
             incident_id: incident.id,
             unit_name: `${vehicle} - ${officers}`,
             status: 'En Route',
             updated_at: new Date().toISOString()
-        });
+      });
 
       if (logError) throw logError;
       return incident;
   },
 
   getDispatchHistory: async () => {
-      const { data, error } = await supabase
-        .from('dispatch_logs')
-        .select(`
-            *,
-            incidents (
-                type,
-                narrative,
-                location
-            )
-        `)
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await supabase.from('dispatch_logs').select(`*, incidents (type, narrative, location)`).order('created_at', { ascending: false });
       if (error) throw error;
       return data;
   },
 
-  createIncidentReport: async (
-    incidentData: Omit<Incident, 'id' | 'created_at' | 'case_number'>, 
-    partiesData: Omit<IncidentParty, 'id' | 'incident_id'>[]
-  ) => {
+  createIncidentReport: async (incidentData: Omit<Incident, 'id' | 'created_at' | 'case_number'>, partiesData: Omit<IncidentParty, 'id' | 'incident_id'>[]) => {
     const caseNum = `BB-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const { data: incident, error: incError } = await supabase
-      .from('incidents')
-      .insert({
-        ...incidentData,
-        case_number: caseNum
-      })
-      .select()
-      .single();
+    const { data: incident, error: incError } = await supabase.from('incidents').insert({ ...incidentData, case_number: caseNum }).select().single();
 
     if (incError) throw incError;
 
-    const newId = incident.id;
-
-    let insertedParties = [];
     if (partiesData.length > 0) {
-      const partiesToInsert = partiesData.map(p => ({
-        ...p,
-        incident_id: newId
-      }));
-      
-      const { data: pData, error: partyError } = await supabase
-        .from('incident_parties')
-        .insert(partiesToInsert)
-        .select();
-        
-      if (partyError) console.error("Error inserting parties", partyError);
-      if (pData) insertedParties = pData;
+      const parties = partiesData.map(p => ({ ...p, incident_id: incident.id }));
+      await supabase.from('incident_parties').insert(parties);
     }
 
     if (incidentData.status === 'Dispatched') {
-      await supabase
-        .from('dispatch_logs')
-        .insert({
-          incident_id: newId,
+      await supabase.from('dispatch_logs').insert({
+          incident_id: incident.id,
           unit_name: 'Pending Assignment',
           status: 'En Route',
           updated_at: new Date().toISOString()
-        });
+      });
     }
 
-    return {
-      ...incident,
-      parties: insertedParties
-    };
+    return incident;
   },
 
   getRestrictedPersons: async () => {
     const { data, error } = await supabase
       .from('incident_parties')
-      .select(`
-        *,
-        incidents!inner (
-          case_number,
-          is_restricted_entry,
-          created_at,
-          type,
-          narrative
-        )
-      `)
+      .select(`*, incidents!inner (case_number, is_restricted_entry, created_at, type, narrative)`)
       .eq('incidents.is_restricted_entry', true)
       .in('role', ['Respondent', 'Suspect'])
-      .order('created_at', { ascending: false });
+      .order('created_at', { foreignTable: 'incidents', ascending: false });
 
     if (error) throw error;
     return data;
   },
 
+  // --- ASSETS & CCTV ---
+
   getAssetRequests: async (): Promise<AssetRequest[]> => {
-      const { data, error } = await supabase
-        .from('asset_requests')
-        .select(`
-            *,
-            profiles:logged_by (full_name)
-        `)
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await supabase.from('asset_requests').select(`*, profiles:logged_by (full_name)`).order('created_at', { ascending: false });
       if (error) throw error;
-
-      return data.map((req: any) => ({
-          ...req,
-          logger_name: req.profiles?.full_name || 'System'
-      }));
+      return data.map((req: any) => ({ ...req, logger_name: req.profiles?.full_name || 'System' }));
   },
 
-  createAssetRequest: async (
-      requestData: Omit<AssetRequest, 'id' | 'created_at' | 'updated_at' | 'status'>
-  ) => {
-      const { data, error } = await supabase
-        .from('asset_requests')
-        .insert(requestData)
-        .select()
-        .single();
-      
+  createAssetRequest: async (requestData: any) => {
+      const { data, error } = await supabase.from('asset_requests').insert(requestData).select().single();
       if (error) throw error;
       return data;
   },
 
   updateAssetRequestStatus: async (id: string, status: string) => {
-      const { data, error } = await supabase
-        .from('asset_requests')
-        .update({ 
-            status, 
-            updated_at: new Date().toISOString() 
-        })
-        .eq('id', id)
-        .select();
-
+      const { data, error } = await supabase.from('asset_requests').update({ status, updated_at: new Date().toISOString() }).eq('id', id).select();
       if (error) throw error;
-      
-      if (!data || data.length === 0) {
-          throw new Error("Update failed. You may not have permission to update this record.");
-      }
-      
+      if (!data || data.length === 0) throw new Error("Update failed.");
       return data[0];
   },
 
-  createCCTVRequest: async (
-      requestData: Omit<CCTVRequest, 'id' | 'created_at' | 'request_number'>
-  ) => {
+  createCCTVRequest: async (requestData: any) => {
       const caseNum = `CCTV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const { data, error } = await supabase
-        .from('cctv_requests')
-        .insert({
-            ...requestData,
-            request_number: caseNum
-        })
-        .select()
-        .single();
-      
+      const { data, error } = await supabase.from('cctv_requests').insert({ ...requestData, request_number: caseNum }).select().single();
       if (error) throw error;
       return data;
   },
 
   getCCTVRequests: async (): Promise<CCTVRequest[]> => {
-      const { data, error } = await supabase
-        .from('cctv_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
+      const { data, error } = await supabase.from('cctv_requests').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       return data;
   },
 
   getAuditLogs: async (): Promise<AuditLog[]> => {
-    const { data, error } = await supabase
-      .from('audit_logs')
-      .select(`
-        *,
-        profiles:performed_by (full_name)
-      `)
-      .order('created_at', { ascending: false })
-      .limit(100);
-
+    const { data, error } = await supabase.from('audit_logs').select(`*, profiles:performed_by (full_name)`).order('created_at', { ascending: false }).limit(100);
     if (error) throw error;
-
-    return data.map((log: any) => ({
-      ...log,
-      performer_name: log.profiles?.full_name || 'System / Unknown'
-    }));
+    return data.map((log: any) => ({ ...log, performer_name: log.profiles?.full_name || 'System' }));
   }
 };
