@@ -81,12 +81,12 @@ const CommandCenter: React.FC = () => {
                   
                   // Strict Shift Time Checking
                   let isOnShift = false;
-                  // 1st Shift: 12 AM (0) to 8 AM (8)
-                  if (userSched.shift === '1st' && (currentHour >= 0 && currentHour < 8)) isOnShift = true;
-                  // 2nd Shift: 8 AM (8) to 4 PM (16)
-                  if (userSched.shift === '2nd' && (currentHour >= 8 && currentHour < 16)) isOnShift = true;
-                  // 3rd Shift: 4 PM (16) to 12 AM (0) - effectively end of day (23:59)
-                  if (userSched.shift === '3rd' && (currentHour >= 16 && currentHour <= 23)) isOnShift = true;
+                  // 1st Shift: 6:00 AM - 2:00 PM (14:00)
+                  if (userSched.shift === '1st' && (currentHour >= 6 && currentHour < 14)) isOnShift = true;
+                  // 2nd Shift: 2:00 PM - 10:00 PM (22:00)
+                  if (userSched.shift === '2nd' && (currentHour >= 14 && currentHour < 22)) isOnShift = true;
+                  // 3rd Shift: 10:00 PM - 6:00 AM
+                  if (userSched.shift === '3rd' && (currentHour >= 22 || currentHour < 6)) isOnShift = true;
 
                   if (isOnShift) {
                       acc.push({ profile: userProfile, schedule: userSched });
@@ -473,34 +473,40 @@ const CommandCenter: React.FC = () => {
                       </div>
                   ) : (
                     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                        {onDutyPersonnel.map(({ profile, schedule }) => (
-                            <div key={profile.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-xl border border-gray-100 dark:border-slate-600">
-                                <div className="flex items-center space-x-3">
-                                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center font-bold text-slate-600 dark:text-white">
-                                            {profile.full_name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-slate-800 dark:text-white">{profile.full_name}</p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">{profile.badge_number} • {profile.role}</p>
-                                        </div>
+                        {onDutyPersonnel.map(({ profile, schedule }) => {
+                            const currentHour = new Date().getHours();
+                            const isRoadClearingTime = currentHour >= 8 && currentHour < 10;
+                            const isRoadClearing = schedule.status === 'Road Clearing' || (schedule.status === 'On Duty' && schedule.shift === '1st' && isRoadClearingTime);
+                            
+                            return (
+                                <div key={profile.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-xl border border-gray-100 dark:border-slate-600">
+                                    <div className="flex items-center space-x-3">
+                                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center font-bold text-slate-600 dark:text-white">
+                                                {profile.full_name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-800 dark:text-white">{profile.full_name}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">{profile.badge_number} • {profile.role}</p>
+                                            </div>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                        <span className={`flex items-center text-xs font-bold px-2 py-1 rounded-full ${
+                                            isRoadClearing 
+                                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' 
+                                            : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                        }`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                                                isRoadClearing ? 'bg-amber-500' : 'bg-green-500'
+                                            }`}></span>
+                                            {schedule.shift} Shift
+                                        </span>
+                                        {isRoadClearing && (
+                                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1">Road Clearing</span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex flex-col items-end">
-                                    <span className={`flex items-center text-xs font-bold px-2 py-1 rounded-full ${
-                                        schedule.status === 'Road Clearing' 
-                                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' 
-                                        : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                    }`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                                            schedule.status === 'Road Clearing' ? 'bg-yellow-500' : 'bg-green-500'
-                                        }`}></span>
-                                        {schedule.shift} Shift
-                                    </span>
-                                    {schedule.status === 'Road Clearing' && (
-                                        <span className="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold mt-1">Road Clearing</span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                   )}
               </div>

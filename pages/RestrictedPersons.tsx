@@ -2,13 +2,19 @@
 import React, { useEffect, useState } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import { useLanguage } from '../contexts/LanguageContext';
-import { AlertOctagon, UserX, Calendar, FileText, Ban } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { AlertOctagon, UserX, Calendar, FileText, Ban, ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 const RestrictedPersons: React.FC = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  
   const [people, setPeople] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRestricted();
@@ -17,6 +23,7 @@ const RestrictedPersons: React.FC = () => {
     const channel = supabase
     .channel('restricted_realtime')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'incident_parties' }, () => fetchRestricted())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, () => fetchRestricted())
     .subscribe();
 
     return () => {
@@ -25,7 +32,6 @@ const RestrictedPersons: React.FC = () => {
   }, []);
 
   const fetchRestricted = async () => {
-      setLoading(true);
       try {
           const data = await supabaseService.getRestrictedPersons();
           setPeople(data);
@@ -33,6 +39,34 @@ const RestrictedPersons: React.FC = () => {
           console.error("Failed to fetch restricted list", error);
       } finally {
           setLoading(false);
+      }
+  };
+
+  const handleClearRestriction = async (person: any) => {
+      if (user?.role !== 'supervisor') {
+          showToast("Unauthorized: Access Restricted to Supervisors.", "error");
+          return;
+      }
+
+      if (!confirm(`Are you sure you want to remove ${person.name} from the Watchlist?`)) return;
+
+      setProcessingId(person.id);
+      try {
+          // Standard Update: Calls the simplified service method
+          await supabaseService.clearRestrictedStatus(person.incident_id);
+          
+          showToast(`Watchlist cleared for Case #${person.incidents?.case_number}.`, "success");
+          
+          // Optimistic UI Update
+          setPeople(prev => prev.filter(p => p.incident_id !== person.incident_id));
+          
+      } catch (error: any) {
+          console.error("Clear error:", error);
+          showToast(error.message || "Failed to update status. Check permissions.", "error");
+          // If optimistic update failed (though we didn't do it before call here), refresh
+          fetchRestricted();
+      } finally {
+          setProcessingId(null);
       }
   };
 
@@ -59,8 +93,8 @@ const RestrictedPersons: React.FC = () => {
             ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {people.map((person) => (
-                        <div key={person.id} className="glass-panel p-6 rounded-3xl border-l-4 border-l-red-500 shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform border border-white/60 dark:border-white/10">
-                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <div key={person.id} className="glass-panel p-6 rounded-3xl border-l-4 border-l-red-500 shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform border border-white/60 dark:border-white/10 flex flex-col justify-between">
+                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
                                  <Ban size={80} className="text-red-900"/>
                              </div>
 
@@ -75,7 +109,7 @@ const RestrictedPersons: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="space-y-3">
+                                <div className="space-y-3 mb-6">
                                     <div className="bg-white/50 dark:bg-white/5 p-3 rounded-xl border border-gray-200 dark:border-slate-700">
                                         <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">Involved In</p>
                                         <p className="text-sm font-semibold text-slate-800 dark:text-white">{person.incidents?.type}</p>
@@ -94,6 +128,27 @@ const RestrictedPersons: React.FC = () => {
                                     </div>
                                 </div>
                              </div>
+
+                             {/* Clear Button - Only for Supervisors */}
+                             {user?.role === 'supervisor' && (
+                                 <button
+                                    onClick={() => handleClearRestriction(person)}
+                                    disabled={processingId === person.id}
+                                    className="relative z-20 w-full flex items-center justify-center space-x-2 py-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 hover:border-green-200 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                 >
+                                     {processingId === person.id ? (
+                                         <>
+                                            <Loader2 size={14} className="animate-spin" />
+                                            <span>Processing...</span>
+                                         </>
+                                     ) : (
+                                         <>
+                                            <ShieldCheck size={16} />
+                                            <span>Clear from Watchlist</span>
+                                         </>
+                                     )}
+                                 </button>
+                             )}
                         </div>
                     ))}
                 </div>

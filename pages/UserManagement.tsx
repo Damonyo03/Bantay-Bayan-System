@@ -159,15 +159,26 @@ const UserManagement: React.FC = () => {
 
       const currentHour = today.getHours();
       let isOnShift = false;
-      if (userSchedule.shift === '1st' && (currentHour >= 0 && currentHour < 8)) isOnShift = true;
-      if (userSchedule.shift === '2nd' && (currentHour >= 8 && currentHour < 16)) isOnShift = true;
-      if (userSchedule.shift === '3rd' && (currentHour >= 16 && currentHour <= 23)) isOnShift = true;
+      
+      // 1st Shift: 6:00 AM - 2:00 PM (14:00)
+      if (userSchedule.shift === '1st' && (currentHour >= 6 && currentHour < 14)) isOnShift = true;
+      // 2nd Shift: 2:00 PM - 10:00 PM (22:00)
+      if (userSchedule.shift === '2nd' && (currentHour >= 14 && currentHour < 22)) isOnShift = true;
+      // 3rd Shift: 10:00 PM - 6:00 AM
+      if (userSchedule.shift === '3rd' && (currentHour >= 22 || currentHour < 6)) isOnShift = true;
 
       if (isOnShift) {
+          // Mandatory Road Clearing: 8am - 10am (Hours 8 and 9)
+          const isRoadClearingTime = currentHour >= 8 && currentHour < 10;
+          
+          // Override if manually set OR if within mandatory time on 1st shift
+          const isRoadClearing = userSchedule.status === 'Road Clearing' || 
+                                 (userSchedule.status === 'On Duty' && userSchedule.shift === '1st' && isRoadClearingTime);
+
           return { 
-              label: userSchedule.status === 'Road Clearing' ? 'Road Clearing' : 'On Duty', 
-              color: userSchedule.status === 'Road Clearing' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400', 
-              bg: userSchedule.status === 'Road Clearing' ? 'bg-amber-100 dark:bg-amber-900/20' : 'bg-emerald-100 dark:bg-emerald-900/20' 
+              label: isRoadClearing ? 'Road Clearing' : 'On Duty', 
+              color: isRoadClearing ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400', 
+              bg: isRoadClearing ? 'bg-amber-100 dark:bg-amber-900/20' : 'bg-emerald-100 dark:bg-emerald-900/20' 
           };
       } else {
           return { label: 'Off Shift', color: 'text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800' };
@@ -401,7 +412,9 @@ const UserManagement: React.FC = () => {
           showToast("Account created successfully. User is Pending approval.", "success");
           setIsModalOpen(false);
           setNewUser({ email: '', username: '', password: '', fullName: '', role: 'field_operator' });
-          setActiveTab('pending'); 
+          setActiveTab('pending');
+          // Update list immediately
+          fetchUsers();
           
       } catch (error: any) {
           console.error(error);
@@ -852,17 +865,17 @@ const UserManagement: React.FC = () => {
                                                       bgClass = "bg-indigo-100 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800";
                                                       textClass = "text-indigo-700 dark:text-indigo-300";
                                                       icon = <Moon size={12} />;
-                                                      label = "12am - 8am";
+                                                      label = "6am - 2pm";
                                                   } else if (schedule.shift === '2nd') {
                                                       bgClass = "bg-sky-100 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800";
                                                       textClass = "text-sky-700 dark:text-sky-300";
                                                       icon = <Sun size={12} />;
-                                                      label = "8am - 4pm";
+                                                      label = "2pm - 10pm";
                                                   } else {
                                                       bgClass = "bg-violet-100 dark:bg-violet-900/30 border-violet-200 dark:border-violet-800";
                                                       textClass = "text-violet-700 dark:text-violet-300";
                                                       icon = <Sunset size={12} />;
-                                                      label = "4pm - 12am";
+                                                      label = "10pm - 6am";
                                                   }
 
                                                   content = (
@@ -993,15 +1006,15 @@ const UserManagement: React.FC = () => {
                              <div className="grid grid-cols-1 gap-2">
                                  <button onClick={() => setNewShift('1st')} className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '1st' ? 'bg-indigo-100 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}>
                                      <div className={`p-2 rounded-lg mr-3 ${newShift === '1st' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}><Moon size={16} /></div>
-                                     <div className="text-left"><div className="text-sm font-bold">1st Shift</div><div className="text-[10px] opacity-80">12:00 AM - 8:00 AM</div></div>
+                                     <div className="text-left"><div className="text-sm font-bold">1st Shift</div><div className="text-[10px] opacity-80">6:00 AM - 2:00 PM</div></div>
                                  </button>
                                  <button onClick={() => setNewShift('2nd')} className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '2nd' ? 'bg-sky-100 border-sky-500 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}>
                                      <div className={`p-2 rounded-lg mr-3 ${newShift === '2nd' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}><Sun size={16} /></div>
-                                     <div className="text-left"><div className="text-sm font-bold">2nd Shift</div><div className="text-[10px] opacity-80">8:00 AM - 4:00 PM</div></div>
+                                     <div className="text-left"><div className="text-sm font-bold">2nd Shift</div><div className="text-[10px] opacity-80">2:00 PM - 10:00 PM</div></div>
                                  </button>
                                  <button onClick={() => setNewShift('3rd')} className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '3rd' ? 'bg-violet-100 border-violet-500 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}>
                                      <div className={`p-2 rounded-lg mr-3 ${newShift === '3rd' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}><Sunset size={16} /></div>
-                                     <div className="text-left"><div className="text-sm font-bold">3rd Shift</div><div className="text-[10px] opacity-80">4:00 PM - 12:00 AM</div></div>
+                                     <div className="text-left"><div className="text-sm font-bold">3rd Shift</div><div className="text-[10px] opacity-80">10:00 PM - 6:00 AM</div></div>
                                  </button>
                              </div>
                          </div>
@@ -1040,9 +1053,9 @@ const UserManagement: React.FC = () => {
                             value={bulkConfig.shift}
                             onChange={e => setBulkConfig({...bulkConfig, shift: e.target.value as ShiftType})}
                          >
-                             <option value="1st">1st Shift (12am - 8am)</option>
-                             <option value="2nd">2nd Shift (8am - 4pm)</option>
-                             <option value="3rd">3rd Shift (4pm - 12am)</option>
+                             <option value="1st">1st Shift (6am - 2pm)</option>
+                             <option value="2nd">2nd Shift (2pm - 10pm)</option>
+                             <option value="3rd">3rd Shift (10pm - 6am)</option>
                          </select>
                      </div>
 
@@ -1073,6 +1086,93 @@ const UserManagement: React.FC = () => {
                          <span>Apply to Week</span>
                      </button>
                  </div>
+             </div>
+          </div>
+      )}
+
+      {/* CREATE USER MODAL */}
+      {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+             <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-lg shadow-2xl animate-slide-up p-8 border border-white/20">
+                 <div className="mb-6 flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
+                        <UserCheck className="mr-2 text-blue-600 dark:text-blue-400" />
+                        Create New Account
+                    </h3>
+                    <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
+                        <X size={18} className="text-gray-500 dark:text-gray-300" />
+                    </button>
+                 </div>
+                 
+                 <form onSubmit={handleCreateUser} className="space-y-4">
+                     <div>
+                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Full Name</label>
+                         <input 
+                             required
+                             type="text"
+                             className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                             placeholder="e.g. Officer Juan Dela Cruz"
+                             value={newUser.fullName}
+                             onChange={e => setNewUser({...newUser, fullName: e.target.value})}
+                         />
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                         <div>
+                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Username</label>
+                             <input 
+                                 required
+                                 type="text"
+                                 className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                                 placeholder="jdelacruz"
+                                 value={newUser.username}
+                                 onChange={e => setNewUser({...newUser, username: e.target.value})}
+                             />
+                         </div>
+                         <div>
+                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Role</label>
+                             <select 
+                                 className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                                 value={newUser.role}
+                                 onChange={e => setNewUser({...newUser, role: e.target.value})}
+                             >
+                                 <option value="field_operator">Field Operator</option>
+                                 <option value="supervisor">Supervisor (Admin)</option>
+                             </select>
+                         </div>
+                     </div>
+                     <div>
+                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Email Address</label>
+                         <input 
+                             required
+                             type="email"
+                             className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                             placeholder="official@email.com"
+                             value={newUser.email}
+                             onChange={e => setNewUser({...newUser, email: e.target.value})}
+                         />
+                     </div>
+                     <div>
+                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Temporary Password</label>
+                         <input 
+                             required
+                             type="password"
+                             className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                             placeholder="Min 8 chars, 1 Upper, 1 Special"
+                             value={newUser.password}
+                             onChange={e => setNewUser({...newUser, password: e.target.value})}
+                         />
+                     </div>
+
+                     <div className="pt-4">
+                         <button 
+                             type="submit"
+                             disabled={isCreating}
+                             className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center space-x-2 disabled:opacity-70"
+                         >
+                             {isCreating ? 'Creating Account...' : 'Create Account'}
+                         </button>
+                     </div>
+                 </form>
              </div>
           </div>
       )}
