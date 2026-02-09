@@ -89,5 +89,47 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- 4. SYSTEM RESET FUNCTION (DATA ARCHIVING)
+-- Allows Supervisors to wipe transactional data but keep users
+CREATE OR REPLACE FUNCTION admin_reset_system_data()
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER -- Runs with elevated privileges
+SET search_path = public
+AS $$
+DECLARE
+  v_role text;
+BEGIN
+  -- Verify Supervisor Role
+  SELECT role INTO v_role FROM profiles WHERE id = auth.uid();
+  
+  IF v_role IS DISTINCT FROM 'supervisor' THEN
+    RETURN json_build_object('success', false, 'message', 'Unauthorized: Admin privileges required.');
+  END IF;
+
+  -- Delete Transactional Data (Order matters for Foreign Keys)
+  DELETE FROM dispatch_logs;
+  DELETE FROM incident_parties;
+  DELETE FROM incidents;
+  DELETE FROM asset_requests;
+  DELETE FROM cctv_requests;
+  
+  -- We deliberately DO NOT delete:
+  -- 1. profiles (Users need to log in)
+  -- 2. audit_logs (We need a record of who wiped the system)
+  -- 3. personnel_schedules (Schedules are usually recurrent)
+
+  -- Log this action specifically in audit_logs
+  INSERT INTO audit_logs (table_name, record_id, operation, performed_by, new_data)
+  VALUES ('SYSTEM', 'RESET', 'DELETE', auth.uid(), '{"action": "Full System Data Wipe"}');
+
+  RETURN json_build_object('success', true, 'message', 'System data cleared successfully.');
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('success', false, 'message', SQLERRM);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION admin_reset_system_data() TO authenticated;
+
 -- Refresh schema cache
 NOTIFY pgrst, 'reload schema';
