@@ -451,7 +451,7 @@ export const supabaseService = {
       if (error) {
           // Check for PostgREST function not found error
           if (error.code === 'PGRST202') {
-              throw new Error("Missing Database Function: Please run 'fix_reset_v2.sql' in the Supabase SQL Editor to enable this feature.");
+              throw new Error("Missing Database Function: Please run 'fix_reset_final.sql' in the Supabase SQL Editor to enable this feature.");
           }
           throw error;
       }
