@@ -448,7 +448,13 @@ export const supabaseService = {
   resetSystemData: async () => {
       // Calls the secure RPC function
       const { data, error } = await supabase.rpc('admin_reset_system_data');
-      if (error) throw error;
+      if (error) {
+          // Check for PostgREST function not found error
+          if (error.code === 'PGRST202') {
+              throw new Error("Missing Database Function: Please run 'fix_reset_function.sql' in the Supabase SQL Editor to enable this feature.");
+          }
+          throw error;
+      }
       return data;
   }
 };
