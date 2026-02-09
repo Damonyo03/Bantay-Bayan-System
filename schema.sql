@@ -108,11 +108,12 @@ BEGIN
   END IF;
 
   -- Delete Transactional Data (Order matters for Foreign Keys)
-  DELETE FROM dispatch_logs;
-  DELETE FROM incident_parties;
-  DELETE FROM incidents;
-  DELETE FROM asset_requests;
-  DELETE FROM cctv_requests;
+  -- Added WHERE id IS NOT NULL to satisfy sql_safe_updates
+  DELETE FROM dispatch_logs WHERE id IS NOT NULL;
+  DELETE FROM incident_parties WHERE id IS NOT NULL;
+  DELETE FROM incidents WHERE id IS NOT NULL;
+  DELETE FROM asset_requests WHERE id IS NOT NULL;
+  DELETE FROM cctv_requests WHERE id IS NOT NULL;
   
   -- We deliberately DO NOT delete:
   -- 1. profiles (Users need to log in)
