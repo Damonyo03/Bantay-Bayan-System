@@ -121,8 +121,9 @@ BEGIN
   -- 3. personnel_schedules (Schedules are usually recurrent)
 
   -- Log this action specifically in audit_logs
+  -- Uses Nil UUID to avoid syntax error
   INSERT INTO audit_logs (table_name, record_id, operation, performed_by, new_data)
-  VALUES ('SYSTEM', 'RESET', 'DELETE', auth.uid(), '{"action": "Full System Data Wipe"}');
+  VALUES ('SYSTEM', '00000000-0000-0000-0000-000000000000', 'DELETE', auth.uid(), '{"action": "Full System Data Wipe"}');
 
   RETURN json_build_object('success', true, 'message', 'System data cleared successfully.');
 EXCEPTION WHEN OTHERS THEN
