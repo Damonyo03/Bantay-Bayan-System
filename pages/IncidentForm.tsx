@@ -128,12 +128,13 @@ const IncidentForm: React.FC = () => {
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as IncidentType })}
                 >
-                  <option className="dark:text-slate-900">Medical</option>
-                  <option className="dark:text-slate-900">Fire</option>
-                  <option className="dark:text-slate-900">Theft</option>
-                  <option className="dark:text-slate-900">Disturbance</option>
-                  <option className="dark:text-slate-900">Traffic</option>
-                  <option className="dark:text-slate-900">Other</option>
+                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Medical</option>
+                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Fire</option>
+                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Theft</option>
+                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Disturbance</option>
+                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Traffic</option>
+                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Logistics</option>
+                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Other</option>
                 </select>
               </div>
 
@@ -155,28 +156,35 @@ const IncidentForm: React.FC = () => {
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                 >
-                  <option value="Pending" className="dark:text-slate-900">Record Only (Pending)</option>
-                  <option value="Dispatched" className="dark:text-slate-900">Dispatch Patrol</option>
-                  <option value="Resolved" className="dark:text-slate-900">Amicably Settled</option>
+                  <option value="Pending" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Record Only (Pending)</option>
+                  <option value="Dispatched" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Dispatch Patrol</option>
+                  <option value="Resolved" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Amicably Settled</option>
                 </select>
               </div>
 
-              {/* Restricted Entry Flag */}
-              <div className="flex items-center p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl">
-                 <input 
-                    type="checkbox"
-                    id="restricted"
-                    checked={formData.is_restricted_entry}
-                    onChange={(e) => setFormData({ ...formData, is_restricted_entry: e.target.checked })}
-                    className="w-5 h-5 text-red-600 rounded focus:ring-red-500 border-gray-300 mr-3"
-                 />
-                 <label htmlFor="restricted" className="flex flex-col cursor-pointer">
-                    <span className="font-bold text-red-700 dark:text-red-400 text-sm flex items-center">
-                        <AlertOctagon size={16} className="mr-1" />
-                        Mark as Restricted Entry
-                    </span>
-                    <span className="text-xs text-red-500 dark:text-red-300/70">Suspects/Respondents will be flagged in the Watchlist.</span>
-                 </label>
+              {/* Restricted Entry Flag - UPDATED TEXT & COLOR */}
+              <div className="flex items-start p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl">
+                 <div className="flex items-center h-5">
+                    <input 
+                        type="checkbox"
+                        id="restricted"
+                        checked={formData.is_restricted_entry}
+                        onChange={(e) => setFormData({ ...formData, is_restricted_entry: e.target.checked })}
+                        className="w-5 h-5 text-red-600 rounded focus:ring-red-500 border-gray-300 dark:border-red-700 bg-white dark:bg-slate-800 cursor-pointer"
+                    />
+                 </div>
+                 <div className="ml-3">
+                    <label htmlFor="restricted" className="font-bold text-red-700 dark:text-red-400 text-sm flex items-center cursor-pointer mb-1">
+                        <AlertOctagon size={16} className="mr-2" />
+                        Watchlist / Restricted Request
+                    </label>
+                    <p 
+                        className="text-xs text-red-600 dark:text-red-100/90 leading-relaxed cursor-pointer" 
+                        onClick={() => setFormData({ ...formData, is_restricted_entry: !formData.is_restricted_entry })}
+                    >
+                        Complainant requests that the respondent(s) be placed on the <span className="font-bold">Watchlist</span> due to hostile acts or threats. This will flag them for restricted entry monitoring.
+                    </p>
+                 </div>
               </div>
             </div>
 
@@ -261,11 +269,11 @@ const IncidentForm: React.FC = () => {
                         onChange={(e) => handlePartyChange(idx, 'role', e.target.value)}
                         className="w-full bg-white/80 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-slate-800 dark:text-white"
                       >
-                        <option className="dark:text-slate-900">Complainant</option>
-                        <option className="dark:text-slate-900">Respondent</option>
-                        <option className="dark:text-slate-900">Suspect</option>
-                        <option className="dark:text-slate-900">Witness</option>
-                        <option className="dark:text-slate-900">Victim</option>
+                        <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Complainant</option>
+                        <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Respondent</option>
+                        <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Suspect</option>
+                        <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Witness</option>
+                        <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Victim</option>
                       </select>
                     </div>
                     <div className="md:col-span-3">
@@ -295,14 +303,16 @@ const IncidentForm: React.FC = () => {
 
             {/* DATA PRIVACY CONSENT */}
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-xl flex items-start space-x-3 mt-4">
-                <input 
-                    type="checkbox"
-                    id="privacy-consent"
-                    checked={hasConsented}
-                    onChange={(e) => setHasConsented(e.target.checked)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 mt-0.5 border-gray-300"
-                />
-                <label htmlFor="privacy-consent" className="text-sm text-blue-900 dark:text-blue-300 leading-relaxed cursor-pointer">
+                <div className="flex items-center h-5">
+                    <input 
+                        type="checkbox"
+                        id="privacy-consent"
+                        checked={hasConsented}
+                        onChange={(e) => setHasConsented(e.target.checked)}
+                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 bg-white dark:bg-slate-800 cursor-pointer"
+                    />
+                </div>
+                <label htmlFor="privacy-consent" className="text-sm text-blue-900 dark:text-blue-200 leading-relaxed cursor-pointer">
                     <span className="font-bold flex items-center mb-1"><Shield size={14} className="mr-1"/> Data Privacy Consent</span>
                     I certify that the involved parties have been informed and have consented to the collection and processing of their personal information for this official record, in accordance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>.
                 </label>
