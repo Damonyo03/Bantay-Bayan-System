@@ -1,6 +1,6 @@
 
 import { jsPDF } from 'jspdf';
-import { IncidentWithDetails, AssetRequest } from '../types';
+import { IncidentWithDetails, AssetRequest, CCTVRequest } from '../types';
 
 export const generateOfficialReport = (incident: IncidentWithDetails) => {
   const doc = new jsPDF();
@@ -483,4 +483,167 @@ export const generateCCTVForm = (data: any) => {
   doc.text("Punong Barangay", rightColX, yPos + 5);
 
   doc.save(`CCTV_Request_${data.lastName}.pdf`);
+};
+
+export const reprintCCTVForm = (data: CCTVRequest) => {
+  const doc = new jsPDF();
+  const marginLeft = 20;
+  let yPos = 20;
+
+  // --- HEADER ---
+  doc.setFont("times", "bold");
+  doc.setFontSize(10);
+  doc.text("REPUBLIC OF THE PHILIPPINES", 105, yPos, { align: "center" });
+  yPos += 5;
+  doc.text("CITY OF TAGUIG", 105, yPos, { align: "center" });
+  yPos += 5;
+  doc.text("BARANGAY POST PROPER NORTHSIDE", 105, yPos, { align: "center" });
+  yPos += 12;
+
+  // Title
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("POST PROPER NORTHSIDE CCTV FORM", 105, yPos, { align: "center" });
+  doc.setLineWidth(0.5);
+  doc.line(55, yPos + 2, 155, yPos + 2);
+  yPos += 15;
+
+  // --- REQUESTER INFO ---
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("REQUESTER INFORMATION", marginLeft, yPos);
+  yPos += 8;
+
+  doc.setFont("helvetica", "normal");
+  
+  // Name
+  doc.text("Name:", marginLeft + 5, yPos);
+  doc.setFont("helvetica", "bold");
+  doc.text(data.requester_name.toUpperCase(), marginLeft + 35, yPos);
+  doc.line(marginLeft + 35, yPos + 1, marginLeft + 120, yPos + 1); // Underline
+  
+  yPos += 10;
+
+  // Address - Not stored in DB, keeping placeholder
+  doc.setFont("helvetica", "normal");
+  doc.text("Address:", marginLeft + 5, yPos);
+  doc.line(marginLeft + 35, yPos + 1, marginLeft + 180, yPos + 1); // Underline
+
+  yPos += 15;
+
+  // --- INCIDENT TYPE ---
+  doc.setFont("helvetica", "bold");
+  doc.text("INCIDENT TYPE", marginLeft, yPos);
+  yPos += 8;
+
+  const incidentTypes = [
+      'Robbery', 'Hold-up', 'Theft', 
+      'Physical Injuries', 'Vehicle Accident', 'Budol-budol',
+      'Carnapping', 'Murder', 'Lost Item/s'
+  ];
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+
+  // 3 columns grid
+  let col = 0;
+  
+  incidentTypes.forEach((type, index) => {
+      const x = marginLeft + 5 + (col * 60);
+      const isChecked = data.incident_type.includes(type);
+      
+      // Checkbox
+      doc.rect(x, yPos - 3, 4, 4);
+      if (isChecked) {
+          doc.setFontSize(8);
+          doc.text("X", x + 0.8, yPos);
+          doc.setFontSize(10);
+      }
+      
+      doc.text(type, x + 6, yPos);
+
+      col++;
+      if (col > 2) {
+          col = 0;
+          yPos += 8;
+      }
+  });
+
+  // Others Field
+  if (col === 0) yPos += 0; 
+  
+  // Check "Others" if not matched or explicitly present
+  // Simplified logic: print whatever is in DB into Others if needed
+  doc.rect(marginLeft + 5, yPos - 3, 4, 4);
+  doc.text("Others:", marginLeft + 11, yPos);
+  doc.line(marginLeft + 25, yPos + 1, marginLeft + 100, yPos + 1);
+  
+  // Print full string for reference
+  doc.setFontSize(8);
+  doc.text(data.incident_type, marginLeft + 27, yPos);
+  doc.setFontSize(10);
+
+  yPos += 15;
+
+  // --- INCIDENT DETAILS ---
+  doc.setFont("helvetica", "bold");
+  doc.text("INCIDENT DETAILS", marginLeft, yPos);
+  yPos += 8;
+
+  doc.setFont("helvetica", "normal");
+  
+  // Date & Time
+  doc.text("Date of Incident:", marginLeft + 5, yPos);
+  doc.text(data.incident_date, marginLeft + 40, yPos);
+  doc.line(marginLeft + 38, yPos + 1, marginLeft + 90, yPos + 1);
+
+  doc.text("Time:", marginLeft + 100, yPos);
+  doc.text(data.incident_time, marginLeft + 115, yPos);
+  doc.line(marginLeft + 112, yPos + 1, marginLeft + 160, yPos + 1);
+
+  yPos += 10;
+
+  // Place
+  doc.text("Place of Incident:", marginLeft + 5, yPos);
+  doc.text(data.location, marginLeft + 40, yPos);
+  doc.line(marginLeft + 38, yPos + 1, marginLeft + 180, yPos + 1);
+
+  yPos += 10;
+
+  // Purpose
+  doc.text("Purpose of Request:", marginLeft + 5, yPos);
+  doc.text(data.purpose, marginLeft + 45, yPos);
+  doc.line(marginLeft + 42, yPos + 1, marginLeft + 180, yPos + 1);
+
+  yPos += 30;
+
+  // --- FOOTER / SIGNATURES ---
+  
+  // Left: Requester
+  doc.setFontSize(10);
+  doc.text("I hereby certify that the above information is true and correct.", marginLeft, yPos - 10);
+  
+  yPos += 15;
+  doc.setFont("helvetica", "bold");
+  doc.text(data.requester_name.toUpperCase(), marginLeft, yPos);
+  doc.setLineWidth(0.2);
+  doc.line(marginLeft, yPos + 1, marginLeft + 60, yPos + 1);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Signature of Requester", marginLeft, yPos + 5);
+
+  // Right: Approver
+  yPos += 10; 
+  const rightColX = 120;
+  
+  doc.setFontSize(10);
+  doc.text("Approved By:", rightColX, yPos - 10);
+  doc.setFont("helvetica", "bold");
+  doc.text("HON. RICHARD C. PASADILLA", rightColX, yPos);
+  doc.line(rightColX, yPos + 1, rightColX + 60, yPos + 1);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Punong Barangay", rightColX, yPos + 5);
+
+  doc.save(`CCTV_Request_${data.request_number}.pdf`);
 };

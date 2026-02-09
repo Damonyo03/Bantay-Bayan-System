@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { Archive, MapPin, Clock, Printer, RotateCcw, FileCheck, Video, Search, Filter, FolderOpen, Calendar, User, Eye, ArrowUpDown, ChevronDown, ChevronUp, Users, Phone, MessageSquare } from 'lucide-react';
-import { generateOfficialReport } from '../utils/pdfGenerator';
+import { generateOfficialReport, reprintCCTVForm } from '../utils/pdfGenerator';
 import { supabase } from '../lib/supabaseClient';
 
 type TabType = 'incidents' | 'cctv';
@@ -356,9 +356,18 @@ const ResolvedCases: React.FC = () => {
                             </div>
                         </div>
                         
-                        <div className="shrink-0 text-left md:text-right">
-                            <span className="text-xs text-gray-400 font-mono block mb-1">Filed On</span>
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{new Date(req.created_at).toLocaleDateString()}</span>
+                        <div className="shrink-0 flex flex-col gap-3 items-end">
+                            <div className="text-right">
+                                <span className="text-xs text-gray-400 font-mono block mb-1">Filed On</span>
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{new Date(req.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <button 
+                                onClick={() => reprintCCTVForm(req)}
+                                className="flex items-center justify-center space-x-2 px-4 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
+                            >
+                                <Printer size={16} />
+                                <span>Print Form</span>
+                            </button>
                         </div>
                     </div>
                 </div>
