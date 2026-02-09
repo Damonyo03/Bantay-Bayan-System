@@ -5,7 +5,7 @@ import { IncidentWithDetails, CCTVRequest } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { Archive, MapPin, Clock, Printer, RotateCcw, FileCheck, Video, Search, Filter, FolderOpen, Calendar, User, Eye, ArrowUpDown } from 'lucide-react';
+import { Archive, MapPin, Clock, Printer, RotateCcw, FileCheck, Video, Search, Filter, FolderOpen, Calendar, User, Eye, ArrowUpDown, ChevronDown, ChevronUp, Users, Phone, MessageSquare } from 'lucide-react';
 import { generateOfficialReport } from '../utils/pdfGenerator';
 import { supabase } from '../lib/supabaseClient';
 
@@ -21,6 +21,7 @@ const ResolvedCases: React.FC = () => {
   const [archives, setArchives] = useState<IncidentWithDetails[]>([]);
   const [cctvRequests, setCctvRequests] = useState<CCTVRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Sorting and Filtering
   const [filterType, setFilterType] = useState<string>('All');
@@ -68,6 +69,10 @@ const ResolvedCases: React.FC = () => {
           console.error(err);
           showToast("Failed to reopen case", "error");
       }
+  };
+
+  const toggleExpand = (id: string) => {
+      setExpandedId(expandedId === id ? null : id);
   };
 
   // --- FILTER & SORT LOGIC ---
@@ -220,7 +225,7 @@ const ResolvedCases: React.FC = () => {
                 <div key={incident.id} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-lg transition-all relative overflow-hidden group">
                     <div className={`absolute left-0 top-0 bottom-0 w-2 ${incident.status === 'Resolved' ? 'bg-green-500' : 'bg-gray-500'}`} />
 
-                    <div className="pl-4 flex flex-col lg:flex-row justify-between lg:items-center gap-6">
+                    <div className="pl-4 flex flex-col lg:flex-row justify-between lg:items-start gap-6">
                         <div className="flex-1 space-y-2">
                             <div className="flex items-center space-x-3 mb-2 flex-wrap">
                                 <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">{incident.case_number}</span>
@@ -257,6 +262,18 @@ const ResolvedCases: React.FC = () => {
                                 <span>Print Report</span>
                             </button>
 
+                            <button 
+                                onClick={() => toggleExpand(incident.id)}
+                                className={`flex-1 lg:w-40 flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs font-bold transition-colors border ${
+                                    expandedId === incident.id 
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+                                    : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-white border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600'
+                                }`}
+                            >
+                                {expandedId === incident.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                <span>{expandedId === incident.id ? 'Hide Details' : 'View Details'}</span>
+                            </button>
+
                             {user?.role === 'supervisor' && (
                                 <button 
                                     onClick={() => handleReopen(incident)}
@@ -268,6 +285,44 @@ const ResolvedCases: React.FC = () => {
                             )}
                         </div>
                     </div>
+
+                    {/* EXPANDED DETAILS SECTION */}
+                    {expandedId === incident.id && (
+                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-700 animate-slide-down">
+                            <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center">
+                                <Users size={16} className="mr-2" />
+                                Involved Parties
+                            </h4>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {incident.parties && incident.parties.length > 0 ? (
+                                    incident.parties.map((party) => (
+                                        <div key={party.id} className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <p className="font-bold text-slate-900 dark:text-white">{party.name}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">{party.role} • {party.age} yo</p>
+                                                </div>
+                                                {party.contact_info && (
+                                                    <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center bg-white dark:bg-slate-800 px-2 py-1 rounded">
+                                                        <Phone size={12} className="mr-1" />
+                                                        {party.contact_info}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {party.statement && (
+                                                <div className="mt-2 text-sm text-slate-600 dark:text-slate-300 italic flex items-start">
+                                                    <MessageSquare size={14} className="mr-2 mt-1 flex-shrink-0 opacity-50" />
+                                                    <p>"{party.statement}"</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-slate-400 italic">No specific parties recorded.</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             ))}
 
