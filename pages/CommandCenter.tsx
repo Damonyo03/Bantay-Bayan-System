@@ -6,7 +6,7 @@ import DispatchBottomSheet from '../components/DispatchBottomSheet';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { Clock, MapPin, Car, AlertCircle, TrendingUp, Users, Edit2, X, Check, FileText, Package, ChevronRight, Shield, BadgeCheck, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { Clock, MapPin, Car, AlertCircle, TrendingUp, Users, Edit2, X, Check, FileText, Package, ChevronRight, Shield, BadgeCheck, CheckCircle, ArrowRight, Loader2, ChevronDown, ChevronUp, History } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
@@ -46,7 +46,11 @@ const CommandCenter: React.FC = () => {
   // UI States
   const [editingIncident, setEditingIncident] = useState<IncidentWithDetails | null>(null);
   const [editingNarrative, setEditingNarrative] = useState<IncidentWithDetails | null>(null);
+  const [tempNarrative, setTempNarrative] = useState(''); // Controlled input for narrative
   const [showOnDutyModal, setShowOnDutyModal] = useState(false);
+  
+  // Expanded Incident State
+  const [expandedIncidentId, setExpandedIncidentId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -191,6 +195,10 @@ const CommandCenter: React.FC = () => {
       return { vehicle: unitName, personnel: 'Unassigned' };
   };
 
+  const toggleExpand = (id: string) => {
+      setExpandedIncidentId(expandedIncidentId === id ? null : id);
+  };
+
   // Filter for dashboard display
   // Active incidents are strictly 'Pending' or 'Dispatched'. 
   // 'Resolved' and 'Closed' cases are considered inactive/archived.
@@ -202,6 +210,11 @@ const CommandCenter: React.FC = () => {
 
   const scrollToBlotter = () => {
     document.getElementById('blotter-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const openNarrativeEditor = (incident: IncidentWithDetails) => {
+      setEditingNarrative(incident);
+      setTempNarrative(incident.narrative || '');
   };
 
   return (
@@ -315,18 +328,18 @@ const CommandCenter: React.FC = () => {
                                             <button 
                                                 onClick={() => setEditingIncident(incident)}
                                                 className="flex-1 flex items-center justify-center space-x-1 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-xl text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                                                title="Edit Record"
+                                                title="Edit Status"
                                             >
                                                 <Edit2 size={14} />
-                                                <span>Edit</span>
+                                                <span>Status</span>
                                             </button>
                                             <button 
-                                                onClick={() => setEditingNarrative(incident)}
+                                                onClick={() => openNarrativeEditor(incident)}
                                                 className="flex-1 flex items-center justify-center space-x-1 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300 rounded-xl text-xs font-bold hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
                                                 title="Edit Narrative"
                                             >
                                                 <FileText size={14} />
-                                                <span>Note</span>
+                                                <span>Narrative</span>
                                             </button>
                                         </div>
                                     )}
@@ -355,8 +368,68 @@ const CommandCenter: React.FC = () => {
                                             <p className="text-xs text-gray-400 font-medium">No active dispatch</p>
                                         </div>
                                     )}
+
+                                    {/* Details Toggle Button */}
+                                    <button
+                                        onClick={() => toggleExpand(incident.id)}
+                                        className="w-full py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors flex items-center justify-center space-x-1"
+                                    >
+                                        {expandedIncidentId === incident.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                        <span>{expandedIncidentId === incident.id ? 'Hide Details' : 'View Details'}</span>
+                                    </button>
                                 </div>
                             </div>
+
+                            {/* EXPANDED DETAILS SECTION */}
+                            {expandedIncidentId === incident.id && (
+                                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 animate-slide-down">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Parties */}
+                                        <div>
+                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center">
+                                                <Users size={14} className="mr-2"/> Involved Parties ({incident.parties?.length || 0})
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {incident.parties?.length === 0 && <p className="text-sm text-slate-500 italic">No parties recorded.</p>}
+                                                {incident.parties?.map(p => (
+                                                    <div key={p.id} className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg border border-gray-100 dark:border-slate-700 text-sm">
+                                                        <div className="flex justify-between">
+                                                            <span className="font-bold text-slate-700 dark:text-slate-200">{p.name}</span>
+                                                            <span className="text-xs px-2 py-0.5 bg-white dark:bg-slate-700 rounded border border-gray-200 dark:border-slate-600 text-slate-500">{p.role}</span>
+                                                        </div>
+                                                        {p.contact_info && <div className="text-xs text-slate-500 mt-1">{p.contact_info}</div>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Dispatch Logs */}
+                                        <div>
+                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center">
+                                                <History size={14} className="mr-2"/> Dispatch History
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {incident.dispatch_logs?.length === 0 && <p className="text-sm text-slate-500 italic">No dispatch logs.</p>}
+                                                {incident.dispatch_logs?.map(log => (
+                                                    <div key={log.id} className="flex justify-between items-center bg-gray-50 dark:bg-slate-800 p-3 rounded-lg border border-gray-100 dark:border-slate-700 text-sm">
+                                                        <div>
+                                                            <div className="font-bold text-slate-700 dark:text-slate-200">{log.unit_name}</div>
+                                                            <div className="text-xs text-slate-500">{new Date(log.updated_at).toLocaleString()}</div>
+                                                        </div>
+                                                        <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${
+                                                            log.status === 'On Scene' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+                                                            log.status === 'En Route' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                                                            'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                                        }`}>
+                                                            {log.status}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -550,9 +623,10 @@ const CommandCenter: React.FC = () => {
               <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-6">
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Update Narrative</h3>
                   <textarea 
-                      className="w-full h-40 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl p-4 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                      defaultValue={editingNarrative.narrative}
-                      id="narrative-edit"
+                      className="w-full h-40 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl p-4 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none font-medium"
+                      value={tempNarrative}
+                      onChange={(e) => setTempNarrative(e.target.value)}
+                      placeholder="Enter details about the incident..."
                   />
                   <div className="flex space-x-3 mt-4">
                       <button 
@@ -562,10 +636,7 @@ const CommandCenter: React.FC = () => {
                           Cancel
                       </button>
                       <button 
-                        onClick={() => {
-                            const val = (document.getElementById('narrative-edit') as HTMLTextAreaElement).value;
-                            handleUpdateIncident(editingNarrative.id, { narrative: val });
-                        }}
+                        onClick={() => handleUpdateIncident(editingNarrative.id, { narrative: tempNarrative })}
                         className="flex-1 py-3 bg-amber-500 text-white font-bold rounded-xl shadow-lg shadow-amber-500/30 hover:bg-amber-600"
                       >
                           Save Changes

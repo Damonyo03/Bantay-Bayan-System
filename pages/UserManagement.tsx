@@ -499,7 +499,6 @@ const UserManagement: React.FC = () => {
              u.email.toLowerCase().includes(q);
   });
 
-  // ... (JSX is identical to previous, just wrapped with this logic)
   return (
     <div className="space-y-8 pb-20 animate-fade-in">
       <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
@@ -717,23 +716,45 @@ const UserManagement: React.FC = () => {
           </div>
       ) : (
           /* --- DUTY ROSTER TAB --- */
-          <div className="animate-fade-in">
-              <div className="glass-panel p-4 md:p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl overflow-hidden min-h-[600px]">
-                  
-                  {/* Calendar Header */}
-                  <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
-                      <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-2xl p-1.5 shadow-inner w-full md:w-auto justify-between">
-                          <button onClick={() => changeWeek('prev')} className="p-2 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm transition-all"><ChevronLeft size={20}/></button>
-                          <div className="px-4 text-center">
-                              <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Schedule Week</span>
-                              <span className="text-sm md:text-base font-bold text-slate-800 dark:text-white">
-                                  {formatDateShort(currentWeekRange.start)} - {formatDateShort(currentWeekRange.end)}
-                              </span>
-                          </div>
-                          <button onClick={() => changeWeek('next')} className="p-2 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm transition-all"><ChevronRight size={20}/></button>
+          <div className="animate-fade-in space-y-6">
+              
+              {/* Navigation & Controls */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center space-x-4">
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
+                          <CalendarRange size={24} />
+                      </div>
+                      <div>
+                          <h2 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">Weekly Schedule</h2>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Manage shifts and time-off.</p>
                       </div>
                   </div>
 
+                  <div className="flex items-center bg-slate-100 dark:bg-slate-700/50 rounded-xl p-1">
+                      <button 
+                          onClick={() => changeWeek('prev')} 
+                          className="p-2 hover:bg-white dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400 rounded-lg transition-all shadow-sm"
+                      >
+                          <ChevronLeft size={20}/>
+                      </button>
+                      <div className="px-6 text-center min-w-[140px]">
+                          <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Current Week</span>
+                          <span className="text-sm font-bold text-slate-800 dark:text-white font-mono">
+                              {formatDateShort(currentWeekRange.start)} - {formatDateShort(currentWeekRange.end)}
+                          </span>
+                      </div>
+                      <button 
+                          onClick={() => changeWeek('next')} 
+                          className="p-2 hover:bg-white dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400 rounded-lg transition-all shadow-sm"
+                      >
+                          <ChevronRight size={20}/>
+                      </button>
+                  </div>
+              </div>
+
+              {/* Main Roster Card */}
+              <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[600px]">
+                  
                   {rosterLoading ? (
                       <div className="flex flex-col items-center justify-center h-80 text-slate-400">
                           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500 mb-4"></div>
@@ -748,167 +769,164 @@ const UserManagement: React.FC = () => {
                           <p className="text-xs mb-4 text-center px-4">{rosterError}</p>
                       </div>
                   ) : (
-                    <div className="overflow-x-auto custom-scrollbar pb-4">
-                      <table className="w-full border-collapse">
-                          <thead>
-                              <tr>
-                                  <th className="p-4 text-left min-w-[200px] bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-widest sticky left-0 z-30 border-r border-slate-200 dark:border-slate-700 shadow-[4px_0_10px_-4px_rgba(0,0,0,0.1)] backdrop-blur-md">
-                                      Personnel
-                                  </th>
-                                  {Array.from({length: 7}).map((_, i) => {
-                                      const d = new Date(currentWeekRange.start);
-                                      d.setDate(d.getDate() + i);
-                                      
-                                      const todayStr = getLocalDateStr(new Date());
-                                      const currentStr = getLocalDateStr(d);
-                                      const isToday = todayStr === currentStr;
+                    <div className="flex-1 overflow-x-auto custom-scrollbar relative">
+                        <table className="w-full border-collapse min-w-[1000px]">
+                            <thead>
+                                <tr className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
+                                    {/* Sticky Header Corner */}
+                                    <th className="p-4 text-left min-w-[160px] md:min-w-[220px] sticky left-0 z-30 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)]">
+                                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Personnel</span>
+                                    </th>
+                                    
+                                    {/* Days Header */}
+                                    {Array.from({length: 7}).map((_, i) => {
+                                        const d = new Date(currentWeekRange.start);
+                                        d.setDate(d.getDate() + i);
+                                        const todayStr = getLocalDateStr(new Date());
+                                        const currentStr = getLocalDateStr(d);
+                                        const isToday = todayStr === currentStr;
 
-                                      return (
-                                          <th key={i} className={`p-4 min-w-[140px] font-bold text-center border-l border-slate-100 dark:border-slate-700 transition-colors relative group
-                                            ${isToday ? 'bg-indigo-600 text-white shadow-lg z-10 rounded-t-xl -translate-y-1' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}
-                                          `}>
-                                              {isToday && (
-                                                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                                                      <span className="bg-indigo-600 text-white text-[9px] px-2 py-0.5 rounded-full font-extrabold tracking-widest shadow-md border-2 border-white dark:border-slate-900">TODAY</span>
-                                                  </div>
-                                              )}
-                                              <div className="flex flex-col items-center">
-                                                  <span className={`text-[10px] uppercase tracking-widest mb-1 ${!isToday && 'opacity-70'}`}>
-                                                      {d.toLocaleDateString('en-US', { weekday: 'short' })}
-                                                  </span>
-                                                  <span className="text-xl leading-none">{d.getDate()}</span>
-                                              </div>
-                                              {d.getDay() === 6 && !isToday && <div className="absolute bottom-1 left-0 right-0 text-[9px] text-amber-600 font-extrabold opacity-50 uppercase tracking-tighter">Clearing Ops</div>}
-                                          </th>
-                                      );
-                                  })}
-                              </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                              {users.filter(u => u.status === 'active').map((rowUser) => (
-                                  <tr key={rowUser.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                      {/* Sticky Name Column */}
-                                      <td className="p-4 sticky left-0 z-20 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-colors shadow-[4px_0_10px_-4px_rgba(0,0,0,0.05)]">
-                                          <div className="flex items-center space-x-3">
-                                              <div className="relative">
-                                                  {rowUser.avatar_url ? (
-                                                      <img src={rowUser.avatar_url} className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-600" alt="" />
-                                                  ) : (
-                                                      <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs text-slate-600 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-600">
-                                                          {rowUser.full_name.charAt(0)}
-                                                      </div>
-                                                  )}
-                                                  {/* Status Dot */}
-                                                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
-                                              </div>
-                                              <div className="min-w-[120px]">
-                                                  <div className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate w-32">{rowUser.full_name}</div>
-                                                  <div className="text-[10px] text-slate-400 font-mono tracking-wide">{rowUser.badge_number || 'NO BADGE'}</div>
-                                              </div>
-                                              
-                                              {/* BULK EDIT BUTTON (Supervisor Only) */}
-                                              {/* GUI FIX: More prominent button, better spacing */}
-                                              {user?.role === 'supervisor' && (
-                                                  <button 
-                                                    onClick={(e) => { e.stopPropagation(); handleOpenBulk(rowUser); }}
-                                                    className="ml-auto p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-all shadow-sm border border-indigo-100 dark:border-indigo-800/50 flex items-center justify-center"
-                                                    title="Plan Week"
-                                                  >
-                                                      <CalendarRange size={16} />
-                                                  </button>
-                                              )}
-                                          </div>
-                                      </td>
+                                        return (
+                                            <th key={i} className={`p-3 min-w-[140px] text-center border-r border-slate-100 dark:border-slate-700/50 last:border-0 relative ${isToday ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                                                {isToday && <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500"></div>}
+                                                <div className={`inline-flex flex-col items-center justify-center rounded-xl px-4 py-2 ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : ''}`}>
+                                                    <span className={`text-[10px] font-bold uppercase tracking-widest ${isToday ? 'text-blue-100' : 'text-slate-400'}`}>
+                                                        {d.toLocaleDateString('en-US', { weekday: 'short' })}
+                                                    </span>
+                                                    <span className={`text-lg font-bold ${isToday ? 'text-white' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                        {d.getDate()}
+                                                    </span>
+                                                </div>
+                                            </th>
+                                        );
+                                    })}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                                {users.filter(u => u.status === 'active').map((rowUser) => (
+                                    <tr key={rowUser.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                        {/* Sticky Name Cell */}
+                                        <td className="p-3 md:p-4 sticky left-0 z-20 bg-white dark:bg-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-700 border-r border-slate-200 dark:border-slate-700 transition-colors shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)]">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="relative flex-shrink-0">
+                                                    {rowUser.avatar_url ? (
+                                                        <img src={rowUser.avatar_url} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-slate-600 shadow-sm" alt="" />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center text-sm font-bold text-slate-500 dark:text-slate-300 border-2 border-white dark:border-slate-600 shadow-sm">
+                                                            {rowUser.full_name.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                    {/* Online Status Indicator (mock logic or real) */}
+                                                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
+                                                </div>
+                                                <div className="overflow-hidden">
+                                                    <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{rowUser.full_name}</p>
+                                                    <p className="text-[10px] text-slate-400 font-mono tracking-wide truncate">{rowUser.badge_number || 'N/A'}</p>
+                                                </div>
+                                                
+                                                {/* Supervisor Bulk Action */}
+                                                {user?.role === 'supervisor' && (
+                                                    <button 
+                                                      onClick={(e) => { e.stopPropagation(); handleOpenBulk(rowUser); }}
+                                                      className="absolute right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-white dark:bg-slate-600 text-slate-400 hover:text-blue-600 rounded-lg shadow-sm border border-slate-200 dark:border-slate-500 transition-all transform hover:scale-110"
+                                                      title="Auto-fill Week"
+                                                    >
+                                                        <CalendarRange size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
 
-                                      {/* Schedule Cells */}
-                                      {Array.from({length: 7}).map((_, i) => {
-                                          const d = new Date(currentWeekRange.start);
-                                          d.setDate(d.getDate() + i);
-                                          const todayStr = getLocalDateStr(new Date());
-                                          const currentStr = getLocalDateStr(d);
-                                          const isToday = todayStr === currentStr;
+                                        {/* Schedule Cells */}
+                                        {Array.from({length: 7}).map((_, i) => {
+                                            const d = new Date(currentWeekRange.start);
+                                            d.setDate(d.getDate() + i);
+                                            const todayStr = getLocalDateStr(new Date());
+                                            const currentStr = getLocalDateStr(d);
+                                            const isToday = todayStr === currentStr;
 
-                                          const schedule = getScheduleForCell(rowUser.id, i);
-                                          
-                                          let content = (
-                                              <div className="w-full h-14 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center">
-                                                  <span className="text-slate-300 dark:text-slate-600 text-lg opacity-50">+</span>
-                                              </div>
-                                          );
+                                            const schedule = getScheduleForCell(rowUser.id, i);
+                                            
+                                            let content = (
+                                                <div className="w-full h-14 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center opacity-40 group-hover:opacity-100 hover:bg-white dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                                                    <Plus size={16} className="text-slate-400" />
+                                                </div>
+                                            );
 
-                                          if (schedule) {
-                                              if (schedule.status === 'Day Off') {
-                                                  content = (
-                                                      <div className="w-full h-14 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center opacity-70">
-                                                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Day Off</span>
-                                                      </div>
-                                                  );
-                                              } else if (schedule.status === 'Leave') {
-                                                  content = (
-                                                      <div className="w-full h-14 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex flex-col items-center justify-center">
-                                                          <span className="text-xs font-bold text-red-600 dark:text-red-400">On Leave</span>
-                                                      </div>
-                                                  );
-                                              } else if (schedule.status === 'Road Clearing') {
-                                                  content = (
-                                                      <div className="w-full h-14 rounded-xl bg-amber-100 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex flex-col items-center justify-center">
-                                                          <span className="text-xs font-extrabold text-amber-700 dark:text-amber-400 uppercase text-center leading-tight">Road<br/>Clearing</span>
-                                                      </div>
-                                                  );
-                                              } else {
-                                                  let bgClass = "";
-                                                  let textClass = "";
-                                                  let icon = null;
-                                                  let label = "";
+                                            if (schedule) {
+                                                if (schedule.status === 'Day Off') {
+                                                    content = (
+                                                        <div className="w-full h-14 rounded-xl bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.03)_10px,rgba(0,0,0,0.03)_20px)] dark:bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.03)_10px,rgba(255,255,255,0.03)_20px)] border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center">
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Day Off</span>
+                                                        </div>
+                                                    );
+                                                } else if (schedule.status === 'Leave') {
+                                                    content = (
+                                                        <div className="w-full h-14 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 flex flex-col items-center justify-center shadow-sm">
+                                                            <span className="text-xs font-bold text-red-600 dark:text-red-400">On Leave</span>
+                                                        </div>
+                                                    );
+                                                } else if (schedule.status === 'Road Clearing') {
+                                                    content = (
+                                                        <div className="w-full h-14 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/50 flex flex-col items-center justify-center shadow-sm relative overflow-hidden">
+                                                            <div className="absolute top-0 right-0 w-2 h-2 bg-amber-500 rounded-bl-lg"></div>
+                                                            <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-400 uppercase text-center leading-tight">Road<br/>Clearing</span>
+                                                        </div>
+                                                    );
+                                                } else {
+                                                    let bgClass = "";
+                                                    let textClass = "";
+                                                    let icon = null;
+                                                    let label = "";
 
-                                                  if (schedule.shift === '1st') {
-                                                      bgClass = "bg-indigo-100 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800";
-                                                      textClass = "text-indigo-700 dark:text-indigo-300";
-                                                      icon = <Moon size={12} />;
-                                                      label = "6am - 2pm";
-                                                  } else if (schedule.shift === '2nd') {
-                                                      bgClass = "bg-sky-100 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800";
-                                                      textClass = "text-sky-700 dark:text-sky-300";
-                                                      icon = <Sun size={12} />;
-                                                      label = "2pm - 10pm";
-                                                  } else {
-                                                      bgClass = "bg-violet-100 dark:bg-violet-900/30 border-violet-200 dark:border-violet-800";
-                                                      textClass = "text-violet-700 dark:text-violet-300";
-                                                      icon = <Sunset size={12} />;
-                                                      label = "10pm - 6am";
-                                                  }
+                                                    if (schedule.shift === '1st') {
+                                                        bgClass = "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-900/50";
+                                                        textClass = "text-indigo-700 dark:text-indigo-300";
+                                                        icon = <Moon size={14} className="text-indigo-500" />;
+                                                        label = "6am - 2pm";
+                                                    } else if (schedule.shift === '2nd') {
+                                                        bgClass = "bg-sky-50 dark:bg-sky-900/20 border-sky-100 dark:border-sky-900/50";
+                                                        textClass = "text-sky-700 dark:text-sky-300";
+                                                        icon = <Sun size={14} className="text-sky-500" />;
+                                                        label = "2pm - 10pm";
+                                                    } else {
+                                                        bgClass = "bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-900/50";
+                                                        textClass = "text-violet-700 dark:text-violet-300";
+                                                        icon = <Sunset size={14} className="text-violet-500" />;
+                                                        label = "10pm - 6am";
+                                                    }
 
-                                                  content = (
-                                                      <div className={`w-full h-14 rounded-xl border ${bgClass} flex flex-col items-center justify-center relative overflow-hidden`}>
-                                                          <div className={`flex items-center space-x-1 text-xs font-bold ${textClass} mb-0.5`}>
-                                                              {icon}
-                                                              <span>{schedule.shift} Shift</span>
-                                                          </div>
-                                                          <span className={`text-[9px] font-medium ${textClass} opacity-80`}>{label}</span>
-                                                      </div>
-                                                  );
-                                              }
-                                          }
+                                                    content = (
+                                                        <div className={`w-full h-14 rounded-xl border ${bgClass} flex flex-col items-center justify-center relative overflow-hidden shadow-sm group-hover:shadow-md transition-shadow`}>
+                                                            <div className={`flex items-center space-x-1.5 text-xs font-bold ${textClass} mb-0.5`}>
+                                                                {icon}
+                                                                <span>{schedule.shift}</span>
+                                                            </div>
+                                                            <span className={`text-[10px] font-medium ${textClass} opacity-80`}>{label}</span>
+                                                        </div>
+                                                    );
+                                                }
+                                            }
 
-                                          return (
-                                              <td 
-                                                key={i} 
-                                                onClick={() => handleCellClick(rowUser.id, i)}
-                                                className={`p-2 border-l border-slate-100 dark:border-slate-700 transition-all
-                                                    ${user?.role === 'supervisor' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800' : ''}
-                                                    ${isToday ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}
-                                                `}
-                                              >
-                                                  <div className={`transition-transform duration-200 ${user?.role === 'supervisor' ? 'active:scale-95' : ''}`}>
-                                                      {content}
-                                                  </div>
-                                              </td>
-                                          );
-                                      })}
-                                  </tr>
-                              ))}
-                          </tbody>
-                      </table>
+                                            return (
+                                                <td 
+                                                  key={i} 
+                                                  onClick={() => handleCellClick(rowUser.id, i)}
+                                                  className={`p-2 border-r border-slate-50 dark:border-slate-800 transition-all relative
+                                                      ${user?.role === 'supervisor' ? 'cursor-pointer' : ''}
+                                                      ${isToday ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''}
+                                                  `}
+                                                >
+                                                    <div className={`transition-transform duration-200 ${user?.role === 'supervisor' ? 'active:scale-95' : ''}`}>
+                                                        {content}
+                                                    </div>
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                   )}
               </div>
