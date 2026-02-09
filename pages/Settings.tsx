@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabaseService } from '../services/supabaseService';
 import { useToast } from '../contexts/ToastContext';
-import { Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, Check, ShieldAlert, Trash2, QrCode, Camera } from 'lucide-react';
+import { Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, Check, ShieldAlert, Trash2, QrCode, Camera, Database, Download, AlertTriangle, FileJson } from 'lucide-react';
 
 const Settings: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -30,6 +30,11 @@ const Settings: React.FC = () => {
   const [qrCode, setQrCode] = useState('');
   const [factorId, setFactorId] = useState('');
   const [verifyCode, setVerifyCode] = useState('');
+
+  // Data Management State
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [backupDownloaded, setBackupDownloaded] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -207,6 +212,70 @@ const Settings: React.FC = () => {
           loadMFAFactors();
       } catch (error: any) {
           showToast(error.message, "error");
+      }
+  };
+
+  // --- DATA MANAGEMENT HANDLERS ---
+  const handleDownloadBackup = async () => {
+      setIsBackingUp(true);
+      try {
+          const backupData = await supabaseService.getFullSystemBackup();
+          
+          // Create Blob and Download
+          const jsonString = JSON.stringify(backupData, null, 2);
+          const blob = new Blob([jsonString], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `bantay_bayan_backup_${new Date().toISOString().slice(0,10)}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          setBackupDownloaded(true);
+          showToast("Backup downloaded successfully. Save this file securely.", "success");
+      } catch (error: any) {
+          console.error("Backup failed", error);
+          showToast("Failed to generate backup: " + error.message, "error");
+      } finally {
+          setIsBackingUp(false);
+      }
+  };
+
+  const handleResetSystem = async () => {
+      if (!backupDownloaded) {
+          showToast("You must download a backup before resetting data.", "error");
+          return;
+      }
+
+      const confirmPhrase = "RESET DATA";
+      const input = prompt(`WARNING: This will permanently delete all incidents, logs, and requests.\nUser accounts will remain.\n\nType "${confirmPhrase}" to confirm:`);
+      
+      // 1. Handle Cancel button (null input)
+      if (input === null) return;
+
+      // 2. Handle Case-Insensitive and Whitespace
+      if (input.trim().toUpperCase() !== confirmPhrase) {
+          showToast("Reset cancelled. Incorrect phrase typed.", "error");
+          return;
+      }
+
+      setResetting(true);
+      try {
+          const result = await supabaseService.resetSystemData();
+          if (result && result.success) {
+              showToast("System data cleared successfully.", "success");
+              setBackupDownloaded(false); // Reset state
+          } else {
+              throw new Error(result?.message || "Unknown error");
+          }
+      } catch (error: any) {
+          console.error("Reset error", error);
+          showToast("Reset failed: " + error.message, "error");
+      } finally {
+          setResetting(false);
       }
   };
 
@@ -442,6 +511,80 @@ const Settings: React.FC = () => {
             </div>
             
           </div>
+
+          {/* ADMIN DATA MANAGEMENT (Supervisor Only) */}
+          {user?.role === 'supervisor' && (
+              <div className="glass-panel p-8 rounded-[2rem] shadow-xl border border-red-200 dark:border-red-900/50 bg-red-50/30 dark:bg-red-900/10">
+                  <h2 className="text-xl font-bold text-red-800 dark:text-red-400 mb-2 flex items-center">
+                      <Database className="mr-2" size={24} />
+                      System Data Management
+                  </h2>
+                  <p className="text-sm text-red-600 dark:text-red-300 mb-6">
+                      Advanced controls for system maintenance. Proceed with caution.
+                  </p>
+
+                  <div className="space-y-6">
+                      
+                      {/* Step 1: Archive */}
+                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-red-100 dark:border-red-900/30">
+                          <div>
+                              <h3 className="font-bold text-slate-800 dark:text-white text-sm">Step 1: Archive Data</h3>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Download a full JSON backup of Incidents, Logs, Requests, and Schedules.</p>
+                          </div>
+                          <button 
+                            onClick={handleDownloadBackup}
+                            disabled={isBackingUp}
+                            className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-bold flex items-center space-x-2 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+                          >
+                              {isBackingUp ? (
+                                  <span className="animate-pulse">Archiving...</span>
+                              ) : (
+                                  <>
+                                    <Download size={16} />
+                                    <span>Download Backup</span>
+                                  </>
+                              )}
+                          </button>
+                      </div>
+
+                      {/* Step 2: Reset */}
+                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-red-100 dark:border-red-900/30">
+                          <div>
+                              <h3 className="font-bold text-red-700 dark:text-red-400 text-sm flex items-center">
+                                  <AlertTriangle size={14} className="mr-1" />
+                                  Step 2: Reset System
+                              </h3>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Permanently delete all transactional data (Incidents, Assets, Logs). User accounts are preserved.</p>
+                          </div>
+                          <button 
+                            onClick={handleResetSystem}
+                            disabled={!backupDownloaded || resetting}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center space-x-2 transition-colors ${
+                                backupDownloaded 
+                                ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20 shadow-lg' 
+                                : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
+                            }`}
+                          >
+                              {resetting ? (
+                                  <span>Resetting...</span>
+                              ) : (
+                                  <>
+                                    <Trash2 size={16} />
+                                    <span>Clear Database</span>
+                                  </>
+                              )}
+                          </button>
+                      </div>
+                      
+                      {!backupDownloaded && (
+                          <p className="text-[10px] text-center text-slate-400 italic">
+                              * You must download a backup archive before the Reset option becomes available.
+                          </p>
+                      )}
+                  </div>
+              </div>
+          )}
+
       </div>
     </div>
   );
