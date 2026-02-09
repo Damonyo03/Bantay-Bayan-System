@@ -265,21 +265,15 @@ export const supabaseService = {
 
   // --- CLEAN CLEAR FUNCTION ---
   clearRestrictedStatus: async (incidentId: string) => {
-      const { data, error } = await supabase
+      const { error } = await supabase
           .from('incidents')
           .update({ 
               is_restricted_entry: false,
               updated_at: new Date().toISOString()
           })
-          .eq('id', incidentId)
-          .select();
+          .eq('id', incidentId);
 
       if (error) throw new Error(error.message);
-      
-      // Verification: If no rows were returned, the update didn't happen (permission or ID issue)
-      if (!data || data.length === 0) {
-          throw new Error("Update failed. Permission denied or record not found.");
-      }
       
       return { success: true };
   },

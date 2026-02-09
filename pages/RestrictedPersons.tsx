@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -19,7 +18,6 @@ const RestrictedPersons: React.FC = () => {
   useEffect(() => {
     fetchRestricted();
     
-    // Subscribe to changes in incident parties or incidents
     const channel = supabase
     .channel('restricted_realtime')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'incident_parties' }, () => fetchRestricted())
@@ -48,11 +46,15 @@ const RestrictedPersons: React.FC = () => {
           return;
       }
 
+      if (!person.incident_id) {
+          showToast("Error: Missing incident ID for this record.", "error");
+          return;
+      }
+
       if (!confirm(`Are you sure you want to remove ${person.name} from the Watchlist?`)) return;
 
       setProcessingId(person.id);
       try {
-          // Standard Update: Calls the simplified service method
           await supabaseService.clearRestrictedStatus(person.incident_id);
           
           showToast(`Watchlist cleared for Case #${person.incidents?.case_number}.`, "success");
@@ -63,7 +65,6 @@ const RestrictedPersons: React.FC = () => {
       } catch (error: any) {
           console.error("Clear error:", error);
           showToast(error.message || "Failed to update status. Check permissions.", "error");
-          // If optimistic update failed (though we didn't do it before call here), refresh
           fetchRestricted();
       } finally {
           setProcessingId(null);
@@ -73,7 +74,6 @@ const RestrictedPersons: React.FC = () => {
   return (
     <div className="space-y-8 pb-20 animate-fade-in">
       <header>
-        {/* Dark Text for Light Mode */}
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center">
             <AlertOctagon className="mr-3 text-red-500" />
             {t.restrictedList}
@@ -110,44 +110,44 @@ const RestrictedPersons: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-3 mb-6">
-                                    <div className="bg-white/50 dark:bg-white/5 p-3 rounded-xl border border-gray-200 dark:border-slate-700">
-                                        <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase mb-1">Involved In</p>
-                                        <p className="text-sm font-semibold text-slate-800 dark:text-white">{person.incidents?.type}</p>
-                                        <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                            <FileText size={12} className="mr-1"/>
-                                            <span className="font-mono">{person.incidents?.case_number}</span>
-                                        </div>
+                                    <div className="flex items-center text-sm text-slate-600 dark:text-slate-300">
+                                        <FileText size={16} className="mr-2 text-slate-400"/>
+                                        <span className="font-mono font-bold">{person.incidents?.case_number}</span>
                                     </div>
-
-                                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-                                        <div className="flex items-center">
-                                            <Calendar size={14} className="mr-1"/>
-                                            {new Date(person.incidents?.created_at).toLocaleDateString()}
-                                        </div>
-                                        {person.age > 0 && <span>Age: {person.age}</span>}
+                                    <div className="flex items-center text-sm text-slate-600 dark:text-slate-300">
+                                        <AlertOctagon size={16} className="mr-2 text-slate-400"/>
+                                        <span>{person.incidents?.type}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-slate-600 dark:text-slate-300">
+                                        <Calendar size={16} className="mr-2 text-slate-400"/>
+                                        <span>{new Date(person.incidents?.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 italic line-clamp-2">
+                                            "{person.statement || person.incidents?.narrative}"
+                                        </p>
                                     </div>
                                 </div>
                              </div>
 
-                             {/* Clear Button - Only for Supervisors */}
                              {user?.role === 'supervisor' && (
-                                 <button
+                                <button 
                                     onClick={() => handleClearRestriction(person)}
                                     disabled={processingId === person.id}
-                                    className="relative z-20 w-full flex items-center justify-center space-x-2 py-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 hover:border-green-200 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
-                                 >
-                                     {processingId === person.id ? (
-                                         <>
+                                    className="relative z-10 w-full flex items-center justify-center space-x-2 py-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-white hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-800 transition-all shadow-sm disabled:opacity-70"
+                                >
+                                    {processingId === person.id ? (
+                                        <>
                                             <Loader2 size={14} className="animate-spin" />
-                                            <span>Processing...</span>
-                                         </>
-                                     ) : (
-                                         <>
+                                            <span>Updating...</span>
+                                        </>
+                                    ) : (
+                                        <>
                                             <ShieldCheck size={16} />
-                                            <span>Clear from Watchlist</span>
-                                         </>
-                                     )}
-                                 </button>
+                                            <span>Clear Watchlist Status</span>
+                                        </>
+                                    )}
+                                </button>
                              )}
                         </div>
                     ))}
