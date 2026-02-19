@@ -1,14 +1,15 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabaseService } from '../services/supabaseService';
-import { IncidentWithDetails, DispatchLog, AssetRequest, UserProfile, PersonnelSchedule } from '../types';
+import { IncidentWithDetails, DispatchLog, AssetRequest, UserProfile, PersonnelSchedule, CCTVRequest } from '../types';
 import DispatchBottomSheet from '../components/DispatchBottomSheet';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { Clock, MapPin, Car, AlertCircle, TrendingUp, Users, Edit2, X, Check, FileText, Package, ChevronRight, Shield, BadgeCheck, CheckCircle, ArrowRight, Loader2, ChevronDown, ChevronUp, History } from 'lucide-react';
+import { Clock, MapPin, Car, AlertCircle, Users, Edit2, X, Check, FileText, Package, Shield, CheckCircle, ArrowRight, Loader2, ChevronDown, ChevronUp, History, Video, ClipboardList, ChevronRight, Printer } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { generateOfficialReport } from '../utils/pdfGenerator';
 
 // Local interface for vehicle logs on dashboard
 interface LogWithIncident extends DispatchLog {
@@ -23,6 +24,12 @@ interface LogWithIncident extends DispatchLog {
 interface OnDutyPersonnel {
     profile: UserProfile;
     schedule: PersonnelSchedule;
+    isRoadClearing: boolean;
+    statusState: {
+        label: string;
+        dot: string;
+        badge: string;
+    };
 }
 
 const CommandCenter: React.FC = () => {
@@ -34,8 +41,9 @@ const CommandCenter: React.FC = () => {
   // Data States
   const [incidents, setIncidents] = useState<IncidentWithDetails[]>([]);
   const [assetRequests, setAssetRequests] = useState<AssetRequest[]>([]);
+  const [cctvRequests, setCctvRequests] = useState<CCTVRequest[]>([]);
   
-  // REPLACED activeUsers with specific OnDuty list
+  // Personnel list
   const [onDutyPersonnel, setOnDutyPersonnel] = useState<OnDutyPersonnel[]>([]);
   
   const [activeLogistics, setActiveLogistics] = useState<LogWithIncident[]>([]);
@@ -46,7 +54,7 @@ const CommandCenter: React.FC = () => {
   // UI States
   const [editingIncident, setEditingIncident] = useState<IncidentWithDetails | null>(null);
   const [editingNarrative, setEditingNarrative] = useState<IncidentWithDetails | null>(null);
-  const [tempNarrative, setTempNarrative] = useState(''); // Controlled input for narrative
+  const [tempNarrative, setTempNarrative] = useState('');
   const [showOnDutyModal, setShowOnDutyModal] = useState(false);
   
   // Expanded Incident State
@@ -54,47 +62,63 @@ const CommandCenter: React.FC = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      // 1. Calculate Today's Date properly (Local Time)
       const today = new Date();
       const year = today.getFullYear();
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
       const todayStr = `${year}-${month}-${day}`;
       const currentHour = today.getHours();
+      const isSaturday = today.getDay() === 6;
 
-      // 2. Fetch Data Parallel
-      const [incData, assetData, userData, dispatchData, scheduleData] = await Promise.all([
+      const [incData, assetData, userData, dispatchData, scheduleData, cctvData] = await Promise.all([
           supabaseService.getIncidents(),
           supabaseService.getAssetRequests(),
           supabaseService.getUsers(),
           supabaseService.getDispatchHistory(),
-          supabaseService.getSchedules(todayStr, todayStr) // Strict range: today only
+          supabaseService.getSchedules(todayStr, todayStr),
+          supabaseService.getCCTVRequests()
       ]);
       
       setIncidents(incData);
       setAssetRequests(assetData);
+      setCctvRequests(cctvData);
 
-      // 3. Filter Active Personnel based on Schedule AND Shift Time
       const activeOnShift = userData.filter(u => u.status === 'active').reduce<OnDutyPersonnel[]>((acc, userProfile) => {
-          // Find schedule for this user today
           const userSched = scheduleData.find((s: any) => s.user_id === userProfile.id);
           
           if (userSched) {
-              // Must be On Duty or Road Clearing
-              if (userSched.status === 'On Duty' || userSched.status === 'Road Clearing') {
-                  
-                  // Strict Shift Time Checking
-                  let isOnShift = false;
-                  // 1st Shift: 6:00 AM - 2:00 PM (14:00)
-                  if (userSched.shift === '1st' && (currentHour >= 6 && currentHour < 14)) isOnShift = true;
-                  // 2nd Shift: 2:00 PM - 10:00 PM (22:00)
-                  if (userSched.shift === '2nd' && (currentHour >= 14 && currentHour < 22)) isOnShift = true;
-                  // 3rd Shift: 10:00 PM - 6:00 AM
-                  if (userSched.shift === '3rd' && (currentHour >= 22 || currentHour < 6)) isOnShift = true;
+              const currentHour = new Date().getHours();
+              let isOnShift = false;
+              if (userSched.shift === '1st' && (currentHour >= 6 && currentHour < 14)) isOnShift = true;
+              if (userSched.shift === '2nd' && (currentHour >= 14 && currentHour < 22)) isOnShift = true;
+              if (userSched.shift === '3rd' && (currentHour >= 22 || currentHour < 6)) isOnShift = true;
 
-                  if (isOnShift) {
-                      acc.push({ profile: userProfile, schedule: userSched });
-                  }
+              // Definitions for mapping
+              const stateUnavailable = { label: 'Unavailable', dot: 'bg-red-500', badge: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300' };
+              const stateOffDuty = { label: 'Off Duty', dot: 'bg-slate-400', badge: 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300' };
+              const stateOnDuty = { label: 'On Duty', dot: 'bg-green-500', badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' };
+              const stateRoadClearing = { label: 'Road Ops', dot: 'bg-orange-500', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' };
+
+              let finalState = stateOffDuty;
+              let isRoadClearing = false;
+
+              if (userSched.status === 'Leave' || userSched.status === 'Day Off') {
+                  finalState = stateUnavailable;
+              } else if (isOnShift) {
+                  const isRoadClearingTime = currentHour >= 8 && currentHour < 10;
+                  isRoadClearing = userSched.status === 'Road Clearing' || (userSched.status === 'On Duty' && userSched.shift === '1st' && isSaturday && isRoadClearingTime);
+                  finalState = isRoadClearing ? stateRoadClearing : stateOnDuty;
+              }
+
+              // Only show personnel who are either ON SHIFT or explicitly UNAVAILABLE (Red/Green/Orange)
+              // Gray (Off Duty) are hidden from the primary active list but counted in directory
+              if (userSched.status === 'Leave' || userSched.status === 'Day Off' || isOnShift) {
+                  acc.push({ 
+                      profile: userProfile, 
+                      schedule: userSched, 
+                      isRoadClearing,
+                      statusState: finalState
+                  });
               }
           }
           return acc;
@@ -102,7 +126,6 @@ const CommandCenter: React.FC = () => {
 
       setOnDutyPersonnel(activeOnShift);
       
-      // Filter active vehicle logistics (Anything not 'Clear').
       const activeLogs = (dispatchData as LogWithIncident[]).filter(
           log => log.status !== 'Clear'
       );
@@ -118,13 +141,13 @@ const CommandCenter: React.FC = () => {
   useEffect(() => {
     fetchData();
 
-    // Realtime Subscription
     const channel = supabase
       .channel('dashboard_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'dispatch_logs' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'asset_requests' }, () => fetchData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'personnel_schedules' }, () => fetchData()) // Listen to schedule changes
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cctv_requests' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'personnel_schedules' }, () => fetchData())
       .subscribe();
 
     return () => {
@@ -132,7 +155,6 @@ const CommandCenter: React.FC = () => {
     };
   }, [fetchData]);
 
-  // Refresh data every minute to check for Shift Changes
   useEffect(() => {
       const interval = setInterval(fetchData, 60000);
       return () => clearInterval(interval);
@@ -141,7 +163,7 @@ const CommandCenter: React.FC = () => {
   const handleUpdateDispatch = async (id: string, updates: Partial<DispatchLog>) => {
     await supabaseService.updateDispatchStatus(id, updates);
     showToast("Dispatch status updated", "success");
-    fetchData(); // Force refresh
+    fetchData();
   };
 
   const handleUpdateIncident = async (id: string, updates: any) => {
@@ -159,19 +181,14 @@ const CommandCenter: React.FC = () => {
   const handleLogReturn = async (logId: string) => {
       setUpdatingLogId(logId);
       try {
-          // Perform update
           await supabaseService.updateDispatchStatus(logId, { status: 'Clear' });
           showToast("Vehicle returned and logged", "success");
-          
-          // Optimistic update: Remove from UI immediately
           setActiveLogistics(prev => prev.filter(item => item.id !== logId));
-          
-          // Re-fetch to ensure background consistency
           fetchData();
       } catch (err) {
           console.error(err);
           showToast("Failed to update status", "error");
-          fetchData(); // Revert on error
+          fetchData();
       } finally {
           setUpdatingLogId(null);
       }
@@ -199,14 +216,8 @@ const CommandCenter: React.FC = () => {
       setExpandedIncidentId(expandedIncidentId === id ? null : id);
   };
 
-  // Filter for dashboard display
-  // Active incidents are strictly 'Pending' or 'Dispatched'. 
-  // 'Resolved' and 'Closed' cases are considered inactive/archived.
   const allActiveIncidents = incidents.filter(i => ['Pending', 'Dispatched'].includes(i.status));
   const pendingAssets = assetRequests.filter(r => r.status === 'Pending');
-
-  // List View Filter: Same logic as stats, show only 'Pending' and 'Dispatched'. 
-  const dashboardListIncidents = allActiveIncidents;
 
   const scrollToBlotter = () => {
     document.getElementById('blotter-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -221,7 +232,6 @@ const CommandCenter: React.FC = () => {
     <div className="space-y-8 pb-20">
       <header className="flex flex-col md:flex-row md:justify-between md:items-end gap-2">
         <div>
-            {/* TEXT COLOR UPDATED TO WHITE FOR DARK BACKGROUND */}
             <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white tracking-tight">{t.dashboard}</h1>
             <p className="text-slate-500 dark:text-slate-300 mt-1 md:mt-2 text-sm md:text-base">
                 {t.welcome}, {user?.full_name}.
@@ -229,13 +239,8 @@ const CommandCenter: React.FC = () => {
         </div>
       </header>
 
-      {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Active Incidents - Scroll to Blotter */}
-        <div 
-            onClick={scrollToBlotter}
-            className="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group"
-        >
+        <div onClick={scrollToBlotter} className="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group">
             <div className="p-3 md:p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-2xl group-hover:scale-110 transition-transform">
                 <AlertCircle size={24} />
             </div>
@@ -245,11 +250,7 @@ const CommandCenter: React.FC = () => {
             </div>
         </div>
 
-        {/* Pending Requests - Navigate to Resources */}
-        <div 
-            onClick={() => navigate('/resources')}
-            className="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group"
-        >
+        <div onClick={() => navigate('/resources')} className="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group">
             <div className="p-3 md:p-4 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-2xl group-hover:scale-110 transition-transform">
                 <Package size={24} />
             </div>
@@ -259,18 +260,14 @@ const CommandCenter: React.FC = () => {
             </div>
         </div>
 
-        {/* On Duty - Open Modal */}
-        <div 
-            onClick={() => setShowOnDutyModal(true)}
-            className="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group sm:col-span-2 lg:col-span-1"
-        >
+        <div onClick={() => setShowOnDutyModal(true)} className="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 cursor-pointer hover:shadow-lg transition-all group sm:col-span-2 lg:col-span-1">
             <div className="p-3 md:p-4 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-2xl group-hover:scale-110 transition-transform relative">
                 <Users size={24} />
                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-green-500 rounded-full border border-white animate-pulse"></span>
             </div>
             <div>
                 <p className="text-xs md:text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.onDuty}</p>
-                <p className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{onDutyPersonnel.length}</p>
+                <p className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{onDutyPersonnel.filter(p => p.statusState.label !== 'Unavailable').length}</p>
             </div>
         </div>
       </div>
@@ -282,22 +279,20 @@ const CommandCenter: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             
-            {/* LEFT COL: INCIDENTS (Blotter) */}
             <div className="xl:col-span-2 space-y-6" id="blotter-section">
                  <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center justify-between">
                     {t.recentEntries}
                  </h2>
 
-                {/* CARD VIEW ONLY */}
                 <div className="grid gap-6 animate-fade-in">
-                    {dashboardListIncidents.length === 0 && (
+                    {allActiveIncidents.length === 0 && (
                         <div className="glass-panel p-8 text-center rounded-3xl border-dashed border-gray-300 dark:border-gray-700 text-slate-400">
                              <CheckCircle size={40} className="mx-auto mb-3 opacity-30" />
                              <p>No pending or active incidents. Good job!</p>
                         </div>
                     )}
 
-                    {dashboardListIncidents.slice(0, 10).map((incident) => (
+                    {allActiveIncidents.slice(0, 10).map((incident) => (
                         <div key={incident.id} className="glass-panel p-5 md:p-6 rounded-3xl border border-white/60 dark:border-white/10 transition-all hover:shadow-lg">
                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 md:gap-6">
                                 <div className="flex-1 space-y-3">
@@ -319,16 +314,12 @@ const CommandCenter: React.FC = () => {
                                     </div>
                                 </div>
                                 
-                                {/* Right Column: Admin Actions & Dispatch */}
                                 <div className="w-full md:w-60 flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-700 pt-4 md:pt-0 md:pl-6 flex flex-col gap-3">
-                                    
-                                    {/* SUPERVISOR EDIT ACTIONS */}
                                     {user?.role === 'supervisor' && (
                                         <div className="flex space-x-2">
                                             <button 
                                                 onClick={() => setEditingIncident(incident)}
                                                 className="flex-1 flex items-center justify-center space-x-1 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-xl text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                                                title="Edit Status"
                                             >
                                                 <Edit2 size={14} />
                                                 <span>Status</span>
@@ -336,7 +327,6 @@ const CommandCenter: React.FC = () => {
                                             <button 
                                                 onClick={() => openNarrativeEditor(incident)}
                                                 className="flex-1 flex items-center justify-center space-x-1 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300 rounded-xl text-xs font-bold hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
-                                                title="Edit Narrative"
                                             >
                                                 <FileText size={14} />
                                                 <span>Narrative</span>
@@ -344,7 +334,6 @@ const CommandCenter: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Dispatch Status Display */}
                                     {incident.dispatch_logs && incident.dispatch_logs.length > 0 ? (
                                         <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
                                             <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Dispatch Unit</p>
@@ -357,7 +346,7 @@ const CommandCenter: React.FC = () => {
                                                 className={`w-full py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors ${
                                                     incident.dispatch_logs[0].status === 'En Route' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
                                                     incident.dispatch_logs[0].status === 'On Scene' ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300' :
-                                                    'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                                                    'bg-green-100 text-green-700 dark:bg-green-900 text-green-700 dark:text-green-300'
                                                 }`}
                                             >
                                                 {incident.dispatch_logs[0].status}
@@ -369,7 +358,6 @@ const CommandCenter: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Details Toggle Button */}
                                     <button
                                         onClick={() => toggleExpand(incident.id)}
                                         className="w-full py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors flex items-center justify-center space-x-1"
@@ -377,14 +365,20 @@ const CommandCenter: React.FC = () => {
                                         {expandedIncidentId === incident.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                         <span>{expandedIncidentId === incident.id ? 'Hide Details' : 'View Details'}</span>
                                     </button>
+
+                                    <button 
+                                        onClick={() => generateOfficialReport(incident)}
+                                        className="w-full py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors flex items-center justify-center space-x-1"
+                                    >
+                                        <Printer size={14} />
+                                        <span>Print Record</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* EXPANDED DETAILS SECTION */}
                             {expandedIncidentId === incident.id && (
                                 <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 animate-slide-down">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Parties */}
                                         <div>
                                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center">
                                                 <Users size={14} className="mr-2"/> Involved Parties ({incident.parties?.length || 0})
@@ -403,7 +397,6 @@ const CommandCenter: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {/* Dispatch Logs */}
                                         <div>
                                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center">
                                                 <History size={14} className="mr-2"/> Dispatch History
@@ -435,7 +428,6 @@ const CommandCenter: React.FC = () => {
                 </div>
             </div>
 
-            {/* RIGHT COL: Active Logistics Quick Box */}
             <div className="space-y-6">
                 <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center justify-between">
                     Active Resources
@@ -511,11 +503,50 @@ const CommandCenter: React.FC = () => {
                         );
                     })}
                 </div>
+
+                {/* RECENT REQUESTS FOOTPRINT */}
+                <div className="space-y-4 pt-4">
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center justify-between">
+                        Recent Requests
+                    </h2>
+                    <div className="space-y-3">
+                        {isLoading ? (
+                            <div className="py-4 flex justify-center"><Loader2 className="animate-spin text-slate-300" /></div>
+                        ) : (
+                            <>
+                                {[...cctvRequests.slice(0, 2), ...assetRequests.slice(0, 2)]
+                                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                                    .slice(0, 4)
+                                    .map((req: any) => (
+                                        <div key={req.id} className="glass-panel p-4 rounded-2xl border border-white/60 dark:border-white/10 flex items-center justify-between hover:scale-[1.02] transition-all cursor-pointer" onClick={() => navigate('/resources')}>
+                                            <div className="flex items-center space-x-3">
+                                                <div className={`p-2 rounded-lg ${req.request_number ? 'bg-red-50 text-red-500' : 'bg-purple-50 text-purple-500'}`}>
+                                                    {req.request_number ? <Video size={16} /> : <Package size={16} />}
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[140px]">
+                                                        {req.requester_name || req.borrower_name}
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">
+                                                        {req.request_number ? 'CCTV' : 'Asset'} • {new Date(req.created_at).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ChevronRight size={14} className="text-slate-300" />
+                                        </div>
+                                    ))
+                                }
+                                {cctvRequests.length === 0 && assetRequests.length === 0 && (
+                                    <p className="text-center text-xs text-slate-400 italic py-4">No recent requests.</p>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
       )}
 
-      {/* Dispatch Modal */}
       {selectedDispatch && (
         <DispatchBottomSheet 
           dispatchLog={selectedDispatch} 
@@ -525,7 +556,6 @@ const CommandCenter: React.FC = () => {
         />
       )}
 
-      {/* On Duty Modal */}
       {showOnDutyModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
               <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-6 relative">
@@ -546,47 +576,32 @@ const CommandCenter: React.FC = () => {
                       </div>
                   ) : (
                     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                        {onDutyPersonnel.map(({ profile, schedule }) => {
-                            const currentHour = new Date().getHours();
-                            const isRoadClearingTime = currentHour >= 8 && currentHour < 10;
-                            const isRoadClearing = schedule.status === 'Road Clearing' || (schedule.status === 'On Duty' && schedule.shift === '1st' && isRoadClearingTime);
-                            
-                            return (
-                                <div key={profile.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-xl border border-gray-100 dark:border-slate-600">
-                                    <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center font-bold text-slate-600 dark:text-white">
-                                                {profile.full_name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800 dark:text-white">{profile.full_name}</p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">{profile.badge_number} • {profile.role}</p>
-                                            </div>
-                                    </div>
-                                    <div className="flex flex-col items-end">
-                                        <span className={`flex items-center text-xs font-bold px-2 py-1 rounded-full ${
-                                            isRoadClearing 
-                                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' 
-                                            : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                        }`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                                                isRoadClearing ? 'bg-amber-500' : 'bg-green-500'
-                                            }`}></span>
-                                            {schedule.shift} Shift
-                                        </span>
-                                        {isRoadClearing && (
-                                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1">Road Clearing</span>
-                                        )}
-                                    </div>
+                        {onDutyPersonnel.map(({ profile, schedule, statusState }) => (
+                            <div key={profile.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-xl border border-gray-100 dark:border-slate-600">
+                                <div className="flex items-center space-x-3">
+                                        <div className={`w-10 h-10 rounded-full ${statusState.dot} flex items-center justify-center font-bold text-white border-2 border-white dark:border-slate-600`}>
+                                            {profile.full_name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-800 dark:text-white">{profile.full_name}</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">{profile.badge_number || 'N/A'}</p>
+                                        </div>
                                 </div>
-                            );
-                        })}
+                                <div className="flex flex-col items-end">
+                                    <span className={`flex items-center text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full border shadow-sm ${statusState.badge}`}>
+                                        <Clock size={10} className="mr-1.5" />
+                                        {statusState.label}
+                                    </span>
+                                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1">{schedule.shift} Shift</span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                   )}
               </div>
           </div>
       )}
 
-      {/* Edit Incident Modal */}
       {editingIncident && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
               <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-6">
@@ -617,7 +632,6 @@ const CommandCenter: React.FC = () => {
           </div>
       )}
 
-      {/* Edit Narrative Modal */}
       {editingNarrative && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
               <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-6">
@@ -637,7 +651,7 @@ const CommandCenter: React.FC = () => {
                       </button>
                       <button 
                         onClick={() => handleUpdateIncident(editingNarrative.id, { narrative: tempNarrative })}
-                        className="flex-1 py-3 bg-amber-500 text-white font-bold rounded-xl shadow-lg shadow-amber-500/30 hover:bg-amber-600"
+                        className="flex-1 py-3 bg-amber-50 text-white font-bold rounded-xl shadow-lg shadow-amber-500/30 hover:bg-amber-600"
                       >
                           Save Changes
                       </button>

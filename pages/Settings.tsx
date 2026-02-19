@@ -109,13 +109,9 @@ const Settings: React.FC = () => {
               avatarUrl = await supabaseService.uploadAvatar(user.id, selectedFile);
           }
 
-          // 2. Update profile
-          // Send null if badgeNumber is empty string to avoid unique constraint violation on empty strings
-          const badgePayload = badgeNumber.trim() === '' ? null : badgeNumber.trim();
-
+          // 2. Update profile (Badge ID is read-only, so we don't send it)
           await supabaseService.updateProfile(user.id, {
               full_name: fullName.trim(),
-              badge_number: badgePayload as string, 
               avatar_url: avatarUrl // Saves new timestamped URL to DB
           });
 
@@ -128,12 +124,7 @@ const Settings: React.FC = () => {
           showToast("Profile updated successfully", "success");
       } catch (error: any) {
           console.error("Update profile error:", error);
-          // Handle specific uniqueness error
-          if (error.message?.includes('badge_number')) {
-              showToast("Badge Number is already in use.", "error");
-          } else {
-              showToast(error.message || "Failed to update profile", "error");
-          }
+          showToast(error.message || "Failed to update profile", "error");
       } finally {
           setProfileLoading(false);
       }
@@ -349,10 +340,10 @@ const Settings: React.FC = () => {
                         <div className="relative">
                             <CreditCard className="absolute left-3 top-3 text-gray-400" size={18} />
                             <input 
+                                readOnly
                                 type="text"
                                 value={badgeNumber}
-                                onChange={e => setBadgeNumber(e.target.value)}
-                                className="w-full bg-white/50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-blue-500/20 outline-none text-slate-800 dark:text-white"
+                                className="w-full bg-gray-100 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl py-3 pl-10 pr-4 outline-none text-slate-500 dark:text-slate-500 font-mono transition-all cursor-not-allowed"
                                 placeholder="BB-202X-XXX"
                             />
                         </div>
