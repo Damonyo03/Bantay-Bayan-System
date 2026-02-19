@@ -1,8 +1,9 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabaseService } from '../services/supabaseService';
-import { Shield, Lock, User, AlertTriangle, ArrowRight, Smartphone, X, HelpCircle, CheckCircle, UserPlus, Mail, Fingerprint } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+// Added missing Search icon to the imports from lucide-react
+import { Shield, Lock, User, AlertTriangle, ArrowRight, Smartphone, X, HelpCircle, CheckCircle, UserPlus, Mail, Fingerprint, Loader2, Send, Search } from 'lucide-react';
 
 const Login: React.FC = () => {
   const { login, verifyLoginMFA } = useAuth();
@@ -17,6 +18,8 @@ const Login: React.FC = () => {
   
   // Forgot Password State
   const [resetIdentifier, setResetIdentifier] = useState('');
+  const [foundEmail, setFoundEmail] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
   // Register State
@@ -63,13 +66,53 @@ const Login: React.FC = () => {
       }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleFindAccount = async (e: React.FormEvent) => {
       e.preventDefault();
+      setError('');
+      
+      const input = resetIdentifier.trim();
+      if (!input) return;
+
+      setIsChecking(true);
+      try {
+          let emailToUse = '';
+          
+          if (input.includes('@')) {
+              // Input is an email
+              const { data, error: fetchError } = await supabase
+                  .from('profiles')
+                  .select('email')
+                  .eq('email', input)
+                  .single();
+              
+              if (fetchError || !data) throw new Error("No account found with this email address.");
+              emailToUse = data.email;
+          } else {
+              // Input is a username
+              const { data, error: fetchError } = await supabase
+                  .from('profiles')
+                  .select('email')
+                  .eq('username', input)
+                  .single();
+              
+              if (fetchError || !data) throw new Error("No account found with this username.");
+              emailToUse = data.email;
+          }
+
+          setFoundEmail(emailToUse);
+      } catch (err: any) {
+          setError(err.message || "Account not found.");
+      } finally {
+          setIsChecking(false);
+      }
+  };
+
+  const handleForgotPassword = async () => {
+      if (!foundEmail) return;
       setError('');
       setIsLoading(true);
       try {
-          // This will lookup email via username if needed
-          await supabaseService.resetPasswordForUser(resetIdentifier.trim());
+          await supabaseService.resetPasswordForUser(foundEmail);
           setResetSent(true);
       } catch (err: any) {
           setError("Unable to process request. Please contact your administrator.");
@@ -108,6 +151,14 @@ const Login: React.FC = () => {
       } finally {
           setIsLoading(false);
       }
+  };
+
+  const closeForgotModal = () => {
+    setView('login');
+    setResetIdentifier('');
+    setFoundEmail(null);
+    setResetSent(false);
+    setError('');
   };
 
   // --- RENDERERS ---
@@ -412,7 +463,7 @@ const Login: React.FC = () => {
       {view === 'forgot' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
               <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden relative">
-                  <button onClick={() => setView('login')} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                  <button onClick={closeForgotModal} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
                       <X size={20} className="text-gray-600" />
                   </button>
                   
@@ -421,47 +472,89 @@ const Login: React.FC = () => {
                       
                       {!resetSent ? (
                         <>
-                            <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-                                Enter your <span className="font-bold text-gray-700">Username</span> or <span className="font-bold text-gray-700">Email Address</span>. 
-                                We will send a secure password reset link to your registered email.
-                            </p>
-                            
-                            <form onSubmit={handleForgotPassword} className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Username / Email</label>
-                                    <div className="relative">
-                                        <HelpCircle className="absolute left-4 top-3.5 text-slate-400" size={20} />
-                                        <input 
-                                            required
-                                            type="text"
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all text-slate-800"
-                                            value={resetIdentifier}
-                                            onChange={e => setResetIdentifier(e.target.value)}
-                                            placeholder="Enter your username"
-                                        />
+                            {!foundEmail ? (
+                                <>
+                                    <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+                                        Enter your <span className="font-bold text-gray-700">Username</span> or <span className="font-bold text-gray-700">Official Email</span> to locate your account.
+                                    </p>
+                                    
+                                    <form onSubmit={handleFindAccount} className="space-y-6">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase mb-2 ml-1">Username / Email</label>
+                                            <div className="relative">
+                                                <User className="absolute left-4 top-3.5 text-slate-400" size={20} />
+                                                <input 
+                                                    required
+                                                    autoFocus
+                                                    type="text"
+                                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all text-slate-800 font-medium"
+                                                    value={resetIdentifier}
+                                                    onChange={e => setResetIdentifier(e.target.value)}
+                                                    placeholder="e.g. jdelacruz"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {error && (
+                                            <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs flex items-center">
+                                                <AlertTriangle size={14} className="mr-2 shrink-0" />
+                                                {error}
+                                            </div>
+                                        )}
+
+                                        <button 
+                                            type="submit"
+                                            disabled={isChecking || !resetIdentifier}
+                                            className="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-black shadow-lg transition-transform flex items-center justify-center space-x-2"
+                                        >
+                                            {isChecking ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
+                                            <span>Find My Account</span>
+                                        </button>
+                                    </form>
+                                </>
+                            ) : (
+                                <div className="animate-slide-up">
+                                    <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 mb-8 text-center">
+                                        <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">Account Found</p>
+                                        <div className="flex items-center justify-center space-x-2 mb-2">
+                                            <Mail className="text-blue-500" size={20} />
+                                            <span className="text-lg font-bold text-slate-900 break-all">{foundEmail}</span>
+                                        </div>
+                                        <p className="text-sm text-blue-700">A reset link will be sent to this address.</p>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <button 
+                                            onClick={handleForgotPassword}
+                                            disabled={isLoading}
+                                            className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 shadow-lg flex items-center justify-center space-x-2"
+                                        >
+                                            {isLoading ? <Loader2 className="animate-spin" size={20} /> : <Send size={18} />}
+                                            <span>Send Reset Link</span>
+                                        </button>
+                                        <button 
+                                            onClick={() => { setFoundEmail(null); setError(''); }}
+                                            className="w-full text-xs font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest"
+                                        >
+                                            Not your account? Search again
+                                        </button>
                                     </div>
                                 </div>
-                                <button 
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-black shadow-lg transition-transform hover:scale-[1.01] active:scale-[0.99]"
-                                >
-                                    {isLoading ? 'Processing...' : 'Send Recovery Link'}
-                                </button>
-                            </form>
+                            )}
                         </>
                       ) : (
                           <div className="text-center py-6 animate-slide-up">
                               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 shadow-green-200 shadow-lg">
                                   <CheckCircle size={40} />
                               </div>
-                              <h4 className="text-xl font-bold text-gray-900 mb-2">Check your email</h4>
+                              <h4 className="text-xl font-bold text-gray-900 mb-2">Check your inbox</h4>
                               <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-                                  If an account exists for <span className="font-semibold text-gray-800">{resetIdentifier}</span>, 
-                                  we have sent a password reset link to the registered email address.
+                                  We have sent a secure password reset link to <br/>
+                                  <span className="font-bold text-slate-800">{foundEmail}</span>. 
+                                  Please follow the instructions in the email.
                               </p>
                               <button 
-                                onClick={() => setView('login')}
+                                onClick={closeForgotModal}
                                 className="w-full bg-gray-100 text-gray-700 font-bold py-3.5 rounded-2xl hover:bg-gray-200 transition-colors"
                               >
                                   Return to Login

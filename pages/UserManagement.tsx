@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, CalendarRange, CheckCircle } from 'lucide-react';
+import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, CalendarRange, CheckCircle, CalendarDays, ChevronDown, Check, Navigation, Copy } from 'lucide-react';
 
 // Helper to get YYYY-MM-DD in local time
 const getLocalDateStr = (date: Date) => {
@@ -15,6 +15,11 @@ const getLocalDateStr = (date: Date) => {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
+
+const MONTHS = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+];
 
 const UserManagement: React.FC = () => {
   const { t } = useLanguage();
@@ -149,39 +154,42 @@ const UserManagement: React.FC = () => {
       const todayStr = getLocalDateStr(today);
       const userSchedule = todaySchedule.find(s => s.user_id === userId && s.date === todayStr);
 
-      if (!userSchedule) return { label: 'Off Duty', color: 'text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800' };
+      // RED: Day Off or On Leave (Explicitly unavailable)
+      const stateUnavailable = { label: 'Day Off/Leave', dot: 'bg-red-500', badge: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' };
+      // GRAY: Off Duty (Scheduled for duty but current time is outside shift hours)
+      const stateOffDuty = { label: 'Off Duty', dot: 'bg-slate-400', badge: 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700' };
+      // GREEN: On Duty (Currently on assigned shift)
+      const stateOnDuty = { label: 'On Duty', dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' };
+      // ORANGE: Road Clearing
+      const stateRoadClearing = { label: 'Road Ops', dot: 'bg-orange-500', badge: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' };
 
-      if (userSchedule.status !== 'On Duty' && userSchedule.status !== 'Road Clearing') {
-          if (userSchedule.status === 'Leave') return { label: 'On Leave', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' };
-          if (userSchedule.status === 'Day Off') return { label: 'Day Off', color: 'text-slate-500', bg: 'bg-gray-100 dark:bg-slate-800' };
-          return { label: userSchedule.status, color: 'text-slate-500', bg: 'bg-gray-100 dark:bg-slate-800' };
-      }
+      if (!userSchedule) return stateOffDuty;
 
+      // Handle Unavailable Statuses
+      if (userSchedule.status === 'Leave') return { ...stateUnavailable, label: 'On Leave' };
+      if (userSchedule.status === 'Day Off') return { ...stateUnavailable, label: 'Day Off' };
+
+      // Check current shift time
       const currentHour = today.getHours();
       let isOnShift = false;
       
-      // 1st Shift: 6:00 AM - 2:00 PM (14:00)
+      // Shift Hours Logic
       if (userSchedule.shift === '1st' && (currentHour >= 6 && currentHour < 14)) isOnShift = true;
-      // 2nd Shift: 2:00 PM - 10:00 PM (22:00)
       if (userSchedule.shift === '2nd' && (currentHour >= 14 && currentHour < 22)) isOnShift = true;
-      // 3rd Shift: 10:00 PM - 6:00 AM
       if (userSchedule.shift === '3rd' && (currentHour >= 22 || currentHour < 6)) isOnShift = true;
 
       if (isOnShift) {
-          // Mandatory Road Clearing: 8am - 10am (Hours 8 and 9)
+          // Check for Road Clearing Time (Only 1st Shift on Saturday, 8am-10am)
+          const isSaturday = today.getDay() === 6; 
           const isRoadClearingTime = currentHour >= 8 && currentHour < 10;
           
-          // Override if manually set OR if within mandatory time on 1st shift
           const isRoadClearing = userSchedule.status === 'Road Clearing' || 
-                                 (userSchedule.status === 'On Duty' && userSchedule.shift === '1st' && isRoadClearingTime);
+                                 (userSchedule.status === 'On Duty' && userSchedule.shift === '1st' && isSaturday && isRoadClearingTime);
 
-          return { 
-              label: isRoadClearing ? 'Road Clearing' : 'On Duty', 
-              color: isRoadClearing ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400', 
-              bg: isRoadClearing ? 'bg-amber-100 dark:bg-amber-900/20' : 'bg-emerald-100 dark:bg-emerald-900/20' 
-          };
+          return isRoadClearing ? stateRoadClearing : stateOnDuty;
       } else {
-          return { label: 'Off Shift', color: 'text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800' };
+          // Scheduled but time is outside shift
+          return stateOffDuty;
       }
   };
 
@@ -234,6 +242,14 @@ const UserManagement: React.FC = () => {
       return schedules.find(s => s.user_id === userId && s.date === dateStr);
   };
 
+  const isDateLocked = (cellDate: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffTime = today.getTime() - cellDate.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    return diffDays > 7; // Non-editable if older than 7 days
+  };
+
   const handleCellClick = (userId: string, dayOffset: number) => {
       // ONLY SUPERVISORS CAN EDIT
       if (user?.role !== 'supervisor') return;
@@ -242,6 +258,11 @@ const UserManagement: React.FC = () => {
       const cellDate = new Date(start);
       cellDate.setDate(cellDate.getDate() + dayOffset);
       
+      if (isDateLocked(cellDate)) {
+          showToast("Records older than 7 days are locked for integrity.", "info");
+          return;
+      }
+
       const targetUser = users.find(u => u.id === userId);
       const existing = getScheduleForCell(userId, dayOffset);
 
@@ -274,6 +295,75 @@ const UserManagement: React.FC = () => {
           fetchSchedules(); 
       } catch (error) {
           showToast("Failed to save schedule", "error");
+      }
+  };
+
+  const handleDuplicatePreviousWeek = async () => {
+      if (user?.role !== 'supervisor') return;
+      if (!confirm("Copy all assignments from the previous week into this week? Existing assignments in this week will be overwritten (excluding locked dates).")) return;
+
+      setRosterLoading(true);
+      try {
+          const { start: currentStart } = getWeekRange(currentDate);
+          
+          // 1. Calculate previous week range
+          const prevStart = new Date(currentStart);
+          prevStart.setDate(prevStart.getDate() - 7);
+          const prevEnd = new Date(prevStart);
+          prevEnd.setDate(prevEnd.getDate() + 6);
+          prevEnd.setHours(23, 59, 59, 999);
+
+          // 2. Fetch previous week's schedules
+          const prevSchedules = await supabaseService.getSchedules(
+              getLocalDateStr(prevStart),
+              getLocalDateStr(prevEnd)
+          );
+
+          if (prevSchedules.length === 0) {
+              showToast("No schedules found in the previous week to copy.", "info");
+              setRosterLoading(false);
+              return;
+          }
+
+          // 3. Map to current week
+          const newSchedules: Partial<PersonnelSchedule>[] = [];
+          
+          prevSchedules.forEach(prev => {
+              const prevDate = new Date(prev.date);
+              // Find day index (0-6) relative to prevStart
+              const diffTime = prevDate.getTime() - prevStart.getTime();
+              const dayIndex = Math.round(diffTime / (1000 * 60 * 60 * 24));
+              
+              // Target Date
+              const targetDate = new Date(currentStart);
+              targetDate.setDate(targetDate.getDate() + dayIndex);
+              
+              // Skip if target date is locked
+              if (isDateLocked(targetDate)) return;
+
+              newSchedules.push({
+                  user_id: prev.user_id,
+                  date: getLocalDateStr(targetDate),
+                  shift: prev.shift,
+                  status: prev.status
+              });
+          });
+
+          if (newSchedules.length === 0) {
+              showToast("No editable days found in this week's range.", "error");
+              setRosterLoading(false);
+              return;
+          }
+
+          // 4. Batch Save
+          await supabaseService.saveBatchSchedules(newSchedules);
+          showToast(`Successfully duplicated ${newSchedules.length} assignments from previous week.`, "success");
+          fetchSchedules();
+      } catch (e: any) {
+          console.error(e);
+          showToast("Failed to duplicate roster", "error");
+      } finally {
+          setRosterLoading(false);
       }
   };
 
@@ -313,6 +403,9 @@ const UserManagement: React.FC = () => {
               const dateStr = getLocalDateStr(d);
               const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
               
+              // Skip locked dates in bulk apply
+              if (isDateLocked(d)) continue;
+
               let status = 'On Duty';
               let shift = bulkConfig.shift;
 
@@ -347,6 +440,11 @@ const UserManagement: React.FC = () => {
       setCurrentDate(newDate);
   };
 
+  const handleYearMonthJump = (monthIndex: number, year: number) => {
+      const newDate = new Date(year, monthIndex, 1);
+      setCurrentDate(newDate);
+  };
+
   const formatDateShort = (date: Date) => {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
@@ -377,6 +475,63 @@ const UserManagement: React.FC = () => {
         fetchUsers();
       } catch (error) {
         showToast("Failed to update status", "error");
+      }
+  };
+
+  // --- EDIT USER LOGIC ---
+  const handleEditUser = (user: UserProfile) => {
+      setEditingUser(user);
+      setEditFormData({
+          full_name: user.full_name,
+          badge_number: user.badge_number || ''
+      });
+      setImagePreview(user.avatar_url || null);
+      setSelectedFile(null);
+      setIsEditModalOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+          const file = e.target.files[0];
+          if (file.size > 2 * 1024 * 1024) { // 2MB limit
+              showToast("Image size must be less than 2MB", "error");
+              return;
+          }
+          setSelectedFile(file);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              setImagePreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+      }
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!editingUser) return;
+
+      setIsSavingEdit(true);
+      try {
+          let avatarUrl = editingUser.avatar_url;
+
+          if (selectedFile) {
+              avatarUrl = await supabaseService.uploadAvatar(editingUser.id, selectedFile);
+          }
+
+          // ONLY update full_name and avatar_url; badge_number is now read-only in UI
+          await supabaseService.updateProfile(editingUser.id, {
+              full_name: editFormData.full_name,
+              avatar_url: avatarUrl
+          });
+
+          showToast("User details updated successfully", "success");
+          fetchUsers();
+          setIsEditModalOpen(false);
+      } catch (error: any) {
+          console.error("Update failed", error);
+          showToast(error.message || "Failed to update profile", "error");
+      } finally {
+          setIsSavingEdit(false);
       }
   };
 
@@ -424,70 +579,6 @@ const UserManagement: React.FC = () => {
       }
   }
 
-  // --- EDIT USER LOGIC ---
-  const handleEditUser = (user: UserProfile) => {
-      setEditingUser(user);
-      setEditFormData({
-          full_name: user.full_name,
-          badge_number: user.badge_number || ''
-      });
-      setImagePreview(user.avatar_url || null);
-      setSelectedFile(null);
-      setIsEditModalOpen(true);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files && e.target.files[0]) {
-          const file = e.target.files[0];
-          if (file.size > 2 * 1024 * 1024) { // 2MB limit
-              showToast("Image size must be less than 2MB", "error");
-              return;
-          }
-          setSelectedFile(file);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              setImagePreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-      }
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!editingUser) return;
-
-      setIsSavingEdit(true);
-      try {
-          let avatarUrl = editingUser.avatar_url;
-
-          if (selectedFile) {
-              avatarUrl = await supabaseService.uploadAvatar(editingUser.id, selectedFile);
-          }
-
-          // Handle badge number uniqueness: convert empty string to null
-          const badgePayload = editFormData.badge_number.trim() === '' ? null : editFormData.badge_number.trim();
-
-          await supabaseService.updateProfile(editingUser.id, {
-              full_name: editFormData.full_name,
-              badge_number: badgePayload as string,
-              avatar_url: avatarUrl
-          });
-
-          showToast("User details updated successfully", "success");
-          fetchUsers();
-          setIsEditModalOpen(false);
-      } catch (error: any) {
-          console.error("Update failed", error);
-          if (error.message?.includes('badge_number')) {
-              showToast("Badge Number is already in use.", "error");
-          } else {
-              showToast(error.message || "Failed to update profile", "error");
-          }
-      } finally {
-          setIsSavingEdit(false);
-      }
-  };
-
   const currentWeekRange = getWeekRange(currentDate);
   const pendingUsers = users.filter(u => u.status === 'inactive');
   const activeUsers = users.filter(u => u.status === 'active');
@@ -498,6 +589,9 @@ const UserManagement: React.FC = () => {
              u.badge_number?.toLowerCase().includes(q) || 
              u.email.toLowerCase().includes(q);
   });
+
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({length: 5}, (_, i) => currentYear - 2 + i);
 
   return (
     <div className="space-y-8 pb-20 animate-fade-in">
@@ -637,7 +731,7 @@ const UserManagement: React.FC = () => {
                                                 </div>
                                             )}
                                             {rowUser.status === 'active' && (
-                                                <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-slate-800 ${liveStatus.color.replace('text-', 'bg-').split(' ')[0]}`}></span>
+                                                <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-slate-800 transition-colors ${liveStatus.dot}`}></span>
                                             )}
                                         </div>
                                         <div>
@@ -658,8 +752,8 @@ const UserManagement: React.FC = () => {
                                 <td className="p-5 text-slate-700 dark:text-slate-300 font-mono text-sm font-semibold hidden md:table-cell">{rowUser.badge_number || '---'}</td>
                                 <td className="p-5">
                                     {rowUser.status === 'active' ? (
-                                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${liveStatus.bg} ${liveStatus.color.replace('text-', 'border-transparent text-')}`}>
-                                            <Clock size={12} className="mr-1.5" />
+                                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all ${liveStatus.badge}`}>
+                                            <Clock size={10} className="mr-1.5" />
                                             {liveStatus.label}
                                         </div>
                                     ) : (
@@ -673,11 +767,11 @@ const UserManagement: React.FC = () => {
                                     <div className="flex items-center text-sm">
                                         {rowUser.status === 'active' ? (
                                             <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-bold">
-                                                <UserCheck size={16} className="mr-1.5" /> Active
+                                                <UserCheck size={16} className="mr-1.5" /> Approved
                                             </span>
                                         ) : (
                                             <span className="flex items-center text-slate-500 dark:text-slate-400 font-bold">
-                                                <UserX size={16} className="mr-1.5" /> Inactive
+                                                <UserX size={16} className="mr-1.5" /> Blocked
                                             </span>
                                         )}
                                     </div>
@@ -719,7 +813,7 @@ const UserManagement: React.FC = () => {
           <div className="animate-fade-in space-y-6">
               
               {/* Navigation & Controls */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
                   <div className="flex items-center space-x-4">
                       <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
                           <CalendarRange size={24} />
@@ -730,25 +824,94 @@ const UserManagement: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="flex items-center bg-slate-100 dark:bg-slate-700/50 rounded-xl p-1">
-                      <button 
-                          onClick={() => changeWeek('prev')} 
-                          className="p-2 hover:bg-white dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400 rounded-lg transition-all shadow-sm"
-                      >
-                          <ChevronLeft size={20}/>
-                      </button>
-                      <div className="px-6 text-center min-w-[140px]">
-                          <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Current Week</span>
-                          <span className="text-sm font-bold text-slate-800 dark:text-white font-mono">
-                              {formatDateShort(currentWeekRange.start)} - {formatDateShort(currentWeekRange.end)}
-                          </span>
-                      </div>
-                      <button 
-                          onClick={() => changeWeek('next')} 
-                          className="p-2 hover:bg-white dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400 rounded-lg transition-all shadow-sm"
-                      >
-                          <ChevronRight size={20}/>
-                      </button>
+                  <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-center">
+                    
+                    {/* YEARLY / MONTHLY JUMP DROPDOWNS */}
+                    <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-700/50 p-1.5 rounded-xl border border-slate-200 dark:border-slate-600">
+                        <div className="relative">
+                            <select 
+                                value={currentDate.getMonth()}
+                                onChange={(e) => handleYearMonthJump(parseInt(e.target.value), currentDate.getFullYear())}
+                                className="bg-transparent text-sm font-bold text-slate-700 dark:text-white pr-6 outline-none appearance-none cursor-pointer"
+                            >
+                                {MONTHS.map((m, i) => (
+                                    <option key={m} value={i} className="dark:bg-slate-800">{m}</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={12} className="absolute right-0 top-1.5 pointer-events-none text-slate-400" />
+                        </div>
+                        <div className="w-[1px] h-4 bg-slate-300 dark:bg-slate-500 mx-2"></div>
+                        <div className="relative">
+                            <select 
+                                value={currentDate.getFullYear()}
+                                onChange={(e) => handleYearMonthJump(currentDate.getMonth(), parseInt(e.target.value))}
+                                className="bg-transparent text-sm font-bold text-slate-700 dark:text-white pr-6 outline-none appearance-none cursor-pointer"
+                            >
+                                {yearOptions.map(y => (
+                                    <option key={y} value={y} className="dark:bg-slate-800">{y}</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={12} className="absolute right-0 top-1.5 pointer-events-none text-slate-400" />
+                        </div>
+                    </div>
+
+                    {/* WEEK NAVIGATION */}
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-700/50 rounded-xl p-1 relative border border-slate-200 dark:border-slate-600">
+                        <button 
+                            onClick={() => changeWeek('prev')} 
+                            className="p-2 hover:bg-white dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400 rounded-lg transition-all shadow-sm"
+                            title="Previous Week"
+                        >
+                            <ChevronLeft size={20}/>
+                        </button>
+                        
+                        <label className="px-4 text-center min-w-[140px] cursor-pointer hover:bg-white dark:hover:bg-slate-600 rounded-lg transition-all py-1 group relative flex flex-col items-center justify-center">
+                            <input 
+                                type="date" 
+                                className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                                value={getLocalDateStr(currentDate)}
+                                onChange={(e) => {
+                                    const newDate = new Date(e.target.value);
+                                    if (!isNaN(newDate.getTime())) {
+                                        setCurrentDate(newDate);
+                                    }
+                                }}
+                            />
+                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-blue-500 transition-colors">Jump to Date</span>
+                            <span className="text-sm font-bold text-slate-800 dark:text-white font-mono flex items-center">
+                                {formatDateShort(currentWeekRange.start)} - {formatDateShort(currentWeekRange.end)}
+                            </span>
+                        </label>
+
+                        <button 
+                            onClick={() => changeWeek('next')} 
+                            className="p-2 hover:bg-white dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400 rounded-lg transition-all shadow-sm"
+                            title="Next Week"
+                        >
+                            <ChevronRight size={20}/>
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => setCurrentDate(new Date())}
+                            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-white dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
+                        >
+                            Today
+                        </button>
+                        
+                        {user?.role === 'supervisor' && (
+                            <button 
+                                onClick={handleDuplicatePreviousWeek}
+                                disabled={rosterLoading}
+                                className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 hover:scale-105 transition-all shadow-md flex items-center space-x-2 disabled:opacity-50"
+                                title="Clone Previous Week"
+                            >
+                                <Copy size={14} />
+                                <span>Copy Previous</span>
+                            </button>
+                        )}
+                    </div>
                   </div>
               </div>
 
@@ -816,8 +979,8 @@ const UserManagement: React.FC = () => {
                                                             {rowUser.full_name.charAt(0)}
                                                         </div>
                                                     )}
-                                                    {/* Online Status Indicator (mock logic or real) */}
-                                                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
+                                                    {/* Live Status Indicator - Red/Emerald/Orange/Slate */}
+                                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-white dark:border-slate-800 rounded-full ${getUserLiveStatus(rowUser.id).dot}`}></div>
                                                 </div>
                                                 <div className="overflow-hidden">
                                                     <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{rowUser.full_name}</p>
@@ -844,6 +1007,7 @@ const UserManagement: React.FC = () => {
                                             const todayStr = getLocalDateStr(new Date());
                                             const currentStr = getLocalDateStr(d);
                                             const isToday = todayStr === currentStr;
+                                            const isLocked = isDateLocked(d);
 
                                             const schedule = getScheduleForCell(rowUser.id, i);
                                             
@@ -913,11 +1077,16 @@ const UserManagement: React.FC = () => {
                                                   key={i} 
                                                   onClick={() => handleCellClick(rowUser.id, i)}
                                                   className={`p-2 border-r border-slate-50 dark:border-slate-800 transition-all relative
-                                                      ${user?.role === 'supervisor' ? 'cursor-pointer' : ''}
+                                                      ${user?.role === 'supervisor' && !isLocked ? 'cursor-pointer' : 'cursor-not-allowed'}
                                                       ${isToday ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''}
                                                   `}
                                                 >
-                                                    <div className={`transition-transform duration-200 ${user?.role === 'supervisor' ? 'active:scale-95' : ''}`}>
+                                                    <div className={`transition-transform duration-200 ${user?.role === 'supervisor' && !isLocked ? 'active:scale-95' : ''}`}>
+                                                        {isLocked && (
+                                                            <div className="absolute top-1 right-1 z-10 text-slate-300 dark:text-slate-600">
+                                                                <Lock size={10} />
+                                                            </div>
+                                                        )}
                                                         {content}
                                                     </div>
                                                 </td>
@@ -933,7 +1102,7 @@ const UserManagement: React.FC = () => {
           </div>
       )}
 
-      {/* Edit User Modal (Cleaned Up) */}
+      {/* Edit User Modal */}
       {isEditModalOpen && editingUser && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
              <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-lg shadow-2xl overflow-hidden animate-slide-up border border-white/20">
@@ -947,7 +1116,7 @@ const UserManagement: React.FC = () => {
                  <form onSubmit={handleSaveEdit} className="p-8 space-y-6">
                     <div className="flex flex-col items-center">
                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-slate-700 shadow-xl bg-slate-100 dark:bg-slate-700">
+                            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-slate-700 shadow-xl bg-slate-100 dark:bg-slate-700 relative">
                                 {imagePreview ? (
                                     <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
@@ -965,7 +1134,7 @@ const UserManagement: React.FC = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.fullName}</label>
+                            <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.fullName}</label>
                             <input 
                                 required type="text"
                                 className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-semibold transition-all"
@@ -974,12 +1143,12 @@ const UserManagement: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
+                            <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
                             <input 
+                                readOnly
                                 type="text"
-                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-mono transition-all"
+                                className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl py-3.5 px-4 outline-none text-slate-500 dark:text-slate-500 font-mono transition-all cursor-not-allowed"
                                 value={editFormData.badge_number}
-                                onChange={e => setEditFormData({...editFormData, badge_number: e.target.value})}
                             />
                         </div>
                     </div>
@@ -993,55 +1162,142 @@ const UserManagement: React.FC = () => {
           </div>
       )}
 
-      {/* Single Edit Schedule Modal */}
+      {/* SINGLE EDIT SCHEDULE MODAL */}
       {editingSchedule && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-             <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-sm shadow-2xl animate-slide-up p-8 border border-white/20">
-                 <div className="mb-6">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{editingSchedule.name}</h3>
-                    <p className="text-sm font-medium text-slate-500 flex items-center">
-                        <CalendarIcon size={14} className="mr-1.5"/>
-                        {editingSchedule.date.toDateString()}
-                    </p>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
+             <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/20 animate-slide-up">
+                 
+                 {/* Modal Header */}
+                 <div className="px-8 py-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                            <CalendarDays size={24} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-none">Modify Assignment</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{editingSchedule.date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setEditingSchedule(null)}
+                        className="p-2 bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-all"
+                    >
+                        <X size={20} />
+                    </button>
                  </div>
                  
-                 <div className="space-y-6">
-                     <div>
-                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">Duty Status</label>
+                 <div className="p-8 space-y-8">
+                     
+                     {/* Officer Info Card */}
+                     <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 flex items-center space-x-4">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                            {editingSchedule.name.charAt(0)}
+                        </div>
+                        <div>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none">Assigned To</p>
+                            <p className="text-base font-bold text-slate-800 dark:text-white mt-1">{editingSchedule.name}</p>
+                        </div>
+                     </div>
+
+                     {/* Status Selection Cards */}
+                     <div className="space-y-4">
+                         <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Select Duty Status</label>
                          <div className="grid grid-cols-2 gap-3">
-                             <button onClick={() => setNewStatus('On Duty')} className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'On Duty' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}>On Duty</button>
-                             <button onClick={() => setNewStatus('Road Clearing')} className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'Road Clearing' ? 'bg-amber-100 border-amber-500 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}>Road Ops</button>
-                             {editingSchedule.date.getDay() !== 6 && (
-                                <button onClick={() => setNewStatus('Day Off')} className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'Day Off' ? 'bg-slate-200 border-slate-400 text-slate-700 dark:bg-slate-700 dark:border-slate-500 dark:text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}>Day Off</button>
-                             )}
-                             <button onClick={() => setNewStatus('Leave')} className={`py-3 rounded-xl text-sm font-bold border transition-all ${newStatus === 'Leave' ? 'bg-red-100 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400'}`}>On Leave</button>
+                             {[
+                                 { id: 'On Duty', label: 'On Duty', icon: Shield, color: 'emerald' },
+                                 { id: 'Road Clearing', label: 'Road Ops', icon: Navigation, color: 'orange' },
+                                 { id: 'Day Off', label: 'Day Off', icon: Moon, color: 'red' },
+                                 { id: 'Leave', label: 'On Leave', icon: X, color: 'red' }
+                             ].map((status) => {
+                                 // Saturday Day Off Prevention
+                                 const isSaturdayOff = editingSchedule.date.getDay() === 6 && status.id === 'Day Off';
+                                 if (isSaturdayOff) return null;
+
+                                 const isSelected = newStatus === status.id;
+                                 
+                                 return (
+                                     <button 
+                                        key={status.id}
+                                        onClick={() => setNewStatus(status.id as DutyStatus)}
+                                        className={`flex flex-col items-center justify-center p-4 rounded-3xl border-2 transition-all group ${
+                                            isSelected 
+                                            ? `bg-${status.color === 'emerald' ? 'emerald' : status.color === 'orange' ? 'orange' : 'red'}-50/50 dark:bg-${status.color === 'emerald' ? 'emerald' : status.color === 'orange' ? 'orange' : 'red'}-900/20 border-${status.color === 'emerald' ? 'emerald' : status.color === 'orange' ? 'orange' : 'red'}-500 shadow-lg shadow-${status.color === 'emerald' ? 'emerald' : status.color === 'orange' ? 'orange' : 'red'}-500/10` 
+                                            : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                        }`}
+                                     >
+                                         <div className={`p-2 rounded-xl mb-2 transition-transform group-hover:scale-110 ${
+                                             isSelected 
+                                             ? `bg-${status.color === 'emerald' ? 'emerald' : status.color === 'orange' ? 'orange' : 'red'}-500 text-white` 
+                                             : 'bg-slate-100 dark:bg-slate-700 text-slate-400'
+                                         }`}>
+                                             {React.createElement(status.icon as any, { size: 18 })}
+                                         </div>
+                                         <span className={`text-xs font-bold ${isSelected ? `text-${status.color === 'emerald' ? 'emerald' : status.color === 'orange' ? 'orange' : 'red'}-700 dark:text-${status.color === 'emerald' ? 'emerald' : status.color === 'orange' ? 'orange' : 'red'}-400` : 'text-slate-500'}`}>
+                                             {status.label}
+                                         </span>
+                                         {isSelected && (
+                                             <div className={`absolute top-2 right-2 w-4 h-4 bg-${status.color === 'emerald' ? 'emerald' : status.color === 'orange' ? 'orange' : 'red'}-500 rounded-full flex items-center justify-center text-white shadow-sm`}>
+                                                 <Check size={10} strokeWidth={4} />
+                                             </div>
+                                         )}
+                                     </button>
+                                 );
+                             })}
                          </div>
                      </div>
                      
+                     {/* Shift Assignment (Only for Active Statuses) */}
                      {(newStatus === 'On Duty' || newStatus === 'Road Clearing') && (
-                         <div className="animate-fade-in">
-                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">Shift Assignment</label>
-                             <div className="grid grid-cols-1 gap-2">
-                                 <button onClick={() => setNewShift('1st')} className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '1st' ? 'bg-indigo-100 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}>
-                                     <div className={`p-2 rounded-lg mr-3 ${newShift === '1st' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}><Moon size={16} /></div>
-                                     <div className="text-left"><div className="text-sm font-bold">1st Shift</div><div className="text-[10px] opacity-80">6:00 AM - 2:00 PM</div></div>
-                                 </button>
-                                 <button onClick={() => setNewShift('2nd')} className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '2nd' ? 'bg-sky-100 border-sky-500 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}>
-                                     <div className={`p-2 rounded-lg mr-3 ${newShift === '2nd' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}><Sun size={16} /></div>
-                                     <div className="text-left"><div className="text-sm font-bold">2nd Shift</div><div className="text-[10px] opacity-80">2:00 PM - 10:00 PM</div></div>
-                                 </button>
-                                 <button onClick={() => setNewShift('3rd')} className={`flex items-center p-3 rounded-xl border transition-all ${newShift === '3rd' ? 'bg-violet-100 border-violet-500 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-700 hover:bg-slate-100'}`}>
-                                     <div className={`p-2 rounded-lg mr-3 ${newShift === '3rd' ? 'bg-white/50' : 'bg-white dark:bg-slate-800'}`}><Sunset size={16} /></div>
-                                     <div className="text-left"><div className="text-sm font-bold">3rd Shift</div><div className="text-[10px] opacity-80">10:00 PM - 6:00 AM</div></div>
-                                 </button>
+                         <div className="space-y-4 animate-slide-up">
+                             <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Select Shift Time</label>
+                             <div className="space-y-2">
+                                 {[
+                                     { id: '1st', label: '1st Shift', time: '6:00 AM - 2:00 PM', icon: Sunrise, color: 'indigo' },
+                                     { id: '2nd', label: '2nd Shift', time: '2:00 PM - 10:00 PM', icon: Sun, color: 'sky' },
+                                     { id: '3rd', label: '3rd Shift', time: '10:00 PM - 6:00 AM', icon: Sunset, color: 'violet' }
+                                 ].map((shift) => {
+                                     const isSelected = newShift === shift.id;
+                                     return (
+                                        <button 
+                                            key={shift.id}
+                                            onClick={() => setNewShift(shift.id as ShiftType)}
+                                            className={`w-full flex items-center p-4 rounded-2xl border-2 transition-all group ${
+                                                isSelected 
+                                                ? `bg-${shift.color}-50/50 dark:bg-${shift.color}-900/20 border-${shift.color}-500 shadow-lg shadow-${shift.color}-500/10` 
+                                                : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                                            }`}
+                                        >
+                                            <div className={`p-2.5 rounded-xl mr-4 ${isSelected ? `bg-${shift.color}-500 text-white` : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
+                                                {React.createElement(shift.icon as any, { size: 20 })}
+                                            </div>
+                                            <div className="flex-1 text-left">
+                                                <p className={`text-sm font-bold leading-tight ${isSelected ? `text-${shift.color}-700 dark:text-${shift.color}-300` : 'text-slate-700 dark:text-slate-300'}`}>{shift.label}</p>
+                                                <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">{shift.time}</p>
+                                            </div>
+                                            {isSelected && <div className={`p-1 bg-${shift.color}-500 rounded-full text-white`}><Check size={14} strokeWidth={4} /></div>}
+                                        </button>
+                                     );
+                                 })}
                              </div>
                          </div>
                      )}
                  </div>
 
-                 <div className="flex space-x-3 mt-8">
-                     <button onClick={() => setEditingSchedule(null)} className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
-                     <button onClick={handleSaveSchedule} className="flex-1 py-3.5 bg-slate-900 dark:bg-blue-600 text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-lg">Save</button>
+                 {/* Modal Footer */}
+                 <div className="p-8 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-slate-800 flex gap-4">
+                     <button 
+                        onClick={() => setEditingSchedule(null)}
+                        className="flex-1 py-4 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                     >
+                        Cancel
+                     </button>
+                     <button 
+                        onClick={handleSaveSchedule}
+                        className="flex-2 px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-500/30 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                     >
+                        <Save size={18} />
+                        <span>Update Schedule</span>
+                     </button>
                  </div>
              </div>
           </div>
