@@ -423,30 +423,30 @@ const ResourceTracking: React.FC = () => {
                                             {req.status}
                                         </span>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-600">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-600 dark:text-slate-400">
                                         <p className="flex items-center"><Truck size={14} className="mr-1"/> {req.pickup_date}</p>
                                         <p className="flex items-center"><RotateCcw size={14} className="mr-1"/> {req.return_date}</p>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         {req.items_requested.map((item, idx) => (
-                                            <span key={idx} className="bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-lg text-xs font-bold">{item.quantity}x {item.item}</span>
+                                            <span key={idx} className="bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300">{item.quantity}x {item.item}</span>
                                         ))}
                                     </div>
                                 </div>
                                 <div className="flex flex-col space-y-3 lg:w-56 pt-2">
-                                    <button onClick={() => toggleExpandRequest(req.id)} className={`w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-colors ${expandedRequestId === req.id ? 'bg-blue-50 text-blue-600' : 'bg-white dark:bg-slate-700 border border-gray-200'}`}>
+                                    <button onClick={() => toggleExpandRequest(req.id)} className={`w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-colors ${expandedRequestId === req.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 dark:text-slate-300'}`}>
                                         <History size={16} />
                                         <span>{expandedRequestId === req.id ? 'Hide History' : 'Status History'}</span>
                                         {expandedRequestId === req.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                     </button>
-                                    <button onClick={() => generateBorrowingSlip(req)} className="w-full py-2.5 bg-white dark:bg-slate-700 border border-gray-200 rounded-xl text-xs font-bold flex items-center justify-center space-x-2">
+                                    <button onClick={() => generateBorrowingSlip(req)} className="w-full py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 dark:text-slate-300">
                                         <Printer size={16} />
                                         <span>Print Slip</span>
                                     </button>
                                     {user?.role === 'supervisor' && req.status === 'Pending' && (
                                         <div className="grid grid-cols-2 gap-2">
                                             <button onClick={() => handleStatusUpdate(req.id, 'Approved')} className="py-2.5 bg-green-500 text-white rounded-xl text-xs font-bold">Approve</button>
-                                            <button onClick={() => handleStatusUpdate(req.id, 'Rejected')} className="py-2.5 bg-red-100 text-red-600 rounded-xl text-xs font-bold">Reject</button>
+                                            <button onClick={() => handleStatusUpdate(req.id, 'Rejected')} className="py-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold">Reject</button>
                                         </div>
                                     )}
                                     {user?.role === 'supervisor' && req.status === 'Approved' && (
@@ -496,7 +496,9 @@ const ResourceTracking: React.FC = () => {
                                                                 statusVal === 'Approved' ? 'bg-blue-500' :
                                                                 statusVal === 'Released' ? 'bg-purple-500' :
                                                                 statusVal === 'Returned' ? 'bg-green-500' :
-                                                                statusVal === 'Rejected' ? 'bg-red-500' : 'bg-slate-400'
+                                                                statusVal === 'Rejected' ? 'bg-red-500' :
+                                                                statusVal === 'Pending' ? 'bg-yellow-500' :
+                                                                'bg-slate-400'
                                                             }`}></div>
                                                         </div>
                                                         <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
@@ -521,33 +523,56 @@ const ResourceTracking: React.FC = () => {
 
       {isVehicleModalOpen && (
                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-lg shadow-2xl overflow-hidden">
-                         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                             <h3 className="font-bold text-lg">Log Vehicle Dispatch</h3>
-                             <button onClick={() => setIsVehicleModalOpen(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><X size={18} /></button>
+                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/20">
+                         <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
+                             <h3 className="font-bold text-lg dark:text-white">Log Vehicle Dispatch</h3>
+                             <button onClick={() => setIsVehicleModalOpen(false)} className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"><X size={18} className="dark:text-white" /></button>
                          </div>
                          <form onSubmit={handleLogVehicleUsage} className="p-6 space-y-4">
-                             <select value={vehicleForm.vehicle} onChange={e => setVehicleForm({ ...vehicleForm, vehicle: e.target.value })} className="w-full bg-gray-100 rounded-xl py-3 px-4 outline-none font-bold">
-                                 {VEHICLE_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
+                             <select 
+                                value={vehicleForm.vehicle} 
+                                onChange={e => setVehicleForm({ ...vehicleForm, vehicle: e.target.value })} 
+                                className="w-full bg-gray-100 dark:bg-slate-700 border border-transparent dark:border-slate-600 rounded-xl py-3 px-4 outline-none font-bold text-slate-900 dark:text-white"
+                             >
+                                 {VEHICLE_OPTIONS.map(v => <option key={v} value={v} className="dark:bg-slate-800">{v}</option>)}
                              </select>
                              <div className="flex space-x-2">
-                                 <select value={currentOfficerSelect} onChange={(e) => setCurrentOfficerSelect(e.target.value)} className="flex-1 bg-gray-100 rounded-xl py-3 px-4 outline-none">
-                                     <option value="">-- Add Officer --</option>
-                                     {usersList.map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
+                                 <select 
+                                    value={currentOfficerSelect} 
+                                    onChange={(e) => setCurrentOfficerSelect(e.target.value)} 
+                                    className="flex-1 bg-gray-100 dark:bg-slate-700 border border-transparent dark:border-slate-600 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white"
+                                 >
+                                     <option value="" className="dark:bg-slate-800">-- Add Officer --</option>
+                                     {usersList.map(u => <option key={u.id} value={u.full_name} className="dark:bg-slate-800">{u.full_name}</option>)}
                                  </select>
-                                 <button type="button" onClick={handleAddOfficer} className="bg-slate-800 text-white px-4 rounded-xl"><Plus size={18} /></button>
+                                 <button type="button" onClick={handleAddOfficer} className="bg-slate-800 dark:bg-blue-600 text-white px-4 rounded-xl hover:opacity-90 transition-opacity"><Plus size={18} /></button>
                              </div>
-                             <div className="flex flex-wrap gap-2 min-h-[40px] bg-gray-50 p-2 rounded-xl border border-dashed border-gray-200">
+                             <div className="flex flex-wrap gap-2 min-h-[40px] bg-gray-50 dark:bg-slate-900/50 p-2 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
+                                 {vehicleForm.officers.length === 0 && <span className="text-xs text-gray-400 dark:text-slate-500 italic p-1">No officers added...</span>}
                                  {vehicleForm.officers.map((officer, idx) => (
-                                     <span key={idx} className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold flex items-center">
+                                     <span key={idx} className="bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-full text-xs font-bold flex items-center border border-orange-200 dark:border-orange-800">
                                          {officer}
                                          <button type="button" onClick={() => setVehicleForm(prev => ({...prev, officers: prev.officers.filter(o => o !== officer)}))} className="ml-2 hover:text-red-600"><X size={12} /></button>
                                      </span>
                                  ))}
                              </div>
-                             <input type="text" required value={vehicleForm.destination} onChange={e => setVehicleForm({...vehicleForm, destination: e.target.value})} className="w-full bg-gray-100 rounded-xl py-3 px-4 outline-none" placeholder="Destination" />
-                             <input type="text" required value={vehicleForm.purpose} onChange={e => setVehicleForm({...vehicleForm, purpose: e.target.value})} className="w-full bg-gray-100 rounded-xl py-3 px-4 outline-none" placeholder="Purpose" />
-                             <button type="submit" disabled={processingId === 'new-log'} className="w-full bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-500/30">Record Dispatch</button>
+                             <input 
+                                type="text" 
+                                required 
+                                value={vehicleForm.destination} 
+                                onChange={e => setVehicleForm({...vehicleForm, destination: e.target.value})} 
+                                className="w-full bg-gray-100 dark:bg-slate-700 border border-transparent dark:border-slate-600 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white placeholder:text-gray-400" 
+                                placeholder="Destination" 
+                             />
+                             <input 
+                                type="text" 
+                                required 
+                                value={vehicleForm.purpose} 
+                                onChange={e => setVehicleForm({...vehicleForm, purpose: e.target.value})} 
+                                className="w-full bg-gray-100 dark:bg-slate-700 border border-transparent dark:border-slate-600 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white placeholder:text-gray-400" 
+                                placeholder="Purpose" 
+                             />
+                             <button type="submit" disabled={processingId === 'new-log'} className="w-full bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-500/30 hover:bg-orange-700 transition-colors">Record Dispatch</button>
                          </form>
                     </div>
                  </div>
