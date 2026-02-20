@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import ResolvedCases from './pages/ResolvedCases';
 import RestrictedPersons from './pages/RestrictedPersons';
 import CCTVRequestForm from './pages/CCTVRequestForm';
+import SystemGuidelines from './pages/SystemGuidelines';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
@@ -32,13 +33,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, requiredRole?: 'supe
   }
 
   if (requiredRole && user.role !== requiredRole) {
-      return <Navigate to="/" replace />; // Unauthorized redirect to dashboard
+      return <Navigate to="/" replace />; 
   }
 
   return <>{children}</>;
 };
 
-// Component for Update Password Page
 const UpdatePasswordPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -102,7 +102,6 @@ const AppContent: React.FC = () => {
       );
     }
 
-    // Independent Login Route
     if (!user) {
         return (
              <Routes>
@@ -117,7 +116,7 @@ const AppContent: React.FC = () => {
         <div className="min-h-screen text-slate-800 dark:text-slate-100 font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
             <Sidebar />
             <main className="pb-32 md:pb-8 md:pl-64 transition-all duration-300">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="max-w-7xl auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 <Routes>
                 <Route path="/" element={<ProtectedRoute><CommandCenter /></ProtectedRoute>} />
                 <Route path="/report" element={<ProtectedRoute><IncidentForm /></ProtectedRoute>} />
@@ -126,10 +125,9 @@ const AppContent: React.FC = () => {
                 <Route path="/resources/new" element={<ProtectedRoute><ResourceForm /></ProtectedRoute>} />
                 <Route path="/archives" element={<ProtectedRoute><ResolvedCases /></ProtectedRoute>} />
                 <Route path="/restricted" element={<ProtectedRoute><RestrictedPersons /></ProtectedRoute>} />
-                {/* REMOVED requiredRole="supervisor" to allow operators to see Roster */}
                 <Route path="/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
                 <Route path="/audit-logs" element={<ProtectedRoute requiredRole="supervisor"><AuditLogs /></ProtectedRoute>} />
-                {/* Settings available to all authenticated users now */}
+                <Route path="/guidelines" element={<ProtectedRoute><SystemGuidelines /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/update-password" element={<UpdatePasswordPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
