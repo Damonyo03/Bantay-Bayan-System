@@ -18,19 +18,25 @@ interface LogWithIncident extends DispatchLog {
     } | null;
 }
 
-const VEHICLE_OPTIONS = [
-    "Trimo 1",
-    "Trimo 2",
-    "Trimo 3",
-    "Traviz",
-    "APV",
-    "Rescue 1",
-    "Rescue 2",
-    "Ambulance 1",
-    "Ambulance 2",
-    "Foot Patrol / Walking",
-    "Command Post"
+const VEHICLE_DATA = [
+    { name: "Trimo #1", plate: "1312 - 0438584" },
+    { name: "Trimo #2", plate: "1312 - 0438585" },
+    { name: "Trimo #3", plate: "For Registration" },
+    { name: "Transformative #1", plate: "SNN 3519" },
+    { name: "Transformative #2", plate: "SNN 2501" },
+    { name: "APY", plate: "SNN 1977" },
+    { name: "L300", plate: "1312 - 0438510" },
+    { name: "Traviz", plate: "SNA 5654" },
+    { name: "Ambulance (Innova)", plate: "1301 - 2076919" },
+    { name: "Red Plate", plate: "SND 7512" },
+    { name: "Harabas", plate: "SNA 8450" },
+    { name: "Revo", plate: "XJF 830" },
+    { name: "New Ambulance", plate: "CNB 1823" },
+    { name: "Foot Patrol / Walking", plate: "N/A" },
+    { name: "Command Post", plate: "N/A" }
 ];
+
+const VEHICLE_OPTIONS = VEHICLE_DATA.map(v => v.name);
 
 const ResourceTracking: React.FC = () => {
   const { user } = useAuth();
@@ -267,10 +273,21 @@ const ResourceTracking: React.FC = () => {
 
   const parseVehicleLog = (unitName: string) => {
       const parts = unitName.split(' - ');
+      const vehicleName = parts[0];
+      const vehicleInfo = VEHICLE_DATA.find(v => v.name === vehicleName);
+      
       if (parts.length >= 2) {
-          return { vehicle: parts[0], personnel: parts.slice(1).join(' - ') };
+          return { 
+              vehicle: vehicleName, 
+              plate: vehicleInfo?.plate || 'N/A',
+              personnel: parts.slice(1).join(' - ') 
+          };
       }
-      return { vehicle: unitName, personnel: 'Unassigned' };
+      return { 
+          vehicle: vehicleName, 
+          plate: vehicleInfo?.plate || 'N/A',
+          personnel: 'Unassigned' 
+      };
   };
 
   if (error) {
@@ -349,33 +366,72 @@ const ResourceTracking: React.FC = () => {
                      <table className="w-full text-left border-collapse whitespace-nowrap">
                          <thead>
                              <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-200 dark:border-slate-700">
-                                 <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Asset / Personnel</th>
-                                 <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Details</th>
+                                 <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Vehicle / Plate</th>
+                                 <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Personnel / Destination</th>
                                  <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Departure</th>
-                                 <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Arrival</th>
+                                 <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Status / Arrival</th>
                              </tr>
                          </thead>
                          <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                              {dispatchLogs.map((log) => {
                                  const details = parseVehicleLog(log.unit_name);
+                                 const isInUse = log.status !== 'Clear';
                                  return (
-                                     <tr key={log.id} className="hover:bg-orange-50/30 dark:hover:bg-orange-900/20 transition-colors">
+                                     <tr key={log.id} className={`transition-colors ${isInUse ? 'bg-orange-50/50 dark:bg-orange-900/10 border-l-4 border-l-orange-500' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}>
                                          <td className="p-6">
                                             <div className="flex flex-col space-y-1">
                                                 <div className="flex items-center space-x-2">
-                                                    <Car size={16} className="text-orange-600"/>
+                                                    <Car size={16} className={isInUse ? "text-orange-600" : "text-slate-400"}/>
                                                     <span className="font-bold text-slate-900 dark:text-white">{details.vehicle}</span>
                                                 </div>
-                                                <span className="text-xs text-slate-500">{details.personnel}</span>
+                                                <span className="text-[10px] font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-500 w-fit">
+                                                    {details.plate}
+                                                </span>
                                             </div>
                                          </td>
-                                         <td className="p-6 text-sm text-slate-700 dark:text-slate-300">{log.incidents?.narrative}</td>
-                                         <td className="p-6 text-sm font-medium">{new Date(log.created_at).toLocaleString()}</td>
+                                         <td className="p-6">
+                                             <div className="flex flex-col space-y-1">
+                                                 <div className="flex items-center text-sm text-slate-700 dark:text-slate-300">
+                                                     <User size={14} className="mr-2 text-slate-400" />
+                                                     <span className="font-medium">{details.personnel}</span>
+                                                 </div>
+                                                 <div className="flex items-center text-xs text-slate-500">
+                                                     <MapPin size={12} className="mr-2" />
+                                                     <span>{log.incidents?.location}</span>
+                                                 </div>
+                                                 <div className="text-[10px] text-slate-400 italic">
+                                                     Purpose: {log.incidents?.narrative}
+                                                 </div>
+                                             </div>
+                                         </td>
+                                         <td className="p-6">
+                                             <div className="flex flex-col">
+                                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                     {new Date(log.created_at).toLocaleDateString()}
+                                                 </span>
+                                                 <span className="text-xs text-slate-500">
+                                                     {new Date(log.created_at).toLocaleTimeString()}
+                                                 </span>
+                                             </div>
+                                         </td>
                                          <td className="p-6">
                                              {log.status === 'Clear' ? (
-                                                 <span className="text-xs text-green-600 font-bold">{new Date(log.updated_at).toLocaleTimeString()}</span>
+                                                 <div className="flex flex-col">
+                                                     <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider mb-1">Returned</span>
+                                                     <span className="text-xs text-slate-500">{new Date(log.updated_at).toLocaleTimeString()}</span>
+                                                 </div>
                                              ) : (
-                                                <button onClick={() => handleLogArrival(log.id)} className="px-3 py-2 rounded-lg bg-orange-100 text-orange-700 text-xs font-bold">Log Return</button>
+                                                 <div className="flex flex-col space-y-2">
+                                                     <span className="text-[10px] font-bold text-orange-600 animate-pulse uppercase tracking-wider">In Use</span>
+                                                     <button 
+                                                        onClick={() => handleLogArrival(log.id)} 
+                                                        disabled={updatingLogId === log.id}
+                                                        className="px-3 py-1.5 rounded-lg bg-orange-600 text-white text-[10px] font-bold hover:bg-orange-700 transition-colors flex items-center justify-center space-x-1"
+                                                     >
+                                                         {updatingLogId === log.id ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />}
+                                                         <span>Log Return</span>
+                                                     </button>
+                                                 </div>
                                              )}
                                          </td>
                                      </tr>
