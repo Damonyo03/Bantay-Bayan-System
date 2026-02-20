@@ -17,7 +17,15 @@ export const supabaseService = {
             .eq('username', identifier)
             .single();
         
-        if (profileError || !profileData) throw new Error("Invalid username or password");
+        if (profileError) {
+            console.error("Username lookup failed:", profileError);
+            if (profileError.code === 'PGRST116') {
+                throw new Error("Invalid username or password");
+            }
+            throw new Error("Login service is currently unavailable. Please try using your email address.");
+        }
+        
+        if (!profileData) throw new Error("Invalid username or password");
         email = profileData.email;
     }
 
@@ -39,7 +47,22 @@ export const supabaseService = {
     }
 
     const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
-    if (profileError) throw new Error("Failed to fetch user profile");
+    
+    if (profileError) {
+        // Fallback: If profile is missing but auth succeeded, create a basic profile
+        console.warn("Profile missing for authenticated user. Creating fallback...");
+        const { data: newProfile, error: insertError } = await supabase.from('profiles').insert({
+            id: authData.user.id,
+            email: email,
+            full_name: authData.user.user_metadata?.full_name || email.split('@')[0],
+            username: authData.user.user_metadata?.username || email.split('@')[0],
+            role: authData.user.user_metadata?.role || 'field_operator',
+            status: authData.user.user_metadata?.status || 'inactive'
+        }).select().single();
+
+        if (insertError) throw new Error("Authentication succeeded but profile could not be verified.");
+        return { user: newProfile as UserProfile, mfaRequired: false };
+    }
     
     // Update Last Active
     await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', authData.user.id);
@@ -48,11 +71,24 @@ export const supabaseService = {
   },
 
   getCurrentUserProfile: async (): Promise<UserProfile | null> => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) return null;
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+          return null;
+      }
 
-    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-    return data as UserProfile;
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      if (error) {
+          console.warn("Profile not found for user:", user.id);
+          return null;
+      }
+      
+      return data as UserProfile;
+    } catch (error) {
+      console.error("Error in getCurrentUserProfile:", error);
+      return null;
+    }
   },
 
   logout: async () => {
@@ -66,7 +102,11 @@ export const supabaseService = {
         if (!data) return; 
         email = data.email;
     }
-    const redirectTo = `${window.location.origin}/#/update-password`;
+    
+    // Use VITE_APP_URL if defined (for production/Netlify), otherwise fallback to current origin
+    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const redirectTo = `${appUrl}/#/update-password`;
+    
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
   },
@@ -125,6 +165,11 @@ export const supabaseService = {
     if (error) throw error;
   },
 
+  deleteUser: async (id: string) => {
+    const { error } = await supabase.from('profiles').delete().eq('id', id);
+    if (error) throw error;
+  },
+
   checkUsernameExists: async (username: string): Promise<boolean> => {
       const { data, error } = await supabase.from('profiles').select('username').eq('username', username);
       if (error) return false;
@@ -170,6 +215,21 @@ export const supabaseService = {
           }
       });
       if (error) throw error;
+
+      // Fallback: Ensure profile exists if trigger fails
+      if (data.user) {
+          const { error: insertError } = await supabase.from('profiles').insert({
+              id: data.user.id,
+              email: email,
+              username: username,
+              full_name: fullName,
+              role: 'field_operator',
+              status: 'inactive'
+          });
+          if (insertError && !insertError.message.includes('duplicate key')) {
+              console.warn("Profile insertion failed during registration:", insertError.message);
+          }
+      }
       return data;
   },
 
