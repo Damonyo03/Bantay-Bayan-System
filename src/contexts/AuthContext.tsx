@@ -19,26 +19,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 1. Initial Load
+  // 1. Initial Load & Auth State Listener
   useEffect(() => {
+    let mounted = true;
+
     const initializeAuth = async () => {
       try {
-        const profile = await supabaseService.getCurrentUserProfile();
-        // Even on auto-login/refresh, check status
-        if (profile && profile.status !== 'active') {
-            await supabaseService.logout();
-            setUser(null);
-        } else {
-            setUser(profile);
+        // Use getUser() for more reliable server-side validation of the session
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !authUser) {
+            if (mounted) {
+                setUser(null);
+                setIsLoading(false);
+            }
+            return;
         }
-      } catch (error) {
-        console.error("Auth initialization failed", error);
-      } finally {
-        setIsLoading(false);
+
+        const profile = await supabaseService.getCurrentUserProfile();
+        
+        if (mounted) {
+            if (profile && profile.status === 'active') {
+                setUser(profile);
+            } else {
+                // If profile is inactive or missing, sign out
+                await supabase.auth.signOut();
+                setUser(null);
+            }
+            setIsLoading(false);
+        }
+      } catch (error: any) {
+        console.error("Auth initialization failed:", error);
+        if (mounted) {
+            setUser(null);
+            setIsLoading(false);
+        }
       }
     };
 
     initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log("Auth event:", event);
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            if (session?.user) {
+                const profile = await supabaseService.getCurrentUserProfile();
+                if (profile && profile.status === 'active') {
+                    setUser(profile);
+                } else if (profile) {
+                    await supabase.auth.signOut();
+                    setUser(null);
+                }
+            }
+        } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+        }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // 2. Real-time Profile Subscription
