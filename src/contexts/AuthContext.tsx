@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
         console.log("Auth event:", event);
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   table: 'profiles', 
                   filter: `id=eq.${user.id}` 
               },
-              (payload) => {
+              (payload: any) => {
                   // Automatically update local state with new DB data
                   console.log("Real-time profile update:", payload.new);
                   setUser(payload.new as UserProfile);

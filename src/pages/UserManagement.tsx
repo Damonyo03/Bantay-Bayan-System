@@ -101,7 +101,7 @@ const UserManagement: React.FC = () => {
 
     const channel = supabase
         .channel('users_management_realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload: any) => {
             fetchUsers();
             if (payload.eventType === 'INSERT') {
                 const newProfile = payload.new as UserProfile;

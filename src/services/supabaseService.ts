@@ -116,6 +116,18 @@ export const supabaseService = {
     if (error) throw error;
   },
 
+  reauthenticate: async (password: string): Promise<boolean> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !user.email) return false;
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: password,
+    });
+
+    return !error;
+  },
+
   // --- MFA / 2FA ---
 
   enrollMFA: async () => {
