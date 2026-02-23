@@ -66,11 +66,7 @@ export const supabaseService = {
         if (!data) return; 
         email = data.email;
     }
-    
-    // Use VITE_APP_URL if defined (for production/Netlify), otherwise fallback to current origin
-    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-    const redirectTo = `${appUrl}/#/update-password`;
-    
+    const redirectTo = `${window.location.origin}/#/update-password`;
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
   },
