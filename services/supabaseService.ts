@@ -48,27 +48,11 @@ export const supabaseService = {
   },
 
   getCurrentUserProfile: async (): Promise<UserProfile | null> => {
-    try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-          // If the session is invalid (e.g. refresh token not found), clear it
-          if (sessionError.message.includes('refresh_token') || sessionError.message.includes('Refresh Token')) {
-              await supabase.auth.signOut();
-          }
-          return null;
-      }
-      
-      if (!session?.user) return null;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return null;
 
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-      if (error) return null;
-      
-      return data as UserProfile;
-    } catch (error) {
-      console.error("Error in getCurrentUserProfile:", error);
-      return null;
-    }
+    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+    return data as UserProfile;
   },
 
   logout: async () => {
@@ -142,11 +126,6 @@ export const supabaseService = {
 
   updateUserStatus: async (id: string, status: 'active' | 'inactive') => {
     const { error } = await supabase.from('profiles').update({ status }).eq('id', id);
-    if (error) throw error;
-  },
-
-  deleteUser: async (id: string) => {
-    const { error } = await supabase.from('profiles').delete().eq('id', id);
     if (error) throw error;
   },
 

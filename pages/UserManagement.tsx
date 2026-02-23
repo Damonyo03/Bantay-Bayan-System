@@ -478,18 +478,6 @@ const UserManagement: React.FC = () => {
       }
   };
 
-  const handleDeclineUser = async (id: string, name: string) => {
-      if (!confirm(`Are you sure you want to decline and remove the account for ${name}? This action cannot be undone.`)) return;
-      
-      try {
-          await supabaseService.deleteUser(id);
-          showToast(`Account for ${name} has been declined and removed.`, "success");
-          fetchUsers();
-      } catch (error) {
-          showToast("Failed to decline account", "error");
-      }
-  };
-
   // --- EDIT USER LOGIC ---
   const handleEditUser = (user: UserProfile) => {
       setEditingUser(user);
@@ -808,15 +796,6 @@ const UserManagement: React.FC = () => {
                                         >
                                             {rowUser.status === 'active' ? 'Deactivate' : 'Approve'}
                                         </button>
-
-                                        {rowUser.status === 'inactive' && (
-                                            <button 
-                                                onClick={() => handleDeclineUser(rowUser.id, rowUser.full_name)}
-                                                className="text-xs font-bold px-3 py-2 rounded-lg bg-white dark:bg-slate-700 text-red-600 border border-gray-200 dark:border-slate-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all shadow-sm flex items-center justify-center"
-                                            >
-                                                Decline
-                                            </button>
-                                        )}
                                     </div>
                                 </td>
                                 </tr>

@@ -22,45 +22,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // 1. Initial Load & Auth State Listener
   useEffect(() => {
     const initializeAuth = async () => {
-      const timeout = setTimeout(() => {
-        setIsLoading(false);
-      }, 20000); // 20 second timeout for slow networks
-
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-            console.warn("Session error during init:", sessionError.message);
-            setUser(null);
-            return;
-        }
-
-        if (!session) {
-            setUser(null);
-            return;
-        }
-
         const profile = await supabaseService.getCurrentUserProfile();
         // Even on auto-login/refresh, check status
         if (profile && profile.status !== 'active') {
-            await supabase.auth.signOut();
+            await supabaseService.logout();
             setUser(null);
         } else {
             setUser(profile);
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error("Auth initialization failed", error);
-        // If we hit a refresh token error, clear everything
-        if (error.message?.includes('refresh_token') || error.message?.includes('Refresh Token')) {
-            try {
-                await supabase.auth.signOut();
-            } catch (e) {
-                console.error("Sign out failed during recovery", e);
-            }
-            setUser(null);
-        }
       } finally {
-        clearTimeout(timeout);
         setIsLoading(false);
       }
     };
