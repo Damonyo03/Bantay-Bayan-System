@@ -144,7 +144,7 @@ const App: React.FC = () => {
       <LanguageProvider>
         <ToastProvider>
           <AuthProvider>
-              <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <Router>
                   <AppContent />
               </Router>
           </AuthProvider>
