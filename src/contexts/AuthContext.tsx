@@ -21,56 +21,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 1. Initial Load & Auth State Listener
   useEffect(() => {
-    let mounted = true;
-
     const initializeAuth = async () => {
+      const timeout = setTimeout(() => {
+        setIsLoading(false);
+      }, 20000); // 20 second timeout for slow networks
+
       try {
-        // Use getUser() for more reliable server-side validation of the session
-        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (authError || !authUser) {
-            if (mounted) {
-                setUser(null);
-                setIsLoading(false);
-            }
+        if (sessionError) {
+            console.warn("Session error during init:", sessionError.message);
+            setUser(null);
+            return;
+        }
+
+        if (!session) {
+            setUser(null);
             return;
         }
 
         const profile = await supabaseService.getCurrentUserProfile();
-        
-        if (mounted) {
-            if (profile && profile.status === 'active') {
-                setUser(profile);
-            } else {
-                // If profile is inactive or missing, sign out
-                await supabase.auth.signOut();
-                setUser(null);
-            }
-            setIsLoading(false);
+        // Even on auto-login/refresh, check status
+        if (profile && profile.status !== 'active') {
+            await supabase.auth.signOut();
+            setUser(null);
+        } else {
+            setUser(profile);
         }
       } catch (error: any) {
-        console.error("Auth initialization failed:", error);
-        if (mounted) {
+        console.error("Auth initialization failed", error);
+        // If we hit a refresh token error, clear everything
+        if (error.message?.includes('refresh_token') || error.message?.includes('Refresh Token')) {
+            try {
+                await supabase.auth.signOut();
+            } catch (e) {
+                console.error("Sign out failed during recovery", e);
+            }
             setUser(null);
-            setIsLoading(false);
         }
+      } finally {
+        clearTimeout(timeout);
+        setIsLoading(false);
       }
     };
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+    // Listen for auth state changes (important for recovery links)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log("Auth event:", event);
-        
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-            if (session?.user) {
-                const profile = await supabaseService.getCurrentUserProfile();
-                if (profile && profile.status === 'active') {
-                    setUser(profile);
-                } else if (profile) {
-                    await supabase.auth.signOut();
-                    setUser(null);
-                }
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+            const profile = await supabaseService.getCurrentUserProfile();
+            if (profile && profile.status === 'active') {
+                setUser(profile);
             }
         } else if (event === 'SIGNED_OUT') {
             setUser(null);
@@ -78,7 +81,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -99,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   table: 'profiles', 
                   filter: `id=eq.${user.id}` 
               },
-              (payload: any) => {
+              (payload) => {
                   // Automatically update local state with new DB data
                   console.log("Real-time profile update:", payload.new);
                   setUser(payload.new as UserProfile);
