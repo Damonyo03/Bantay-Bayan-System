@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { AssetItem } from '../types';
 import { generateBorrowingSlip } from '../utils/pdfGenerator';
-import { Package, Calendar, User, Phone, MapPin, Plus, Trash2, CheckCircle, ArrowRight, Printer, Shield, AlertTriangle } from 'lucide-react';
+import { Package, Calendar, User, Phone, MapPin, Plus, Trash2, CheckCircle, ArrowRight, Printer, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ResourceForm: React.FC = () => {
@@ -27,7 +27,6 @@ const ResourceForm: React.FC = () => {
   const [hasConsented, setHasConsented] = useState(false);
 
   const [items, setItems] = useState<AssetItem[]>([{ item: 'Plastic Chairs', quantity: 10 }]);
-  const [dateError, setDateError] = useState<string | null>(null);
 
   const ITEM_OPTIONS = [
       'Tent (10x10)',
@@ -55,45 +54,9 @@ const ResourceForm: React.FC = () => {
       setItems(newItems);
   };
 
-  const validateDates = (pickup: string, returnDate: string) => {
-      if (!pickup || !returnDate) {
-          setDateError(null);
-          return true;
-      }
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const pDate = new Date(pickup);
-      const rDate = new Date(returnDate);
-
-      if (pDate < today) {
-          setDateError("Pickup date cannot be in the past.");
-          return false;
-      }
-
-      if (rDate < pDate) {
-          setDateError("Return date must be on or after the pickup date.");
-          return false;
-      }
-
-      setDateError(null);
-      return true;
-  };
-
-  const handleDateChange = (field: 'pickup_date' | 'return_date', value: string) => {
-      const newFormData = { ...formData, [field]: value };
-      setFormData(newFormData);
-      validateDates(newFormData.pickup_date, newFormData.return_date);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!user) return;
-
-      if (!validateDates(formData.pickup_date, formData.return_date)) {
-          return;
-      }
 
       if (!hasConsented) {
           alert("You must acknowledge the Data Privacy Act compliance to proceed.");
@@ -227,8 +190,8 @@ const ResourceForm: React.FC = () => {
                             required
                             type="date"
                             value={formData.pickup_date}
-                            onChange={e => handleDateChange('pickup_date', e.target.value)}
-                            className={`w-full bg-white/50 dark:bg-white/5 border ${dateError && dateError.includes('Pickup') ? 'border-red-500' : 'border-gray-200 dark:border-slate-700'} rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white`}
+                            onChange={e => setFormData({...formData, pickup_date: e.target.value})}
+                            className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
                         />
                     </div>
                 </div>
@@ -240,17 +203,11 @@ const ResourceForm: React.FC = () => {
                             required
                             type="date"
                             value={formData.return_date}
-                            onChange={e => handleDateChange('return_date', e.target.value)}
-                            className={`w-full bg-white/50 dark:bg-white/5 border ${dateError && dateError.includes('Return') ? 'border-red-500' : 'border-gray-200 dark:border-slate-700'} rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white`}
+                            onChange={e => setFormData({...formData, return_date: e.target.value})}
+                            className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
                         />
                     </div>
                 </div>
-                {dateError && (
-                    <div className="md:col-span-2 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-3 rounded-xl flex items-center space-x-2 text-red-600 dark:text-red-400 text-xs font-bold animate-slide-down">
-                        <AlertTriangle size={14} />
-                        <span>{dateError}</span>
-                    </div>
-                )}
                 <div className="md:col-span-2">
                      <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.purpose}</label>
                      <input 
@@ -319,9 +276,9 @@ const ResourceForm: React.FC = () => {
         <div className="pt-4 border-t border-gray-100 dark:border-white/10 flex justify-end">
             <button
                 type="submit"
-                disabled={isSubmitting || !hasConsented || !!dateError}
+                disabled={isSubmitting || !hasConsented}
                 className={`px-8 py-4 rounded-xl font-bold flex items-center space-x-2 shadow-lg transition-all ${
-                    hasConsented && !dateError
+                    hasConsented 
                     ? 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 shadow-blue-500/30' 
                     : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
                 }`}
