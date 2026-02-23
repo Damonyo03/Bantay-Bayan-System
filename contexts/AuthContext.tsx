@@ -19,7 +19,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 1. Initial Load & Auth State Listener
+  // 1. Initial Load
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -39,23 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     initializeAuth();
-
-    // Listen for auth state changes (important for recovery links)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log("Auth event:", event);
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-            const profile = await supabaseService.getCurrentUserProfile();
-            if (profile && profile.status === 'active') {
-                setUser(profile);
-            }
-        } else if (event === 'SIGNED_OUT') {
-            setUser(null);
-        }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
   // 2. Real-time Profile Subscription
