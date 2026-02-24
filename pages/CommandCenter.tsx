@@ -3,12 +3,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { incidentService } from '../services/incidentService';
 import { resourceService } from '../services/resourceService';
 import { userService } from '../services/userService';
-import { IncidentWithDetails, DispatchLog, AssetRequest, UserProfile, PersonnelSchedule, CCTVRequest } from '../types';
+import { systemService } from '../services/systemService';
+import { IncidentWithDetails, DispatchLog, AssetRequest, UserProfile, PersonnelSchedule, CCTVRequest, CalendarActivity, ShiftType } from '../types';
 import DispatchBottomSheet from '../components/DispatchBottomSheet';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { Clock, MapPin, Car, AlertCircle, Users, Edit2, X, Check, FileText, Package, Shield, CheckCircle, ArrowRight, Loader2, ChevronDown, ChevronUp, History, Video, ClipboardList, ChevronRight, Printer } from 'lucide-react';
+import { Clock, MapPin, Car, AlertCircle, Users, Edit2, X, Check, FileText, Package, Shield, CheckCircle, ArrowRight, Loader2, ChevronDown, ChevronUp, History, Video, ClipboardList, ChevronRight, Printer, CalendarDays, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { generateOfficialReport } from '../utils/pdfGenerator';
@@ -45,6 +46,7 @@ const CommandCenter: React.FC = () => {
     const [incidents, setIncidents] = useState<IncidentWithDetails[]>([]);
     const [assetRequests, setAssetRequests] = useState<AssetRequest[]>([]);
     const [cctvRequests, setCctvRequests] = useState<CCTVRequest[]>([]);
+    const [activities, setActivities] = useState<CalendarActivity[]>([]);
 
     // Personnel list
     const [onDutyPersonnel, setOnDutyPersonnel] = useState<OnDutyPersonnel[]>([]);
@@ -60,6 +62,11 @@ const CommandCenter: React.FC = () => {
     const [tempNarrative, setTempNarrative] = useState('');
     const [showOnDutyModal, setShowOnDutyModal] = useState(false);
 
+    // Activity Modal States
+    const [showActivityModal, setShowActivityModal] = useState(false);
+    const [newActivity, setNewActivity] = useState({ title: '', description: '', event_date: '', shift: '1st' as ShiftType | 'All Day' });
+    const [isSavingActivity, setIsSavingActivity] = useState(false);
+
     // Expanded Incident State
     const [expandedIncidentId, setExpandedIncidentId] = useState<string | null>(null);
 
@@ -73,18 +80,20 @@ const CommandCenter: React.FC = () => {
             const currentHour = today.getHours();
             const isSaturday = today.getDay() === 6;
 
-            const [incData, assetData, userData, dispatchData, scheduleData, cctvData] = await Promise.all([
+            const [incData, assetData, userData, dispatchData, scheduleData, cctvData, activityData] = await Promise.all([
                 incidentService.getIncidents(),
                 resourceService.getAssetRequests(),
                 userService.getUsers(),
                 resourceService.getDispatchHistory(),
                 userService.getSchedules(todayStr, todayStr),
-                resourceService.getCCTVRequests()
+                resourceService.getCCTVRequests(),
+                systemService.getActivities()
             ]);
 
             setIncidents(incData);
             setAssetRequests(assetData);
             setCctvRequests(cctvData);
+            setActivities(activityData);
 
             const activeOnShift = userData.filter(u => u.status === 'active').reduce<OnDutyPersonnel[]>((acc, userProfile) => {
                 const userSched = scheduleData.find((s: any) => s.user_id === userProfile.id);
@@ -151,6 +160,7 @@ const CommandCenter: React.FC = () => {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'asset_requests' }, () => fetchData())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'cctv_requests' }, () => fetchData())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'personnel_schedules' }, () => fetchData())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_activities' }, () => fetchData())
             .subscribe();
 
         return () => {
@@ -231,8 +241,84 @@ const CommandCenter: React.FC = () => {
         setTempNarrative(incident.narrative || '');
     };
 
+    const handleCreateActivity = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) return;
+        setIsSavingActivity(true);
+        try {
+            await systemService.createActivity({
+                ...newActivity,
+                created_by: user.id
+            });
+            showToast("Activity added successfully!", "success");
+            setShowActivityModal(false);
+            setNewActivity({ title: '', description: '', event_date: '', shift: '1st' });
+            fetchData();
+        } catch (error) {
+            showToast("Failed to add activity", "error");
+        } finally {
+            setIsSavingActivity(false);
+        }
+    };
+
+    const handleDeleteActivity = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this activity?")) return;
+        try {
+            await systemService.deleteActivity(id);
+            fetchData();
+            showToast("Activity deleted", "success");
+        } catch (error) {
+            showToast("Failed to delete activity", "error");
+        }
+    };
+
+    // Calculate Current Shift
+    const currentHourLocal = new Date().getHours();
+    let computedActiveShift = 'Unknown';
+    if (currentHourLocal >= 6 && currentHourLocal < 14) computedActiveShift = '1st';
+    else if (currentHourLocal >= 14 && currentHourLocal < 22) computedActiveShift = '2nd';
+    else computedActiveShift = '3rd';
+
+    // Get Today's Date String
+    const todayStrLocal = getLocalDateStr(new Date());
+
+    // Activities for logged in user's shift today
+    const activeActivitiesForShift = activities.filter(a => {
+        return a.event_date === todayStrLocal && (a.shift === 'All Day' || a.shift === computedActiveShift);
+    });
+
+    // Determine logged in user's shift status to display alert
+    const userScheduleToday = onDutyPersonnel.find(p => p.profile.id === user?.id);
+    const shouldShowActivityAlert = activeActivitiesForShift.length > 0 &&
+        (user?.role === 'supervisor' || (userScheduleToday && userScheduleToday.schedule.shift === computedActiveShift));
+
+    // For upcoming activities in right rail
+    const upcomingActivities = activities.filter(a => new Date(a.event_date) >= new Date(todayStrLocal)).slice(0, 4);
+
+    // Helpers
+    function getLocalDateStr(date: Date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     return (
         <div className="space-y-8 pb-20">
+            {shouldShowActivityAlert && (
+                <div className="bg-taguig-blue text-white p-4 rounded-3xl shadow-lg border-2 border-taguig-blue flex items-start md:items-center justify-between gap-4 animate-slide-down">
+                    <div className="flex items-center space-x-4">
+                        <div className="bg-white/20 p-3 rounded-2xl flex-shrink-0 animate-pulse">
+                            <CalendarDays size={24} className="text-white" />
+                        </div>
+                        <div>
+                            <h3 className="font-black text-lg font-display tracking-tight leading-tight">Attention {computedActiveShift} Shift Personnel!</h3>
+                            <p className="text-sm font-medium text-white/90">You have {activeActivitiesForShift.length} scheduled {activeActivitiesForShift.length === 1 ? 'activity' : 'activities'} today.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <PageHeader
                 title="Command Center"
                 subtitle="Main Control Center • Post Proper Northside"
@@ -658,6 +744,92 @@ const CommandCenter: React.FC = () => {
                                 Save Changes
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {showActivityModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-6 relative">
+                        <button
+                            onClick={() => setShowActivityModal(false)}
+                            className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-slate-700 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-500 dark:text-gray-400"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                            <CalendarDays className="mr-2 text-taguig-blue" />
+                            Add Activity
+                        </h3>
+
+                        <form onSubmit={handleCreateActivity} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Activity Title</label>
+                                <input
+                                    required
+                                    type="text"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-taguig-blue/50 dark:text-white"
+                                    placeholder="e.g. VIP Visit Escort"
+                                    value={newActivity.title}
+                                    onChange={e => setNewActivity({ ...newActivity, title: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Date</label>
+                                <input
+                                    required
+                                    type="date"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-taguig-blue/50 dark:text-white"
+                                    value={newActivity.event_date}
+                                    onChange={e => setNewActivity({ ...newActivity, event_date: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Designated Shift</label>
+                                <select
+                                    required
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-taguig-blue/50 dark:text-white"
+                                    value={newActivity.shift}
+                                    onChange={e => setNewActivity({ ...newActivity, shift: e.target.value as any })}
+                                >
+                                    <option value="All Day">All Day</option>
+                                    <option value="1st">1st Shift</option>
+                                    <option value="2nd">2nd Shift</option>
+                                    <option value="3rd">3rd Shift</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Description (Optional)</label>
+                                <textarea
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-taguig-blue/50 dark:text-white resize-none h-24"
+                                    placeholder="Provide additional details..."
+                                    value={newActivity.description}
+                                    onChange={e => setNewActivity({ ...newActivity, description: e.target.value })}
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isSavingActivity}
+                                className="w-full py-4 mt-2 bg-taguig-blue text-white rounded-2xl font-black uppercase tracking-widest text-[13px] hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {isSavingActivity ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle size={18} />
+                                        <span>Save Activity</span>
+                                    </>
+                                )}
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}
