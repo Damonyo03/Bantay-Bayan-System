@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile } from '../types';
-import { supabaseService } from '../services/supabaseService';
+import { authService } from '../services/authService';
 import { supabase } from '../lib/supabaseClient';
 
 interface AuthContextType {
@@ -23,13 +23,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const profile = await supabaseService.getCurrentUserProfile();
+        const profile = await authService.getCurrentUserProfile();
         // Even on auto-login/refresh, check status
         if (profile && profile.status !== 'active') {
-            await supabaseService.logout();
-            setUser(null);
+          await authService.logout();
+          setUser(null);
         } else {
-            setUser(profile);
+          setUser(profile);
         }
       } catch (error) {
         console.error("Auth initialization failed", error);
@@ -45,43 +45,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // This ensures that if the avatar or details are updated (even in another tab), 
   // the state updates immediately in this session.
   useEffect(() => {
-      if (!user?.id) return;
+    if (!user?.id) return;
 
-      const channel = supabase
-          .channel(`profile_changes:${user.id}`)
-          .on(
-              'postgres_changes',
-              { 
-                  event: 'UPDATE', 
-                  schema: 'public', 
-                  table: 'profiles', 
-                  filter: `id=eq.${user.id}` 
-              },
-              (payload) => {
-                  // Automatically update local state with new DB data
-                  console.log("Real-time profile update:", payload.new);
-                  setUser(payload.new as UserProfile);
-              }
-          )
-          .subscribe();
+    const channel = supabase
+      .channel(`profile_changes:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        },
+        (payload) => {
+          // Automatically update local state with new DB data
+          console.log("Real-time profile update:", payload.new);
+          setUser(payload.new as UserProfile);
+        }
+      )
+      .subscribe();
 
-      return () => {
-          supabase.removeChannel(channel);
-      };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id]);
 
   const login = async (email: string, password: string): Promise<'success' | 'mfa_required'> => {
     try {
-      const { user, mfaRequired } = await supabaseService.login(email, password);
-      
+      const { user, mfaRequired } = await authService.login(email, password);
+
       if (user.status !== 'active') {
-          await supabaseService.logout();
-          throw new Error("Your account is pending approval or inactive. Contact the administrator.");
+        await authService.logout();
+        throw new Error("Your account is pending approval or inactive. Contact the administrator.");
       }
 
       // We set the user temporarily so we can display their name during 2FA challenge
       // But until MFA is verified, Supabase session is technically AAL1 (limited)
-      setUser(user); 
+      setUser(user);
       return mfaRequired ? 'mfa_required' : 'success';
     } catch (error) {
       throw error;
@@ -89,26 +89,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const verifyLoginMFA = async (code: string) => {
-      await supabaseService.challengeMFA(code);
-      // Refresh profile to ensure full session validity
-      const profile = await supabaseService.getCurrentUserProfile();
-      setUser(profile);
+    await authService.challengeMFA(code);
+    // Refresh profile to ensure full session validity
+    const profile = await authService.getCurrentUserProfile();
+    setUser(profile);
   };
 
   const logout = async () => {
-    await supabaseService.logout();
+    await authService.logout();
     setUser(null);
   };
 
   const refreshUser = async () => {
-      try {
-          const profile = await supabaseService.getCurrentUserProfile();
-          if (profile) {
-              setUser(profile);
-          }
-      } catch (error) {
-          console.error("Failed to refresh user profile", error);
+    try {
+      const profile = await authService.getCurrentUserProfile();
+      if (profile) {
+        setUser(profile);
       }
+    } catch (error) {
+      console.error("Failed to refresh user profile", error);
+    }
   };
 
   return (
