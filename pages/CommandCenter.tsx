@@ -9,7 +9,7 @@ import DispatchBottomSheet from '../components/DispatchBottomSheet';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { Clock, MapPin, Car, AlertCircle, Users, Edit2, X, Check, FileText, Package, Shield, CheckCircle, ArrowRight, Loader2, ChevronDown, ChevronUp, History, Video, ClipboardList, ChevronRight, Printer, CalendarDays, Plus, Trash2 } from 'lucide-react';
+import { Clock, MapPin, Car, AlertCircle, Users, Edit2, X, Check, FileText, Package, Shield, CheckCircle, ArrowRight, Loader2, ChevronDown, ChevronUp, History, Video, ClipboardList, ChevronRight, Printer, CalendarDays, Calendar, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { generateOfficialReport } from '../utils/pdfGenerator';
@@ -587,6 +587,70 @@ const CommandCenter: React.FC = () => {
                                     </div>
                                 );
                             })}
+                        </div>
+
+                        {/* UPCOMING ACTIVITIES SECTION */}
+                        <div className="space-y-4 pt-4">
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center justify-between">
+                                Upcoming Activities
+                                {user?.role === 'supervisor' && (
+                                    <button
+                                        onClick={() => setShowActivityModal(true)}
+                                        className="p-2 bg-taguig-blue/10 text-taguig-blue rounded-xl hover:bg-taguig-blue hover:text-white transition-all group"
+                                        title="Add Activity"
+                                    >
+                                        <Plus size={16} />
+                                    </button>
+                                )}
+                            </h2>
+
+                            <div className="space-y-3">
+                                {upcomingActivities.length === 0 ? (
+                                    <div className="glass-panel p-6 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700 text-center">
+                                        <Calendar className="mx-auto mb-2 text-slate-300" size={24} />
+                                        <p className="text-xs text-slate-400 font-medium">No upcoming activities scheduled.</p>
+                                    </div>
+                                ) : (
+                                    upcomingActivities.map((activity) => (
+                                        <div key={activity.id} className="glass-panel p-4 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-premium transition-all group overflow-hidden relative">
+                                            <div className="flex items-start justify-between relative z-10">
+                                                <div className="flex items-start space-x-3">
+                                                    <div className={`p-2.5 rounded-2xl flex-shrink-0 ${activity.event_date === todayStrLocal ? 'bg-taguig-blue text-white shadow-lg shadow-taguig-blue/20 animate-pulse' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                                        <CalendarDays size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-900 dark:text-white text-sm line-clamp-1 group-hover:text-taguig-blue transition-colors">
+                                                            {activity.title}
+                                                        </p>
+                                                        <div className="flex items-center space-x-2 mt-1">
+                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                                {activity.shift} Shift
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-300">•</span>
+                                                            <span className="text-[10px] font-bold text-slate-400">
+                                                                {new Date(activity.event_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {user?.role === 'supervisor' && (
+                                                    <button
+                                                        onClick={() => handleDeleteActivity(activity.id)}
+                                                        className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {activity.description && (
+                                                <p className="mt-3 text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic border-t border-slate-50 dark:border-slate-700 pt-2">
+                                                    {activity.description}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
 
                         {/* RECENT REQUESTS FOOTPRINT */}
