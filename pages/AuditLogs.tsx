@@ -1,13 +1,14 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { supabaseService } from '../services/supabaseService';
+import { systemService } from '../services/systemService';
 import { AuditLog } from '../types';
 import { FileClock, Activity, User, Filter, Search, RotateCcw, ChevronDown } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 const AuditLogs: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('All');
@@ -20,7 +21,7 @@ const AuditLogs: React.FC = () => {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const data = await supabaseService.getAuditLogs();
+      const data = await systemService.getAuditLogs();
       setLogs(data);
     } catch (error) {
       console.error(error);
@@ -57,11 +58,11 @@ const AuditLogs: React.FC = () => {
   // Filtered Logic
   const filteredLogs = useMemo(() => {
     return logs.filter(log => {
-      const matchesSearch = searchQuery === '' || 
+      const matchesSearch = searchQuery === '' ||
         log.performer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.record_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.table_name?.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesAction = actionFilter === 'All' || log.operation === actionFilter;
       const matchesTarget = targetFilter === 'All' || log.table_name === targetFilter;
 
@@ -77,29 +78,26 @@ const AuditLogs: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-20 animate-fade-in">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center">
-            <FileClock className="mr-3 text-blue-600 dark:text-blue-400" />
-            System Audit Logs
-          </h1>
-          <p className="text-slate-600 dark:text-slate-300 mt-2">Track all critical system events and user actions in real-time.</p>
-        </div>
-        <button 
+      <PageHeader
+        title="History of Actions"
+        subtitle="View recent system activities and events."
+        icon={FileClock}
+      >
+        <button
           onClick={fetchLogs}
-          className="p-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm border border-slate-200 dark:border-slate-700"
+          className="w-full md:w-auto p-4 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center"
         >
           <RotateCcw size={20} className={loading ? 'animate-spin' : ''} />
         </button>
-      </header>
+      </PageHeader>
 
       {/* FILTER BAR */}
       <div className="glass-panel p-4 rounded-[2rem] border border-white/60 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search by user, record ID, or table..." 
+          <input
+            type="text"
+            placeholder="Search by user, record ID, or table..."
             className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none text-slate-800 dark:text-white transition-all font-medium"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -112,7 +110,7 @@ const AuditLogs: React.FC = () => {
             <div className="absolute left-3 top-3.5 text-slate-400 pointer-events-none">
               <Filter size={16} />
             </div>
-            <select 
+            <select
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
               className="w-full pl-10 pr-8 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none cursor-pointer focus:ring-2 focus:ring-blue-500/20"
@@ -130,7 +128,7 @@ const AuditLogs: React.FC = () => {
             <div className="absolute left-3 top-3.5 text-slate-400 pointer-events-none">
               <Activity size={16} />
             </div>
-            <select 
+            <select
               value={targetFilter}
               onChange={(e) => setTargetFilter(e.target.value)}
               className="w-full pl-10 pr-8 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none cursor-pointer focus:ring-2 focus:ring-blue-500/20"
@@ -143,7 +141,7 @@ const AuditLogs: React.FC = () => {
             <ChevronDown size={14} className="absolute right-3 top-4 text-slate-400 pointer-events-none" />
           </div>
 
-          <button 
+          <button
             onClick={resetFilters}
             className="px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold text-sm transition-colors whitespace-nowrap"
           >
@@ -224,7 +222,7 @@ const AuditLogs: React.FC = () => {
               <Activity className="w-16 h-16 mx-auto mb-6 opacity-10" />
               <h3 className="text-lg font-bold text-slate-600 dark:text-slate-300">No matching logs</h3>
               <p className="text-sm mt-1">Try adjusting your filters or search terms.</p>
-              <button 
+              <button
                 onClick={resetFilters}
                 className="mt-6 text-blue-600 dark:text-blue-400 font-bold hover:underline"
               >

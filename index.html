@@ -1,136 +1,186 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bantay Bayan Internal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              // Custom semantic colors if needed
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bantay Bayan Internal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            taguig: {
+              blue: '#0038A8',
+              red: '#D62D20',
+              gold: '#FFB700',
+              navy: '#001A4D',
+            },
+            brgy: {
+              gold: '#FFB700',
+            },
+            bantay: {
+              red: '#B22222',
+              gold: '#FFD700',
+              green: '#006400',
+              black: '#000000',
             }
+          },
+          boxShadow: {
+            'premium': '0 10px 40px -10px rgba(0, 0, 0, 0.1)',
+            'premium-dark': '0 20px 60px -15px rgba(0, 0, 0, 0.5)',
           }
         }
       }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      /* Simulating San Francisco Font Stack */
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-        min-height: 100vh;
-        transition: background 0.5s ease, color 0.5s ease;
+    }
+  </script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+
+    h1,
+    h2,
+    h3,
+    .font-display {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* LIGHT MODE - PREMIER SLATE */
+    body {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #0f172a;
+    }
+
+    /* DARK MODE - TAGUIG NAVY */
+    html.dark body {
+      background: radial-gradient(circle at top right, #001A4D 0%, #020617 100%);
+      color: #f8fafc;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    html.dark ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: var(--tw-shadow-premium);
+    }
+
+    html.dark .glass-panel {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: var(--tw-shadow-premium-dark);
+    }
+
+    .glass-sidebar {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(0, 56, 168, 0.05);
+    }
+
+    html.dark .glass-sidebar {
+      background: rgba(2, 6, 23, 0.9);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Accent Borders */
+    .border-taguig-blue {
+      border-color: #0038A8;
+    }
+
+    .border-taguig-red {
+      border-color: #D62D20;
+    }
+
+    .border-taguig-gold {
+      border-color: #FFB700;
+    }
+
+    /* Active Link Glow */
+    .nav-active {
+      background: linear-gradient(90deg, #0038A8 0%, #00529B 100%);
+      box-shadow: 0 4px 15px rgba(0, 56, 168, 0.3);
+    }
+
+    html.dark .nav-active {
+      background: linear-gradient(90deg, rgba(0, 56, 168, 0.4) 0%, rgba(0, 82, 155, 0.4) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
       }
 
-      /* LIGHT MODE DEFAULT - IMPROVED CONTRAST */
-      body {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); /* Slate 50 to 200 - Lighter background */
-        color: #020617; /* Slate 950 - Almost Black for text */
+      to {
+        opacity: 1;
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
       }
 
-      /* DARK MODE OVERRIDE */
-      html.dark body {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); /* Slate 900 to 800 */
-        color: #f8fafc; /* Slate 50 */
+      to {
+        transform: translateY(0);
+        opacity: 1;
       }
+    }
 
-      /* Custom Scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05);
-      }
-      html.dark ::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-      }
-      ::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 10px;
-      }
-      html.dark ::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-      }
-      
-      /* 
-         Glass Panel: Adapts to mode
-      */
-      .glass-panel {
-        /* Light Mode Glass - More opaque for readability */
-        background: rgba(255, 255, 255, 0.95); 
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(226, 232, 240, 0.8); /* Slate 200 */
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-      }
+    .animate-slide-up {
+      animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
 
-      html.dark .glass-panel {
-        /* Dark Mode Glass */
-        background: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-      }
-      
-      /* Sidebar styling */
-      .glass-sidebar {
-        background: rgba(255, 255, 255, 0.98); /* Almost solid in light mode */
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-right: 1px solid rgba(0, 0, 0, 0.08);
-        color: #0f172a; /* Slate 900 */
-      }
+    /* Utilities */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
 
-      html.dark .glass-sidebar {
-        background: rgba(15, 23, 42, 0.8); 
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-        color: white;
-      }
-      
-      /* Animations */
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-out forwards;
-      }
-      @keyframes slideUp {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
-      .animate-slide-up {
-        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
-      @keyframes slideDown {
-        from { transform: translateY(-20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
-      .animate-slide-down {
-        animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
 
-      /* Utilities */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      
-      /* Mobile safe area */
-      .pb-safe {
-        padding-bottom: env(safe-area-inset-bottom);
-      }
-    </style>
-<script type="importmap">
+    /* Mobile safe area */
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  </style>
+  <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@^19.2.4",
@@ -146,13 +196,24 @@
 }
 </script>
 </head>
-  <body>
-    <div id="root">
-        <div style="height:100vh; width:100vw; display:flex; align-items:center; justify-content:center; background: #0f172a;">
-            <div style="width: 32px; height: 32px; border: 3px solid #334155; border-top-color: #60a5fa; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-        </div>
+
+<body>
+  <div id="root">
+    <div
+      style="height:100vh; width:100vw; display:flex; align-items:center; justify-content:center; background: #0f172a;">
+      <div
+        style="width: 32px; height: 32px; border: 3px solid #334155; border-top-color: #60a5fa; border-radius: 50%; animation: spin 1s linear infinite;">
+      </div>
+      <style>
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      </style>
     </div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+  </div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>

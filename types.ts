@@ -2,7 +2,7 @@
 export type IncidentType = 'Medical' | 'Fire' | 'Theft' | 'Disturbance' | 'Traffic' | 'Logistics' | 'Other';
 export type IncidentStatus = 'Pending' | 'Dispatched' | 'Resolved' | 'Closed';
 export type UserRole = 'supervisor' | 'field_operator';
-export type UserStatus = 'active' | 'inactive';
+export type UserStatus = 'active' | 'inactive' | 'rejected';
 export type AssetStatus = 'Pending' | 'Approved' | 'Released' | 'Returned' | 'Rejected';
 
 // NEW TYPES FOR SCHEDULE
@@ -74,7 +74,7 @@ export interface AssetRequest {
   created_at: string;
   updated_at: string;
   // Joined fields
-  logger_name?: string; 
+  logger_name?: string;
 }
 
 export interface CCTVRequest {
@@ -111,8 +111,19 @@ export interface AuditLog {
   created_at: string;
 }
 
-// Combined type for UI display
+// Combine type for UI display
 export interface IncidentWithDetails extends Incident {
   dispatch_logs?: DispatchLog[];
   parties?: IncidentParty[];
+}
+
+export interface VehicleUsageData {
+  id?: string;
+  request_number?: string;
+  time_of_departure: string;
+  time_of_arrival: string;
+  driver: string;
+  passenger: string;
+  purpose: string;
+  created_at?: string;
 }
