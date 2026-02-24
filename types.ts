@@ -9,6 +9,16 @@ export type AssetStatus = 'Pending' | 'Approved' | 'Released' | 'Returned' | 'Re
 export type ShiftType = '1st' | '2nd' | '3rd';
 export type DutyStatus = 'On Duty' | 'Day Off' | 'Leave' | 'Road Clearing';
 
+export interface CalendarActivity {
+  id: string;
+  title: string;
+  description?: string;
+  event_date: string;
+  shift: '1st' | '2nd' | '3rd' | 'All Day';
+  created_by: string;
+  created_at: string;
+}
+
 export interface UserProfile {
   id: string;
   email: string;

@@ -1,12 +1,29 @@
 
 import { supabase } from '../lib/supabaseClient';
-import { AuditLog } from '../types';
+import { AuditLog, CalendarActivity } from '../types';
 
 export const systemService = {
     getAuditLogs: async (): Promise<AuditLog[]> => {
         const { data, error } = await supabase.from('audit_logs').select(`*, profiles:performed_by (full_name)`).order('created_at', { ascending: false }).limit(100);
         if (error) throw error;
         return data.map((log: any) => ({ ...log, performer_name: log.profiles?.full_name || 'System' }));
+    },
+
+    getActivities: async (): Promise<CalendarActivity[]> => {
+        const { data, error } = await supabase.from('calendar_activities').select('*').order('event_date', { ascending: true });
+        if (error) throw error;
+        return data as CalendarActivity[];
+    },
+
+    createActivity: async (activity: Omit<CalendarActivity, 'id' | 'created_at'>): Promise<CalendarActivity> => {
+        const { data, error } = await supabase.from('calendar_activities').insert(activity).select().single();
+        if (error) throw error;
+        return data as CalendarActivity;
+    },
+
+    deleteActivity: async (id: string): Promise<void> => {
+        const { error } = await supabase.from('calendar_activities').delete().eq('id', id);
+        if (error) throw error;
     },
 
     getFullSystemBackup: async () => {
