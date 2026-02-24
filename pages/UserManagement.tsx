@@ -52,6 +52,7 @@ const UserManagement: React.FC = () => {
     const [editingSchedule, setEditingSchedule] = useState<{ userId: string, date: Date, name: string } | null>(null);
     const [newShift, setNewShift] = useState<ShiftType>('1st');
     const [newStatus, setNewStatus] = useState<DutyStatus>('On Duty');
+    const [isSavingSchedule, setIsSavingSchedule] = useState(false);
 
     // Bulk Schedule Modal State
     const [bulkUser, setBulkUser] = useState<{ id: string, name: string } | null>(null);
@@ -284,6 +285,7 @@ const UserManagement: React.FC = () => {
             return;
         }
 
+        setIsSavingSchedule(true);
         try {
             const dateStr = getLocalDateStr(editingSchedule.date);
             await userService.upsertSchedule({
@@ -297,6 +299,8 @@ const UserManagement: React.FC = () => {
             fetchSchedules();
         } catch (error) {
             showToast("Failed to save schedule", "error");
+        } finally {
+            setIsSavingSchedule(false);
         }
     };
 
@@ -1260,10 +1264,20 @@ const UserManagement: React.FC = () => {
 
                             <button
                                 onClick={handleSaveSchedule}
-                                className="w-full mt-2 bg-taguig-blue text-white py-4 rounded-[2rem] font-black uppercase tracking-widest text-[13px] hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-2"
+                                disabled={isSavingSchedule}
+                                className={`w-full mt-2 bg-taguig-blue text-white py-4 rounded-[2rem] font-black uppercase tracking-widest text-[13px] hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-2 ${isSavingSchedule ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
-                                <Save size={20} />
-                                <span>Save Deployment</span>
+                                {isSavingSchedule ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save size={20} />
+                                        <span>Save Deployment</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -1321,10 +1335,20 @@ const UserManagement: React.FC = () => {
 
                             <button
                                 onClick={handleBulkApply}
-                                className="w-full mt-2 bg-taguig-blue text-white py-4 rounded-[2rem] font-black uppercase tracking-widest text-[13px] hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-2"
+                                disabled={rosterLoading}
+                                className={`w-full mt-2 bg-taguig-blue text-white py-4 rounded-[2rem] font-black uppercase tracking-widest text-[13px] hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-2 ${rosterLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
-                                <CheckCircle size={20} />
-                                <span>Generate Weekly Plan</span>
+                                {rosterLoading ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span>Generating...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle size={20} />
+                                        <span>Generate Weekly Plan</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
