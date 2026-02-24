@@ -335,7 +335,7 @@ const ResolvedCases: React.FC = () => {
                                         <User size={18} className="text-slate-400" />
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">{req.requester_name}</h3>
                                     </div>
-                                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 italic">"{req.purpose}"</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 italic line-clamp-1">"{req.purpose}"</p>
 
                                     <div className="flex flex-wrap gap-4 mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">
                                         <span className="flex items-center bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded">
@@ -350,20 +350,73 @@ const ResolvedCases: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="shrink-0 flex flex-col gap-3 items-end">
-                                    <div className="text-right">
+                                <div className="shrink-0 flex flex-col gap-3 items-end w-full md:w-auto mt-4 md:mt-0">
+                                    <div className="text-right hidden md:block">
                                         <span className="text-xs text-gray-400 font-mono block mb-1">Filed On</span>
                                         <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{new Date(req.created_at).toLocaleDateString()}</span>
                                     </div>
-                                    <button
-                                        onClick={() => reprintCCTVForm(req)}
-                                        className="flex items-center justify-center space-x-2 px-4 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
-                                    >
-                                        <Printer size={16} />
-                                        <span>Print Form</span>
-                                    </button>
+                                    <div className="flex flex-col sm:flex-row w-full gap-2">
+                                        <button
+                                            onClick={() => toggleExpand(req.id)}
+                                            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-white dark:bg-slate-700 border rounded-xl text-xs font-bold transition-colors shadow-sm ${expandedId === req.id
+                                                    ? 'border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                                                    : 'border-gray-200 dark:border-slate-600 text-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600'
+                                                }`}
+                                        >
+                                            {expandedId === req.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                            <span>{expandedId === req.id ? 'Hide Details' : 'View Details'}</span>
+                                        </button>
+                                        <button
+                                            onClick={() => reprintCCTVForm(req)}
+                                            className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors"
+                                        >
+                                            <Printer size={16} />
+                                            <span>Print Form</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* EXPANDED CCTV DETAILS SECTION */}
+                            {expandedId === req.id && (
+                                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-700 animate-slide-down">
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Contact Information</p>
+                                                <div className="flex items-center text-sm font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                                    <Phone size={14} className="mr-2 text-slate-400" />
+                                                    {req.contact_info || <span className="text-slate-400 italic">Not provided</span>}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Exact Incident Time</p>
+                                                <div className="flex items-center text-sm font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                                    <Clock size={14} className="mr-2 text-slate-400" />
+                                                    {req.incident_time}
+                                                </div>
+                                            </div>
+                                            <div className="md:hidden">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Filed On</p>
+                                                <div className="flex items-center text-sm font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                                    <Calendar size={14} className="mr-2 text-slate-400" />
+                                                    {new Date(req.created_at).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Purpose of Request</p>
+                                            <div className="text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50 h-full">
+                                                {req.purpose ? (
+                                                    <p className="leading-relaxed whitespace-pre-wrap">"{req.purpose}"</p>
+                                                ) : (
+                                                    <span className="text-slate-400 italic">No purpose statement provided.</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

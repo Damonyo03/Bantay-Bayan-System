@@ -55,6 +55,7 @@ const ResourceTracking: React.FC = () => {
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [updatingLogId, setUpdatingLogId] = useState<string | null>(null);
     const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
+    const [expandedCctvId, setExpandedCctvId] = useState<string | null>(null);
     const [requestHistory, setRequestHistory] = useState<AuditLog[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [todaySchedule, setTodaySchedule] = useState<PersonnelScheduleType[]>([]);
@@ -206,6 +207,10 @@ const ResourceTracking: React.FC = () => {
             setExpandedRequestId(requestId);
             fetchRequestHistory(requestId);
         }
+    };
+
+    const toggleExpandCctv = (cctvId: string) => {
+        setExpandedCctvId(expandedCctvId === cctvId ? null : cctvId);
     };
 
     const handleStatusUpdate = async (id: string, status: string) => {
@@ -503,23 +508,71 @@ const ResourceTracking: React.FC = () => {
                         <div className="grid gap-6">
                             {cctvRequests.length === 0 && <p className="text-center text-slate-400 py-10">No CCTV logs found.</p>}
                             {cctvRequests.map(req => (
-                                <div key={req.id} className="glass-panel p-6 rounded-3xl border-l-4 border-l-red-500 shadow-lg border border-white/60 dark:border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                    <div className="flex-1">
-                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{req.request_number}</p>
-                                        <div className="flex items-center space-x-2">
-                                            <Video size={18} className="text-red-500" />
-                                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">{req.requester_name}</h3>
+                                <div key={req.id} className="glass-panel p-6 rounded-3xl border-l-4 border-l-red-500 shadow-lg border border-white/60 dark:border-white/10 flex flex-col gap-4 group">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                        <div className="flex-1">
+                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{req.request_number}</p>
+                                            <div className="flex items-center space-x-2">
+                                                <Video size={18} className="text-red-500" />
+                                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">{req.requester_name}</h3>
+                                            </div>
+                                            <div className="flex flex-wrap gap-4 mt-3 text-xs font-bold text-slate-500 dark:text-slate-400">
+                                                <span className="flex items-center"><MapPin size={14} className="mr-1" /> {req.location}</span>
+                                                <span className="flex items-center"><Clock size={14} className="mr-1" /> {req.incident_date}</span>
+                                                <span className="flex items-center bg-gray-100 dark:bg-slate-700 px-2 py-0.5 rounded">Type: {req.incident_type}</span>
+                                            </div>
                                         </div>
-                                        <div className="flex flex-wrap gap-4 mt-3 text-xs font-bold text-slate-500 dark:text-slate-400">
-                                            <span className="flex items-center"><MapPin size={14} className="mr-1" /> {req.location}</span>
-                                            <span className="flex items-center"><Clock size={14} className="mr-1" /> {req.incident_date}</span>
-                                            <span className="flex items-center bg-gray-100 dark:bg-slate-700 px-2 py-0.5 rounded">Type: {req.incident_type}</span>
+                                        <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+                                            <button
+                                                onClick={() => toggleExpandCctv(req.id)}
+                                                className={`flex-1 sm:w-auto flex items-center justify-center space-x-2 py-3 px-6 rounded-xl text-xs font-bold border transition-all ${expandedCctvId === req.id
+                                                        ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/30'
+                                                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                                                    }`}
+                                            >
+                                                {expandedCctvId === req.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                                <span>{expandedCctvId === req.id ? 'Hide Details' : 'View Details'}</span>
+                                            </button>
+                                            <button onClick={() => reprintCCTVForm(req)} className="flex-1 sm:w-auto flex items-center justify-center space-x-2 py-3 px-6 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors">
+                                                <Printer size={16} />
+                                                <span>Reprint Form</span>
+                                            </button>
                                         </div>
                                     </div>
-                                    <button onClick={() => reprintCCTVForm(req)} className="w-full md:w-auto flex items-center justify-center space-x-2 py-3 px-6 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-lg">
-                                        <Printer size={16} />
-                                        <span>Reprint Form</span>
-                                    </button>
+
+                                    {/* Expanded CCTV Details */}
+                                    {expandedCctvId === req.id && (
+                                        <div className="mt-2 pt-4 border-t border-gray-100 dark:border-slate-700/50 animate-slide-down">
+                                            <div className="grid md:grid-cols-2 gap-6">
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Contact Information</p>
+                                                        <div className="flex items-center text-sm font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                                            <User size={14} className="mr-2 text-slate-400" />
+                                                            {req.contact_info || <span className="text-slate-400 italic">Not provided</span>}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Exact Incident Time</p>
+                                                        <div className="flex items-center text-sm font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                                            <Clock size={14} className="mr-2 text-slate-400" />
+                                                            {req.incident_time}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Purpose of Request</p>
+                                                    <div className="text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50 h-full">
+                                                        {req.purpose ? (
+                                                            <p className="leading-relaxed whitespace-pre-wrap">"{req.purpose}"</p>
+                                                        ) : (
+                                                            <span className="text-slate-400 italic">No purpose statement provided.</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
