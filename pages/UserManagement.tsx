@@ -1164,15 +1164,15 @@ const UserManagement: React.FC = () => {
             {/* SINGLE EDIT SCHEDULE MODAL */}
             {editingSchedule && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-slate-900 rounded-[3rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white dark:border-white/10 relative">
-                        <div className="px-10 py-8 border-b border-taguig-blue/10 dark:border-white/5 bg-taguig-blue/5">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden border border-white dark:border-white/10 relative">
+                        <div className="px-6 py-6 border-b border-taguig-blue/10 dark:border-white/5 bg-taguig-blue/5">
                             <div className="flex items-center space-x-4">
-                                <div className="w-14 h-14 bg-taguig-blue text-white rounded-2xl flex items-center justify-center shadow-lg shadow-taguig-blue/30">
-                                    <Clock size={32} />
+                                <div className="w-12 h-12 bg-taguig-blue text-white rounded-2xl flex items-center justify-center shadow-lg shadow-taguig-blue/30">
+                                    <Clock size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-2xl text-taguig-blue dark:text-white uppercase tracking-tight italic">Shift Assignment</h3>
-                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">
+                                    <h3 className="font-black text-xl text-taguig-blue dark:text-white uppercase tracking-tight italic">Shift Assignment</h3>
+                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">
                                         {editingSchedule.date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
                                     </p>
                                 </div>
@@ -1180,21 +1180,21 @@ const UserManagement: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="p-10 space-y-8">
+                        <div className="p-6 space-y-6">
                             {/* Officer Profile Overlay */}
-                            <div className="flex items-center space-x-4 bg-taguig-blue/5 dark:bg-white/5 p-4 rounded-2xl border border-taguig-blue/10">
-                                <div className="w-12 h-12 rounded-xl bg-taguig-blue text-white flex items-center justify-center font-black text-xl shadow-md">
+                            <div className="flex items-center space-x-3 bg-taguig-blue/5 dark:bg-white/5 p-3 rounded-2xl border border-taguig-blue/10">
+                                <div className="w-10 h-10 rounded-xl bg-taguig-blue text-white flex items-center justify-center font-black text-lg shadow-md">
                                     {editingSchedule.name.charAt(0)}
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest leading-none">Personnel</p>
-                                    <p className="text-lg font-black text-slate-900 dark:text-white mt-1">{editingSchedule.name}</p>
+                                    <p className="text-[9px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest leading-none">Personnel</p>
+                                    <p className="text-base font-black text-slate-900 dark:text-white mt-0.5">{editingSchedule.name}</p>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 block">Duty Status</label>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-2">
                                     {[
                                         { id: 'On Duty', label: 'On Duty', icon: Shield, color: 'emerald' },
                                         { id: 'Road Clearing', label: 'Road Ops', icon: Navigation, color: 'orange' },
@@ -1209,13 +1209,13 @@ const UserManagement: React.FC = () => {
                                             <button
                                                 key={status.id}
                                                 onClick={() => setNewStatus(status.id as DutyStatus)}
-                                                className={`flex items-center space-x-3 p-4 rounded-2xl border-2 transition-all ${isSelected
+                                                className={`flex items-center space-x-2.5 p-3 rounded-2xl border-2 transition-all ${isSelected
                                                     ? 'bg-taguig-blue text-white border-taguig-blue shadow-lg shadow-taguig-blue/20'
                                                     : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
                                                     }`}
                                             >
-                                                <status.icon size={18} />
-                                                <span className="text-xs font-black uppercase tracking-widest">{status.label}</span>
+                                                <status.icon size={16} />
+                                                <span className="text-[11px] font-black uppercase tracking-widest">{status.label}</span>
                                             </button>
                                         );
                                     })}
@@ -1223,9 +1223,9 @@ const UserManagement: React.FC = () => {
                             </div>
 
                             {(newStatus === 'On Duty' || newStatus === 'Road Clearing') && (
-                                <div className="space-y-4 animate-slide-up">
+                                <div className="space-y-3 animate-slide-up">
                                     <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 block">Shift Schedule</label>
-                                    <div className="grid grid-cols-1 gap-3">
+                                    <div className="grid grid-cols-1 gap-2">
                                         {[
                                             { id: '1st', label: '1st Shift', time: '0600H - 1400H', icon: Sunrise },
                                             { id: '2nd', label: '2nd Shift', time: '1400H - 2200H', icon: Sun },
@@ -1236,14 +1236,14 @@ const UserManagement: React.FC = () => {
                                                 <button
                                                     key={shift.id}
                                                     onClick={() => setNewShift(shift.id as ShiftType)}
-                                                    className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all group ${isSelected
+                                                    className={`flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all group ${isSelected
                                                         ? 'bg-white dark:bg-slate-800 border-taguig-blue shadow-premium'
                                                         : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
                                                         }`}
                                                 >
-                                                    <div className="flex items-center space-x-4">
+                                                    <div className="flex items-center space-x-3">
                                                         <div className={`p-2 rounded-lg ${isSelected ? 'bg-taguig-blue text-white' : 'bg-slate-200 dark:bg-white/10'}`}>
-                                                            <shift.icon size={18} />
+                                                            <shift.icon size={16} />
                                                         </div>
                                                         <div className="text-left">
                                                             <p className={`text-xs font-black uppercase tracking-widest ${isSelected ? 'text-taguig-blue dark:text-taguig-gold' : ''}`}>{shift.label}</p>
@@ -1260,9 +1260,9 @@ const UserManagement: React.FC = () => {
 
                             <button
                                 onClick={handleSaveSchedule}
-                                className="w-full mt-4 bg-taguig-blue text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-sm hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-3"
+                                className="w-full mt-2 bg-taguig-blue text-white py-4 rounded-[2rem] font-black uppercase tracking-widest text-[13px] hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-2"
                             >
-                                <Save size={24} />
+                                <Save size={20} />
                                 <span>Save Deployment</span>
                             </button>
                         </div>
@@ -1273,25 +1273,25 @@ const UserManagement: React.FC = () => {
             {/* Bulk Schedule Modal */}
             {bulkUser && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-slate-900 rounded-[3rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white dark:border-white/10 relative">
-                        <div className="px-10 py-8 border-b border-taguig-blue/10 dark:border-white/5 bg-taguig-blue/5">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden border border-white dark:border-white/10 relative">
+                        <div className="px-6 py-6 border-b border-taguig-blue/10 dark:border-white/5 bg-taguig-blue/5">
                             <div className="flex items-center space-x-4">
-                                <div className="w-14 h-14 bg-taguig-blue text-white rounded-2xl flex items-center justify-center shadow-lg shadow-taguig-blue/30">
-                                    <CalendarRange size={32} />
+                                <div className="w-12 h-12 bg-taguig-blue text-white rounded-2xl flex items-center justify-center shadow-lg shadow-taguig-blue/30">
+                                    <CalendarRange size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-2xl text-taguig-blue dark:text-white uppercase tracking-tight italic">Weekly Deployment Pattern</h3>
-                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Personnel: {bulkUser.name}</p>
+                                    <h3 className="font-black text-xl text-taguig-blue dark:text-white uppercase tracking-tight italic">Weekly Deployment Pattern</h3>
+                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Personnel: {bulkUser.name}</p>
                                 </div>
                                 <button onClick={() => setBulkUser(null)} className="ml-auto w-10 h-10 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-full flex items-center justify-center text-slate-400 hover:text-taguig-red transition-all"><X size={20} /></button>
                             </div>
                         </div>
 
-                        <div className="p-10 space-y-8">
+                        <div className="p-6 space-y-6">
                             <div>
                                 <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Standard Shift Time</label>
                                 <select
-                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold"
+                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold text-sm"
                                     value={bulkConfig.shift}
                                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setBulkConfig({ ...bulkConfig, shift: e.target.value as ShiftType })}
                                 >
@@ -1308,7 +1308,7 @@ const UserManagement: React.FC = () => {
                                         <button
                                             key={day}
                                             onClick={() => toggleDayOff(day)}
-                                            className={`px-3 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${bulkConfig.daysOff.includes(day)
+                                            className={`px-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${bulkConfig.daysOff.includes(day)
                                                 ? 'bg-taguig-blue text-white shadow-md'
                                                 : 'bg-slate-50 dark:bg-white/5 text-slate-400 border border-slate-100 dark:border-white/5'
                                                 }`}
@@ -1321,9 +1321,9 @@ const UserManagement: React.FC = () => {
 
                             <button
                                 onClick={handleBulkApply}
-                                className="w-full mt-4 bg-taguig-blue text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-sm hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-3"
+                                className="w-full mt-2 bg-taguig-blue text-white py-4 rounded-[2rem] font-black uppercase tracking-widest text-[13px] hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-2"
                             >
-                                <CheckCircle size={24} />
+                                <CheckCircle size={20} />
                                 <span>Generate Weekly Plan</span>
                             </button>
                         </div>
