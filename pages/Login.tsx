@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 import { supabase } from '../lib/supabaseClient';
 // Added missing Search icon to the imports from lucide-react
-import { Shield, Lock, User, AlertTriangle, ArrowRight, Smartphone, X, HelpCircle, CheckCircle, UserPlus, Mail, Fingerprint, Loader2, Send, Search } from 'lucide-react';
+import { Shield, Lock, User, AlertTriangle, ArrowRight, Smartphone, X, HelpCircle, CheckCircle, UserPlus, Mail, Fingerprint, Loader2, Send, Search, Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
     const { login, verifyLoginMFA } = useAuth();
@@ -12,6 +12,7 @@ const Login: React.FC = () => {
     // Login State
     const [identifier, setIdentifier] = useState(''); // Can be username or email
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     // MFA State
     const [mfaCode, setMfaCode] = useState('');
@@ -30,6 +31,8 @@ const Login: React.FC = () => {
         password: '',
         confirmPassword: ''
     });
+    const [showRegPassword, setShowRegPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [regSuccess, setRegSuccess] = useState(false);
 
     const [error, setError] = useState('');
@@ -321,13 +324,20 @@ const Login: React.FC = () => {
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                         <input
-                                            type="password"
+                                            type={showRegPassword ? "text" : "password"}
                                             required
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-12 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
                                             value={regForm.password}
                                             onChange={e => setRegForm({ ...regForm, password: e.target.value })}
                                             placeholder="Min 8 chars, 1 Upper, 1 Special"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowRegPassword(!showRegPassword)}
+                                            className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 transition-colors"
+                                        >
+                                            {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
                                     </div>
                                 </div>
 
@@ -336,13 +346,20 @@ const Login: React.FC = () => {
                                     <div className="relative">
                                         <CheckCircle className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                         <input
-                                            type="password"
+                                            type={showConfirmPassword ? "text" : "password"}
                                             required
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-12 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
                                             value={regForm.confirmPassword}
                                             onChange={e => setRegForm({ ...regForm, confirmPassword: e.target.value })}
                                             placeholder="Retype password"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 transition-colors"
+                                        >
+                                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
                                     </div>
                                 </div>
 
@@ -420,13 +437,20 @@ const Login: React.FC = () => {
                         <div className="relative">
                             <Lock className="absolute left-4 top-4 text-slate-400 w-5 h-5 group-focus-within:text-taguig-blue transition-colors" />
                             <input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-taguig-blue/10 focus:border-taguig-blue/50 transition-all focus:bg-white"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-14 text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-taguig-blue/10 focus:border-taguig-blue/50 transition-all focus:bg-white"
                                 placeholder="••••••••"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-5 top-4 text-slate-400 hover:text-taguig-blue transition-colors focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
                     </div>
 
