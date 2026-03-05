@@ -242,7 +242,7 @@ export const generateOfficialReport = async (incident: IncidentWithDetails) => {
     doc.setFont("times", "italic");
     doc.text("\"Patuloy na Pag-Unlad at Pagkakaisa Tungo sa Isang Matatag na Barangay\"", 105, 285, { align: "center" });
 
-    doc.save(`Blotter_${incident.case_number}.pdf`);
+    await savePdf(doc, `Blotter_${incident.case_number || 'Blank'}.pdf`);
 };
 
 export const generateBorrowingSlip = async (request: AssetRequest) => {
@@ -377,7 +377,7 @@ export const generateBorrowingSlip = async (request: AssetRequest) => {
     doc.text("Signature over Printed Name", marginLeft + 10, yPos + 5);
     doc.text("Punong Barangay", rightSigX + 5, yPos + 5);
 
-    doc.save(`Borrowing_Slip_${request.borrower_name.replace(/\s/g, '_')}.pdf`);
+    await savePdf(doc, `Borrowing_Slip_${(request.borrower_name || 'Blank').replace(/\s/g, '_')}.pdf`);
 };
 
 export const generateCCTVForm = async (data: any) => {
@@ -551,7 +551,7 @@ export const generateCCTVForm = async (data: any) => {
     doc.setFont("times", "normal");
     doc.text("Punong Barangay", rightSigX + 5, yPos + 4);
 
-    doc.save(`CCTV_Request_${data.lastName}.pdf`);
+    await savePdf(doc, `CCTV_Request_${data.lastName || 'Blank'}.pdf`);
 };
 
 export const reprintCCTVForm = async (data: CCTVRequest) => {
@@ -613,10 +613,10 @@ export const reprintCCTVForm = async (data: CCTVRequest) => {
     doc.setFont("times", "normal");
     doc.text("Punong Barangay", rightSigX + 5, yPos + 4);
 
-    doc.save(`CCTV_Reprint_${data.request_number}.pdf`);
+    await savePdf(doc, `CCTV_Reprint_${data.request_number || 'Blank'}.pdf`);
 };
 
-export const generateVehicleLog = (data: VehicleUsageData) => {
+export const generateVehicleLog = async (data: VehicleUsageData) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const marginLeft = 20;
@@ -664,10 +664,10 @@ export const generateVehicleLog = (data: VehicleUsageData) => {
     doc.text("In-Charge Signature:", pageWidth - 80, yPos);
     doc.line(pageWidth - 80 + 35, yPos + 1, pageWidth - 20, yPos + 1);
 
-    doc.save(`Vehicle_Log_${new Date().getTime()}.pdf`);
+    await savePdf(doc, `Vehicle_Log_${new Date().getTime()}.pdf`);
 };
 
-export const generateBlankBlotter = () => {
+export const generateBlankBlotter = async () => {
     const blankIncident = {
         case_number: "",
         created_at: new Date().toISOString(),
@@ -678,10 +678,10 @@ export const generateBlankBlotter = () => {
         officer_name: "",
         is_restricted_entry: false
     };
-    generateOfficialReport(blankIncident as any);
+    await generateOfficialReport(blankIncident as any);
 };
 
-export const generateBlankBorrowingSlip = () => {
+export const generateBlankBorrowingSlip = async () => {
     const blankRequest = {
         borrower_name: "",
         items_requested: [],
@@ -692,10 +692,10 @@ export const generateBlankBorrowingSlip = () => {
         address: "",
         status: 'pending'
     };
-    generateBorrowingSlip(blankRequest as any);
+    await generateBorrowingSlip(blankRequest as any);
 };
 
-export const generateBlankCCTVRequest = () => {
+export const generateBlankCCTVRequest = async () => {
     const blankData = {
         lastName: "",
         firstName: "",
@@ -712,7 +712,7 @@ export const generateBlankCCTVRequest = () => {
         purpose: "",
         request_number: ""
     };
-    generateCCTVForm(blankData);
+    await generateCCTVForm(blankData);
 };
 
 export const generateBlankVehicleLog = async () => {
