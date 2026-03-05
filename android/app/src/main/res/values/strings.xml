@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bantay Bayan System</string>
+    <string name="title_activity_main">Bantay Bayan System</string>
+    <string name="package_name">com.bantaybayan.app</string>
+    <string name="custom_url_scheme">com.bantaybayan.app</string>
+</resources>
