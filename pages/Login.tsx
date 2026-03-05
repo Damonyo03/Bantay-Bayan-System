@@ -391,13 +391,13 @@ const Login: React.FC = () => {
             <div className="w-full max-w-md bg-white/90 backdrop-blur-2xl border border-white rounded-[2.5rem] p-8 sm:p-12 shadow-premium relative z-10 animate-fade-in ring-1 ring-black/5">
 
                 <div className="flex flex-col items-center mb-10">
-                    <div className="flex items-center justify-center space-x-3 mb-8 transform hover:scale-105 transition-transform duration-500 filter drop-shadow-2xl">
-                        <img src="/taguig_seal.png" alt="Taguig Seal" className="w-20 h-20 object-contain" />
-                        <img src="/brgy_seal.png" alt="Brgy Seal" className="w-20 h-20 object-contain" />
-                        <img src="/logo.png" alt="Bantay Bayan Logo" className="w-24 h-24 object-contain" />
+                    <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-6 sm:mb-8 transform hover:scale-105 transition-transform duration-500 filter drop-shadow-2xl">
+                        <img src="/taguig_seal.png" alt="Taguig Seal" className="w-16 h-16 sm:w-20 sm:h-20 object-contain" />
+                        <img src="/brgy_seal.png" alt="Brgy Seal" className="w-16 h-16 sm:w-20 sm:h-20 object-contain" />
+                        <img src="/logo.png" alt="Bantay Bayan Logo" className="w-20 h-20 sm:w-24 sm:h-24 object-contain" />
                     </div>
-                    <h1 className="text-4xl font-bold text-taguig-blue tracking-tight text-center font-display uppercase">Bantay Bayan</h1>
-                    <p className="text-taguig-red text-[11px] mt-2 text-center font-black tracking-[0.25em] uppercase">Post Proper Northside</p>
+                    <h1 className="text-3xl sm:text-4xl font-bold text-taguig-blue tracking-tight text-center font-display uppercase">Bantay Bayan</h1>
+                    <p className="text-taguig-red text-[9px] sm:text-[11px] mt-2 text-center font-black tracking-[0.15em] sm:tracking-[0.25em] uppercase">Post Proper Northside</p>
                 </div>
 
                 {error && (

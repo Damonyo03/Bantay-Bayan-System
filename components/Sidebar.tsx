@@ -136,12 +136,12 @@ const Sidebar: React.FC = () => {
   // --- MOBILE BOTTOM NAV ---
   const MobileBottomNav = (
     <div className="md:hidden fixed bottom-0 left-0 w-full glass-panel border-t border-slate-200 dark:border-white/20 z-50 pb-safe">
-      <nav className="flex items-center justify-between px-2 overflow-x-auto no-scrollbar py-2">
+      <nav className="flex items-center justify-between px-1 overflow-x-auto no-scrollbar py-2">
         {navItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className={`flex flex-col items-center justify-center p-2 min-w-[64px] rounded-xl transition-all ${(item.path === '/' ? location.pathname === '/' : isActive(item.path))
+            className={`flex flex-col items-center justify-center p-2 min-w-[70px] rounded-xl transition-all active:scale-95 ${(item.path === '/' ? location.pathname === '/' : isActive(item.path))
               ? 'text-taguig-blue bg-taguig-blue/5'
               : 'text-slate-500 dark:text-slate-400'
               }`}
@@ -154,7 +154,7 @@ const Sidebar: React.FC = () => {
         {/* Mobile Settings/Logout Combined */}
         <button
           onClick={toggleTheme}
-          className="flex flex-col items-center justify-center p-2 min-w-[60px] rounded-xl text-slate-400 hover:text-blue-500"
+          className="flex flex-col items-center justify-center p-2 min-w-[64px] rounded-xl text-slate-400 hover:text-blue-500 active:scale-95"
         >
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           <span className="text-[10px] font-medium mt-1">Theme</span>
@@ -162,7 +162,7 @@ const Sidebar: React.FC = () => {
 
         <button
           onClick={logout}
-          className="flex flex-col items-center justify-center p-2 min-w-[60px] rounded-xl text-slate-400 hover:text-red-500"
+          className="flex flex-col items-center justify-center p-2 min-w-[64px] rounded-xl text-slate-400 hover:text-red-500 active:scale-95"
         >
           <LogOut size={20} />
           <span className="text-[10px] font-medium mt-1">Exit</span>
