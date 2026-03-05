@@ -22,30 +22,29 @@ const drawOfficialHeader = (doc: jsPDF) => {
     const textCenterX = pageWidth / 2;
 
     doc.setFont("times", "normal");
-    doc.setFontSize(14); // Standard heading size (14pt)
-    doc.text("Republika ng Pilipinas", textCenterX, 15, { align: "center" });
-    doc.text("LUNGSOD NG TAGUIG", textCenterX, 22, { align: "center" });
+    doc.setFontSize(10); // Reduced to 10pt
+    doc.text("Republika ng Pilipinas", textCenterX, 12, { align: "center" });
+    doc.text("LUNGSOD NG TAGUIG", textCenterX, 17, { align: "center" });
 
-    // Move these below the logo area (which ends at logoY+logoSize = 40)
     doc.setFont("times", "bold");
-    doc.setFontSize(24); // Largest text (24pt)
-    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 42, { align: "center" });
+    doc.setFontSize(18); // Reduced to 18pt (Largest text)
+    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 28, { align: "center" });
 
-    doc.setFontSize(18); // Smaller than Barangay but larger than contact (18pt)
-    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 52, { align: "center" });
+    doc.setFontSize(14); // Reduced to 14pt 
+    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 36, { align: "center" });
 
-    doc.setFontSize(11); // Standard body size (11pt)
+    doc.setFontSize(8); // Reduced to 8pt
     doc.setFont("times", "normal");
-    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 59, { align: "center" });
-    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 64, { align: "center" });
-    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 69, { align: "center" });
+    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 41, { align: "center" });
+    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 45, { align: "center" });
+    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 49, { align: "center" });
 
     doc.setDrawColor(150, 0, 0); // Maroon/Dark Red line
-    doc.setLineWidth(1); // Slightly thicker line
-    doc.line(20, 75, pageWidth - 20, 75);
+    doc.setLineWidth(0.8); // Standard thickness
+    doc.line(20, 55, pageWidth - 20, 55);
     doc.setDrawColor(0); // Reset
 
-    return 85; // Increased return yPos to prevent overlap
+    return 65; // Tighter return yPos
 };
 
 export const generateOfficialReport = (incident: IncidentWithDetails) => {
