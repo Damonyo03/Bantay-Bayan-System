@@ -470,9 +470,9 @@ const ResourceTracking: React.FC = () => {
                                                     <td className="p-6">
                                                         <div className="flex items-center justify-end space-x-2">
                                                             <button
-                                                                onClick={() => {
+                                                                onClick={async () => {
                                                                     const details = parseVehicleLog(log.unit_name);
-                                                                    generateVehicleLog({
+                                                                    await generateVehicleLog({
                                                                         time_of_departure: new Date(log.created_at).toLocaleTimeString(),
                                                                         time_of_arrival: log.status === 'Clear' ? new Date(log.updated_at).toLocaleTimeString() : '---',
                                                                         driver: details.personnel,
@@ -526,14 +526,14 @@ const ResourceTracking: React.FC = () => {
                                             <button
                                                 onClick={() => toggleExpandCctv(req.id)}
                                                 className={`flex-1 sm:w-auto flex items-center justify-center space-x-2 py-3 px-6 rounded-xl text-xs font-bold border transition-all ${expandedCctvId === req.id
-                                                        ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/30'
-                                                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                                                    ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/30'
+                                                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                                                     }`}
                                             >
                                                 {expandedCctvId === req.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                                 <span>{expandedCctvId === req.id ? 'Hide Details' : 'View Details'}</span>
                                             </button>
-                                            <button onClick={() => reprintCCTVForm(req)} className="flex-1 sm:w-auto flex items-center justify-center space-x-2 py-3 px-6 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors">
+                                            <button onClick={async () => await reprintCCTVForm(req)} className="flex-1 sm:w-auto flex items-center justify-center space-x-2 py-3 px-6 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors">
                                                 <Printer size={16} />
                                                 <span>Reprint Form</span>
                                             </button>
@@ -606,7 +606,7 @@ const ResourceTracking: React.FC = () => {
                                                 <span>{expandedRequestId === req.id ? 'Collapse' : 'Audit Trail'}</span>
                                                 {expandedRequestId === req.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                             </button>
-                                            <button onClick={() => generateBorrowingSlip(req)} className="w-full py-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition-all">
+                                            <button onClick={async () => await generateBorrowingSlip(req)} className="w-full py-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition-all">
                                                 <Printer size={16} />
                                                 <span>Print Slip</span>
                                             </button>

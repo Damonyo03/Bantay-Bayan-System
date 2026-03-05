@@ -114,7 +114,7 @@ const ResourceForm: React.FC = () => {
 
                     <div className="flex justify-center space-x-4">
                         <button
-                            onClick={() => generateBorrowingSlip(successData)}
+                            onClick={async () => await generateBorrowingSlip(successData)}
                             className="px-6 py-3 rounded-xl bg-slate-900 dark:bg-blue-600 text-white font-semibold shadow-lg hover:scale-105 transition-transform flex items-center"
                         >
                             <Printer size={18} className="mr-2" />
