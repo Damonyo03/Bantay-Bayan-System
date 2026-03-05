@@ -72,7 +72,7 @@ const DownloadForms: React.FC = () => {
                             </p>
 
                             <button
-                                onClick={() => form.action()}
+                                onClick={async () => await form.action()}
                                 className="w-full py-4 px-6 bg-taguig-blue text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-taguig-blue/20 flex items-center justify-center gap-3"
                             >
                                 <Download className="h-4 w-4" strokeWidth={3} />

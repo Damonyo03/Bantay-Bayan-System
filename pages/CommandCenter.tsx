@@ -454,8 +454,8 @@ const CommandCenter: React.FC = () => {
                                             </button>
 
                                             <button
-                                                onClick={() => generateOfficialReport(incident)}
-                                                className="w-full py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors flex items-center justify-center space-x-1"
+                                                onClick={async () => await generateOfficialReport(incident)}
+                                                className="w-full py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-singular-blue hover:bg-white dark:hover:bg-slate-700 transition-colors flex items-center justify-center space-x-1"
                                             >
                                                 <Printer size={14} />
                                                 <span>Print Record</span>

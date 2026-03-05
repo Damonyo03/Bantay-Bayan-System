@@ -250,7 +250,7 @@ const ResolvedCases: React.FC = () => {
 
                                 <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
                                     <button
-                                        onClick={() => generateOfficialReport(incident)}
+                                        onClick={async () => await generateOfficialReport(incident)}
                                         className="flex-1 lg:w-40 flex items-center justify-center space-x-2 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
                                     >
                                         <Printer size={16} />
@@ -359,15 +359,15 @@ const ResolvedCases: React.FC = () => {
                                         <button
                                             onClick={() => toggleExpand(req.id)}
                                             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-white dark:bg-slate-700 border rounded-xl text-xs font-bold transition-colors shadow-sm ${expandedId === req.id
-                                                    ? 'border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                                                    : 'border-gray-200 dark:border-slate-600 text-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600'
+                                                ? 'border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                                                : 'border-gray-200 dark:border-slate-600 text-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600'
                                                 }`}
                                         >
                                             {expandedId === req.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                             <span>{expandedId === req.id ? 'Hide Details' : 'View Details'}</span>
                                         </button>
                                         <button
-                                            onClick={() => reprintCCTVForm(req)}
+                                            onClick={async () => await reprintCCTVForm(req)}
                                             className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors"
                                         >
                                             <Printer size={16} />
