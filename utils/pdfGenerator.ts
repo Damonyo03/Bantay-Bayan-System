@@ -10,41 +10,41 @@ const drawOfficialHeader = (doc: jsPDF) => {
 
     // Repositioned Logos: Taguig (Left), Barangay (Right)
     const logoY = 10;
-    const logoSize = 25;
+    const logoSize = 30; // Increased logo size slightly to match larger text
 
     // Left Logo: Taguig City
     doc.addImage(TAGUIG_SEAL_B64, 'PNG', 20, logoY, logoSize, logoSize);
 
     // Right Logo: Barangay Northside
-    doc.addImage(BRGY_SEAL_B64, 'PNG', pageWidth - 45, logoY, logoSize, logoSize);
+    doc.addImage(BRGY_SEAL_B64, 'PNG', pageWidth - 50, logoY, logoSize, logoSize);
 
     // Header Text - Perfectly Centered
     const textCenterX = pageWidth / 2;
 
     doc.setFont("times", "normal");
-    doc.setFontSize(10);
+    doc.setFontSize(14); // Standard heading size (14pt)
     doc.text("Republika ng Pilipinas", textCenterX, 15, { align: "center" });
-    doc.text("LUNGSOD NG TAGUIG", textCenterX, 20, { align: "center" });
+    doc.text("LUNGSOD NG TAGUIG", textCenterX, 22, { align: "center" });
 
     doc.setFont("times", "bold");
-    doc.setFontSize(11);
-    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 28, { align: "center" });
+    doc.setFontSize(24); // Largest text (24pt)
+    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 34, { align: "center" });
 
-    doc.setFontSize(14);
-    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 36, { align: "center" });
+    doc.setFontSize(18); // Smaller than Barangay but larger than contact (18pt)
+    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 45, { align: "center" });
 
-    doc.setFontSize(8);
+    doc.setFontSize(11); // Standard body size (11pt)
     doc.setFont("times", "normal");
-    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 40, { align: "center" });
-    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 44, { align: "center" });
-    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 48, { align: "center" });
+    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 52, { align: "center" });
+    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 57, { align: "center" });
+    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 62, { align: "center" });
 
     doc.setDrawColor(150, 0, 0); // Maroon/Dark Red line
-    doc.setLineWidth(0.8);
-    doc.line(20, 52, pageWidth - 20, 52);
+    doc.setLineWidth(1); // Slightly thicker line
+    doc.line(20, 68, pageWidth - 20, 68);
     doc.setDrawColor(0); // Reset
 
-    return 60; // Next yPos
+    return 78; // Increased return yPos to prevent overlap
 };
 
 export const generateOfficialReport = (incident: IncidentWithDetails) => {
