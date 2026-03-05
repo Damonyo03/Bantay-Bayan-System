@@ -275,8 +275,8 @@ const AppContent: React.FC = () => {
     return (
         <div className="min-h-screen text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-taguig-blue/20 selection:text-taguig-blue">
             <Sidebar />
-            <main className="pb-32 md:pb-8 md:pl-64 transition-all duration-300">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10">
+            <main className="pb-24 md:pb-8 md:pl-64 transition-all duration-300 pt-safe">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-10">
                     <Routes>
                         <Route path="/" element={<ProtectedRoute><CommandCenter /></ProtectedRoute>} />
                         <Route path="/report" element={<ProtectedRoute><IncidentForm /></ProtectedRoute>} />
