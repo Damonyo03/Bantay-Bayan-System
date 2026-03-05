@@ -1,0 +1,18 @@
+
+> bantay-bayan-system@1.0.0 lint
+> tsc --noEmit
+
+old_pdf.ts(3,82): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+old_pdf.ts(119,35): error TS7006: Parameter 'party' implicitly has an 'any' type.
+old_pdf.ts(263,38): error TS7006: Parameter 'item' implicitly has an 'any' type.
+old_pdf_2.ts(3,82): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+old_pdf_2.ts(119,35): error TS7006: Parameter 'party' implicitly has an 'any' type.
+old_pdf_2.ts(263,38): error TS7006: Parameter 'item' implicitly has an 'any' type.
+old_pdf_3.ts(3,82): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+old_pdf_3.ts(119,35): error TS7006: Parameter 'party' implicitly has an 'any' type.
+old_pdf_3.ts(263,38): error TS7006: Parameter 'item' implicitly has an 'any' type.
+old_pdf_4.ts(3,82): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+old_pdf_4.ts(120,35): error TS7006: Parameter 'party' implicitly has an 'any' type.
+old_pdf_4.ts(264,38): error TS7006: Parameter 'item' implicitly has an 'any' type.
+pages/DownloadForms.tsx(6,5): error TS2724: '"../utils/pdfGenerator"' has no exported member named 'generateBlankBorrowing'. Did you mean 'generateBlankBorrowingSlip'?
+pages/DownloadForms.tsx(7,5): error TS2305: Module '"../utils/pdfGenerator"' has no exported member 'generateBlankCCTV'.

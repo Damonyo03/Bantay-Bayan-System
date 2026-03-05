@@ -3,8 +3,8 @@ import { FileText, ClipboardList, Video, Download, Car, FileDown } from 'lucide-
 import PageHeader from '../components/PageHeader';
 import {
     generateBlankBlotter,
-    generateBlankBorrowing,
-    generateBlankCCTV,
+    generateBlankBorrowingSlip,
+    generateBlankCCTVRequest,
     generateBlankVehicleLog
 } from '../utils/pdfGenerator';
 
@@ -22,7 +22,7 @@ const DownloadForms: React.FC = () => {
             title: "Asset Borrowing Slip",
             description: "Standard form for requesting and documenting the borrowing of barangay assets.",
             icon: <ClipboardList className="h-8 w-8 text-emerald-400" />,
-            action: generateBlankBorrowing,
+            action: generateBlankBorrowingSlip,
             color: "from-emerald-500/20 to-emerald-600/5",
             borderColor: "border-emerald-500/30"
         },
@@ -30,7 +30,7 @@ const DownloadForms: React.FC = () => {
             title: "CCTV Request Form",
             description: "Official form for requesting CCTV footage access for investigation purposes.",
             icon: <Video className="h-8 w-8 text-purple-400" />,
-            action: generateBlankCCTV,
+            action: generateBlankCCTVRequest,
             color: "from-purple-500/20 to-purple-600/5",
             borderColor: "border-purple-500/30"
         },
