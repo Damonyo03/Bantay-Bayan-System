@@ -1,0 +1,10 @@
+0f1f791 - Fix: Native download crashes and storage permissions fallback
+9c764d1 - Fix: ensure PDF generation is correctly awaited for mobile stability
+1d909e6 - feat: implement native PDF downloads for Capacitor and update Android permissions
+8710965 - fix: reduce Barangay font size to 16pt to ensure no logo overlap
+732059a - fix: reduce header font sizes to eliminate logo overlap (max 18pt)
+1833125 - fix: adjust header layout to prevent logo overlap
+d66ae62 - feat: update official header format in PDF reports
+e6f5cd4 - feat: comprehensive UI/UX overhaul, rebranding, and layman language simplification
+bbc7f93 - feat: Implement context providers for auth, language, theme, and toast
+8e7d4f1 - feat: Initialize application structure and routing
