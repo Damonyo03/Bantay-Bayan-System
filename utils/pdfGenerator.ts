@@ -22,18 +22,18 @@ const drawOfficialHeader = (doc: jsPDF) => {
     const textCenterX = pageWidth / 2;
 
     doc.setFont("times", "normal");
-    doc.setFontSize(10); // Reduced to 10pt
+    doc.setFontSize(10); // 10pt
     doc.text("Republika ng Pilipinas", textCenterX, 12, { align: "center" });
     doc.text("LUNGSOD NG TAGUIG", textCenterX, 17, { align: "center" });
 
     doc.setFont("times", "bold");
-    doc.setFontSize(18); // Reduced to 18pt (Largest text)
+    doc.setFontSize(16); // Reduced to 16pt as 18pt was still overlapping
     doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 28, { align: "center" });
 
-    doc.setFontSize(14); // Reduced to 14pt 
+    doc.setFontSize(13); // Slightly reduced to 13pt to match 16pt hierarchy
     doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 36, { align: "center" });
 
-    doc.setFontSize(8); // Reduced to 8pt
+    doc.setFontSize(8); // 8pt
     doc.setFont("times", "normal");
     doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 41, { align: "center" });
     doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 45, { align: "center" });
@@ -44,7 +44,7 @@ const drawOfficialHeader = (doc: jsPDF) => {
     doc.line(20, 55, pageWidth - 20, 55);
     doc.setDrawColor(0); // Reset
 
-    return 65; // Tighter return yPos
+    return 65; // return yPos
 };
 
 export const generateOfficialReport = (incident: IncidentWithDetails) => {
