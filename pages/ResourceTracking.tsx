@@ -477,8 +477,10 @@ const ResourceTracking: React.FC = () => {
                                                                         time_of_arrival: log.status === 'Clear' ? new Date(log.updated_at).toLocaleTimeString() : '---',
                                                                         driver: details.personnel,
                                                                         passenger: 'N/A',
-                                                                        purpose: log.incidents?.narrative || 'N/A'
-                                                                    });
+                                                                        purpose: log.incidents?.narrative || 'N/A',
+                                                                        time_of_arrival_timestamp: log.status === 'Clear' ? log.updated_at : '',
+                                                                        id: log.id
+                                                                    } as any);
                                                                 }}
                                                                 className="p-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 transition-colors"
                                                                 title="Print Dispatch Form"

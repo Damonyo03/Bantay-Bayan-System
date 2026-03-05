@@ -7,8 +7,10 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, CalendarRange, CheckCircle, CalendarDays, ChevronDown, Check, Navigation, Copy, Trash2 } from 'lucide-react';
+import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera as CameraIcon, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, CalendarRange, CheckCircle, CalendarDays, ChevronDown, Check, Navigation, Copy, Trash2 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 // Helper to get YYYY-MM-DD in local time
 const getLocalDateStr = (date: Date) => {
@@ -516,6 +518,31 @@ const UserManagement: React.FC = () => {
         setImagePreview(user.avatar_url || null);
         setSelectedFile(null);
         setIsEditModalOpen(true);
+    };
+
+    const handlePhotoAction = async () => {
+        if (Capacitor.isNativePlatform()) {
+            try {
+                const image = await Camera.getPhoto({
+                    quality: 90,
+                    allowEditing: true,
+                    resultType: CameraResultType.Uri,
+                    source: CameraSource.Prompt
+                });
+
+                if (image.webPath) {
+                    setImagePreview(image.webPath);
+                    const response = await fetch(image.webPath);
+                    const blob = await response.blob();
+                    const file = new File([blob], `avatar_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    setSelectedFile(file);
+                }
+            } catch (error) {
+                console.log('User cancelled or camera error', error);
+            }
+        } else {
+            fileInputRef.current?.click();
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1118,7 +1145,7 @@ const UserManagement: React.FC = () => {
 
                         <form onSubmit={handleSaveEdit} className="p-8 space-y-6">
                             <div className="flex flex-col items-center">
-                                <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                <div className="relative group cursor-pointer" onClick={handlePhotoAction}>
                                     <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-slate-700 shadow-xl bg-slate-100 dark:bg-slate-700 relative">
                                         {imagePreview ? (
                                             <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
@@ -1129,7 +1156,7 @@ const UserManagement: React.FC = () => {
                                         )}
                                     </div>
                                     <div className="absolute bottom-0 right-0 bg-blue-600 text-white p-2.5 rounded-full shadow-lg hover:bg-blue-700 transition-colors border-2 border-white dark:border-slate-800">
-                                        <Camera size={16} />
+                                        <CameraIcon size={16} />
                                     </div>
                                     <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
                                 </div>

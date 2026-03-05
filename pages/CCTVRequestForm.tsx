@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { resourceService } from '../services/resourceService';
 import { Video, Printer, CheckSquare, Square, RefreshCcw, Calendar, Clock, Shield, Save, ArrowRight } from 'lucide-react';
 import { generateCCTVForm } from '../utils/pdfGenerator';
+import { CCTVRequest } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
@@ -71,18 +72,21 @@ const CCTVRequestForm: React.FC = () => {
             let incidentTypeStr = formData.incidentTypes.join(', ');
             if (formData.others) incidentTypeStr += (incidentTypeStr ? ', ' : '') + formData.others;
 
-            const payload = {
+            const payload: CCTVRequest = {
+                id: crypto.randomUUID(),
+                request_number: `CCTV-${Date.now()}`,
                 requester_name: `${formData.lastName}, ${formData.firstName} ${formData.middleInitial}`,
                 contact_info: '',
                 incident_type: incidentTypeStr || 'Unspecified',
                 incident_date: formData.dateOfIncident,
                 incident_time: formData.timeOfIncident,
                 location: formData.placeOfIncident,
-                purpose: formData.purpose
+                purpose: formData.purpose,
+                created_at: new Date().toISOString()
             };
 
             await resourceService.createCCTVRequest(payload);
-            await generateCCTVForm(formData);
+            await generateCCTVForm(payload);
             showToast("CCTV Request recorded successfully", "success");
             setIsSuccess(true);
         } catch (error: any) {

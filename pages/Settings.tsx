@@ -5,8 +5,12 @@ import { authService } from '../services/authService';
 import { userService } from '../services/userService';
 import { systemService } from '../services/systemService';
 import { useToast } from '../contexts/ToastContext';
-import { Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, Check, ShieldAlert, Trash2, QrCode, Camera, Database, Download, AlertTriangle, FileJson } from 'lucide-react';
+import { Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, Check, ShieldAlert, Trash2, QrCode, Camera as CameraIcon, Database, Download, AlertTriangle, FileJson } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 const Settings: React.FC = () => {
     const { user, refreshUser } = useAuth();
@@ -86,6 +90,32 @@ const Settings: React.FC = () => {
             setMfaFactors(factors || []);
         } catch (e) {
             console.error("Failed to load MFA factors", e);
+        }
+    };
+
+    const handlePhotoAction = async () => {
+        if (Capacitor.isNativePlatform()) {
+            try {
+                const image = await Camera.getPhoto({
+                    quality: 90,
+                    allowEditing: true,
+                    resultType: CameraResultType.Uri,
+                    source: CameraSource.Prompt // Asks User: Camera or Photos?
+                });
+
+                if (image.webPath) {
+                    setImagePreview(image.webPath);
+                    // Convert Uri to File-like object for upload
+                    const response = await fetch(image.webPath);
+                    const blob = await response.blob();
+                    const file = new File([blob], `avatar_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    setSelectedFile(file);
+                }
+            } catch (error) {
+                console.log('User cancelled or camera error', error);
+            }
+        } else {
+            fileInputRef.current?.click();
         }
     };
 
@@ -265,22 +295,67 @@ const Settings: React.FC = () => {
         setIsBackingUp(true);
         try {
             const backupData = await systemService.getFullSystemBackup();
-
-            // Create Blob and Download
             const jsonString = JSON.stringify(backupData, null, 2);
-            const blob = new Blob([jsonString], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
+            const filename = `bantay_bayan_backup_${new Date().toISOString().slice(0, 10)}.json`;
 
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `bantay_bayan_backup_${new Date().toISOString().slice(0, 10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            if (Capacitor.getPlatform() === 'android') {
+                try {
+                    // 1. Request Runtime Storage Permissions
+                    const permissions = await Filesystem.requestPermissions();
+                    if (permissions.publicStorage !== 'granted') {
+                        window.alert("Storage permission denied. Cannot save backup.");
+                        return; // Stop execution
+                    }
+
+                    // 2. Safe Saving to Documents Directory
+                    await Filesystem.writeFile({
+                        path: filename,
+                        data: jsonString,
+                        directory: Directory.Documents,
+                        encoding: Encoding.UTF8,
+                        recursive: true
+                    });
+
+                    // Alert user of success since there's no share sheet
+                    window.alert(`Success! Backup saved to Documents folder as "${filename}".`);
+                } catch (error: any) {
+                    console.error("Android File Write Error:", error);
+                    // 3. Prevent total app crash via alert fallback
+                    window.alert(`Exception occurred while saving backup: ${error.message || 'Unknown error'}`);
+                    return; // Stop execution so it doesn't show success toast
+                }
+            } else if (Capacitor.isNativePlatform()) {
+                // iOS Fallback (Cache + Share)
+                const saveResult = await Filesystem.writeFile({
+                    path: filename,
+                    data: jsonString,
+                    directory: Directory.Cache,
+                    encoding: Encoding.UTF8,
+                    recursive: true
+                });
+
+                await Share.share({
+                    title: filename,
+                    text: 'Bantay-Bayan System Backup',
+                    files: [saveResult.uri],
+                    dialogTitle: 'Save Backup File'
+                });
+            } else {
+                // Web Fallback: Create Blob and Download
+                const blob = new Blob([jsonString], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
 
             setBackupDownloaded(true);
-            showToast("Backup downloaded successfully. Save this file securely.", "success");
+            showToast("Backup generated successfully.", "success");
         } catch (error: any) {
             console.error("Backup failed", error);
             showToast("Failed to generate backup: " + error.message, "error");
@@ -347,7 +422,7 @@ const Settings: React.FC = () => {
 
                         {/* AVATAR UPLOAD */}
                         <div className="flex flex-col items-center">
-                            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                            <div className="relative group cursor-pointer" onClick={handlePhotoAction}>
                                 <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-white dark:border-white/10 shadow-premium bg-slate-50 dark:bg-white/5 relative">
                                     {imagePreview ? (
                                         <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" key={imagePreview} />
@@ -362,11 +437,11 @@ const Settings: React.FC = () => {
                                         </div>
                                     )}
                                     <div className="absolute inset-0 bg-taguig-blue/0 group-hover:bg-taguig-blue/20 transition-all flex items-center justify-center">
-                                        <Camera size={32} className="text-white opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all" />
+                                        <CameraIcon size={32} className="text-white opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all" />
                                     </div>
                                 </div>
                                 <div className="absolute -bottom-2 -right-2 bg-taguig-blue text-white p-4 rounded-2xl shadow-xl border-4 border-white dark:border-slate-900">
-                                    <Camera size={20} />
+                                    <CameraIcon size={20} />
                                 </div>
                                 <input
                                     type="file"
