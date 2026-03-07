@@ -9,41 +9,47 @@ const drawOfficialHeader = (doc: jsPDF) => {
 
     // Repositioned Logos: Taguig (Left), Barangay (Right)
     const logoY = 10;
-    const logoSize = 30; // Increased logo size slightly to match larger text
+    const logoSize = 25;
 
     // Left Logo: Taguig City
     doc.addImage(TAGUIG_SEAL_B64, 'PNG', 20, logoY, logoSize, logoSize);
 
     // Right Logo: Barangay Northside
-    doc.addImage(BRGY_SEAL_B64, 'PNG', pageWidth - 50, logoY, logoSize, logoSize);
+    doc.addImage(BRGY_SEAL_B64, 'PNG', pageWidth - 45, logoY, logoSize, logoSize);
 
-    // Header Text - Perfectly Centered
+    // Header Text - Perfectly Centered between margins/logos
     const textCenterX = pageWidth / 2;
 
     doc.setFont("times", "normal");
-    doc.setFontSize(14); // Standard heading size (14pt)
-    doc.text("Republika ng Pilipinas", textCenterX, 15, { align: "center" });
-    doc.text("LUNGSOD NG TAGUIG", textCenterX, 22, { align: "center" });
+    doc.setFontSize(10);
+    doc.text("Republika ng Pilipinas", textCenterX, 12, { align: "center" });
+    doc.text("LUNGSOD NG TAGUIG", textCenterX, 17, { align: "center" });
 
-    doc.setFont("times", "bold");
-    doc.setFontSize(16); // Reduced from 22pt to prevent overlap
-    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 34, { align: "center" });
+    // Primary Focal Point: Barangay Name
+    // Increased size to 24, using Helvetica Bold as requested
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(24);
+    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 28, { align: "center" });
 
-    doc.setFontSize(18); // Smaller than Barangay but larger than contact (18pt)
-    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 45, { align: "center" });
+    // Subtitle: Office of the Bantay Bayan
+    // Decreased size to 11 to act as subtitle
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 36, { align: "center" });
 
-    doc.setFontSize(11); // Standard body size (11pt)
+    // Address and Contact Details - Maintained small and readable
+    doc.setFontSize(9);
     doc.setFont("times", "normal");
-    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 52, { align: "center" });
-    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 57, { align: "center" });
-    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 62, { align: "center" });
+    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 44, { align: "center" });
+    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 49, { align: "center" });
+    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 54, { align: "center" });
 
     doc.setDrawColor(150, 0, 0); // Maroon/Dark Red line
-    doc.setLineWidth(1); // Slightly thicker line
-    doc.line(20, 68, pageWidth - 20, 68);
+    doc.setLineWidth(0.8);
+    doc.line(20, 60, pageWidth - 20, 60);
     doc.setDrawColor(0); // Reset
 
-    return 78; // Increased return yPos to prevent overlap
+    return 70; // Maintain return yPos for content starting point
 };
 
 export const generateOfficialReport = (incident: IncidentWithDetails) => {
