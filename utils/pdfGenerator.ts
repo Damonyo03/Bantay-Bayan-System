@@ -26,27 +26,27 @@ const drawOfficialHeader = (doc: jsPDF) => {
     doc.text("LUNGSOD NG TAGUIG", textCenterX, 17, { align: "center" });
 
     // Primary Focal Point: Barangay Name
-    // Increased to size 26, ensuring it does NOT overlap logos
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(26);
-    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 29, { align: "center" });
+    // Increased to size 22 using Times Bold (Serif), no logo overlap
+    doc.setFont("times", "bold"); // Reverted to Serif Bold
+    doc.setFontSize(22);
+    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 30, { align: "center" });
 
     // Subtitle: Office of the Bantay Bayan
-    // Reverted to Times Bold, size 11 as requested
+    // Set to Times Bold, size 14 as per visual reference
     doc.setFont("times", "bold");
-    doc.setFontSize(11);
-    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 38, { align: "center" });
+    doc.setFontSize(14);
+    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 40, { align: "center" });
 
     // Address and Contact Details - Maintained small and readable
     doc.setFontSize(9);
     doc.setFont("times", "normal");
-    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 46, { align: "center" });
-    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 51, { align: "center" });
-    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 56, { align: "center" });
+    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 48, { align: "center" });
+    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 53, { align: "center" });
+    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 58, { align: "center" });
 
     doc.setDrawColor(150, 0, 0); // Maroon/Dark Red line
     doc.setLineWidth(0.8);
-    doc.line(20, 63, pageWidth - 20, 63);
+    doc.line(20, 64, pageWidth - 20, 64);
     doc.setDrawColor(0); // Reset
 
     return 70; // Maintain return yPos for content starting point
