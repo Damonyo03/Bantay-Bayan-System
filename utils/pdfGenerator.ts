@@ -65,7 +65,7 @@ const savePdf = async (doc: jsPDF, fileName: string) => {
             const savedFile = await Filesystem.writeFile({
                 path: fileName,
                 data: base64Data,
-                directory: Directory.Documents,
+                directory: Directory.Cache,
                 recursive: true
             });
 
@@ -78,8 +78,11 @@ const savePdf = async (doc: jsPDF, fileName: string) => {
             // Web platform fallback
             doc.save(fileName);
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error saving PDF:', error);
+        if (Capacitor.isNativePlatform()) {
+            window.alert('PDF Error: ' + (error.message || 'Unknown Error'));
+        }
         throw error;
     }
 };
