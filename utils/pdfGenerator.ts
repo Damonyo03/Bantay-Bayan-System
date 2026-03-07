@@ -23,33 +23,33 @@ const drawOfficialHeader = (doc: jsPDF) => {
     doc.setFont("times", "normal");
     doc.setFontSize(10);
     doc.text("Republika ng Pilipinas", textCenterX, 12, { align: "center" });
-    doc.text("LUNGSOD NG TAGUIG", textCenterX, 17, { align: "center" });
+    doc.text("LUNGSOD NG TAGUIG", textCenterX, 16, { align: "center" });
 
     // Primary Focal Point: Barangay Name
-    // Set to size 16 using Times Bold (Serif), no logo overlap
+    // Increased to 18 for prominence, compacted gap
     doc.setFont("times", "bold");
-    doc.setFontSize(16);
-    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 30, { align: "center" });
+    doc.setFontSize(18);
+    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 25, { align: "center" });
 
     // Subtitle: Office of the Bantay Bayan
-    // Set to Times Bold, size 14 as per visual reference
+    // Size 12 for subtitle role, compacted gap
     doc.setFont("times", "bold");
-    doc.setFontSize(14);
-    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 40, { align: "center" });
+    doc.setFontSize(12);
+    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 31, { align: "center" });
 
-    // Address and Contact Details - Maintained small and readable
+    // Address and Contact Details - Compacted
     doc.setFontSize(9);
     doc.setFont("times", "normal");
-    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 48, { align: "center" });
-    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 53, { align: "center" });
-    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 58, { align: "center" });
+    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 37, { align: "center" });
+    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 41, { align: "center" });
+    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 45, { align: "center" });
 
     doc.setDrawColor(150, 0, 0); // Maroon/Dark Red line
     doc.setLineWidth(0.8);
-    doc.line(20, 64, pageWidth - 20, 64);
+    doc.line(20, 52, pageWidth - 20, 52);
     doc.setDrawColor(0); // Reset
 
-    return 70; // Maintain return yPos for content starting point
+    return 60; // Reduced return yPos as header is now more compact
 };
 
 export const generateOfficialReport = (incident: IncidentWithDetails) => {
