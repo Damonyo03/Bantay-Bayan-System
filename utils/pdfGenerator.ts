@@ -26,9 +26,9 @@ const drawOfficialHeader = (doc: jsPDF) => {
     doc.text("LUNGSOD NG TAGUIG", textCenterX, 16, { align: "center" });
 
     // Primary Focal Point: Barangay Name
-    // Increased to 18 for prominence, compacted gap
+    // Set to 16 for prominence, compacted gap
     doc.setFont("times", "bold");
-    doc.setFontSize(18);
+    doc.setFontSize(16);
     doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 25, { align: "center" });
 
     // Subtitle: Office of the Bantay Bayan
