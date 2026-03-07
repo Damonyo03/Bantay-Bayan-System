@@ -26,27 +26,27 @@ const drawOfficialHeader = (doc: jsPDF) => {
     doc.text("LUNGSOD NG TAGUIG", textCenterX, 17, { align: "center" });
 
     // Primary Focal Point: Barangay Name
-    // Increased size to 24, using Helvetica Bold as requested
+    // Increased to size 26, ensuring it does NOT overlap logos
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 28, { align: "center" });
+    doc.setFontSize(26);
+    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 29, { align: "center" });
 
     // Subtitle: Office of the Bantay Bayan
-    // Decreased size to 11 to act as subtitle
-    doc.setFont("helvetica", "normal");
+    // Reverted to Times Bold, size 11 as requested
+    doc.setFont("times", "bold");
     doc.setFontSize(11);
-    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 36, { align: "center" });
+    doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 38, { align: "center" });
 
     // Address and Contact Details - Maintained small and readable
     doc.setFontSize(9);
     doc.setFont("times", "normal");
-    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 44, { align: "center" });
-    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 49, { align: "center" });
-    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 54, { align: "center" });
+    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 46, { align: "center" });
+    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 51, { align: "center" });
+    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 56, { align: "center" });
 
     doc.setDrawColor(150, 0, 0); // Maroon/Dark Red line
     doc.setLineWidth(0.8);
-    doc.line(20, 60, pageWidth - 20, 60);
+    doc.line(20, 63, pageWidth - 20, 63);
     doc.setDrawColor(0); // Reset
 
     return 70; // Maintain return yPos for content starting point
