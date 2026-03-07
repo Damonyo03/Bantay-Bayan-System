@@ -363,7 +363,16 @@ const IncidentForm: React.FC = () => {
                 <span>New Entry</span>
               </button>
               <button
-                onClick={async () => lastIncident && await generateOfficialReport(lastIncident)}
+                onClick={async () => {
+                  if (lastIncident) {
+                    setIsSubmitting(true);
+                    try {
+                      await generateOfficialReport(lastIncident);
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }
+                }}
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-taguig-blue text-white font-black uppercase tracking-widest text-xs hover:bg-taguig-navy hover:scale-[1.05] transition-all flex items-center justify-center space-x-2 shadow-xl shadow-taguig-blue/20"
               >
                 <Printer size={18} />
