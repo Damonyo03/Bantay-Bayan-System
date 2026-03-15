@@ -829,8 +829,9 @@ const CommandCenter: React.FC = () => {
 
                         <form onSubmit={handleCreateActivity} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Activity Title</label>
+                                <label htmlFor="activityTitle" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Activity Title</label>
                                 <input
+                                    id="activityTitle"
                                     required
                                     type="text"
                                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-taguig-blue/50 dark:text-white"
@@ -841,8 +842,9 @@ const CommandCenter: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Date</label>
+                                <label htmlFor="activityDate" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Date</label>
                                 <input
+                                    id="activityDate"
                                     required
                                     type="date"
                                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-taguig-blue/50 dark:text-white"
@@ -852,8 +854,9 @@ const CommandCenter: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Designated Shift</label>
+                                <label htmlFor="activityShift" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Designated Shift</label>
                                 <select
+                                    id="activityShift"
                                     required
                                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-taguig-blue/50 dark:text-white"
                                     value={newActivity.shift}
@@ -867,8 +870,9 @@ const CommandCenter: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Description (Optional)</label>
+                                <label htmlFor="activityDescription" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Description (Optional)</label>
                                 <textarea
+                                    id="activityDescription"
                                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-taguig-blue/50 dark:text-white resize-none h-24"
                                     placeholder="Provide additional details..."
                                     value={newActivity.description}

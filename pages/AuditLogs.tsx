@@ -94,8 +94,10 @@ const AuditLogs: React.FC = () => {
       {/* FILTER BAR */}
       <div className="glass-panel p-4 rounded-[2rem] border border-white/60 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center">
         <div className="relative flex-1 w-full">
+          <label htmlFor="searchLogs" className="sr-only">Search by user, record ID, or table...</label>
           <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
           <input
+            id="searchLogs"
             type="text"
             placeholder="Search by user, record ID, or table..."
             className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none text-slate-800 dark:text-white transition-all font-medium"
@@ -110,7 +112,9 @@ const AuditLogs: React.FC = () => {
             <div className="absolute left-3 top-3.5 text-slate-400 pointer-events-none">
               <Filter size={16} />
             </div>
+            <label htmlFor="actionFilter" className="sr-only">Action</label>
             <select
+              id="actionFilter"
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
               className="w-full pl-10 pr-8 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none cursor-pointer focus:ring-2 focus:ring-blue-500/20"
@@ -128,7 +132,9 @@ const AuditLogs: React.FC = () => {
             <div className="absolute left-3 top-3.5 text-slate-400 pointer-events-none">
               <Activity size={16} />
             </div>
+            <label htmlFor="targetFilter" className="sr-only">Target</label>
             <select
+              id="targetFilter"
               value={targetFilter}
               onChange={(e) => setTargetFilter(e.target.value)}
               className="w-full pl-10 pr-8 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none cursor-pointer focus:ring-2 focus:ring-blue-500/20"

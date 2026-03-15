@@ -700,7 +700,9 @@ const ResourceTracking: React.FC = () => {
                             <button onClick={() => setIsVehicleModalOpen(false)} className="w-10 h-10 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-full flex items-center justify-center text-slate-400 hover:text-taguig-red transition-all"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleLogVehicleUsage} className="p-6 space-y-4">
+                            <label htmlFor="vehicle" className="sr-only">Vehicle</label>
                             <select
+                                id="vehicle"
                                 value={vehicleForm.vehicle}
                                 onChange={e => setVehicleForm({ ...vehicleForm, vehicle: e.target.value })}
                                 className="w-full bg-gray-100 dark:bg-slate-700 border border-transparent dark:border-slate-600 rounded-xl py-3 px-4 outline-none font-bold text-slate-900 dark:text-white"
@@ -708,7 +710,9 @@ const ResourceTracking: React.FC = () => {
                                 {VEHICLE_OPTIONS.map(v => <option key={v} value={v} className="dark:bg-slate-800">{v}</option>)}
                             </select>
                             <div className="flex space-x-2">
+                                <label htmlFor="officerSelect" className="sr-only">Select Officer</label>
                                 <select
+                                    id="officerSelect"
                                     value={currentOfficerSelect}
                                     onChange={(e) => setCurrentOfficerSelect(e.target.value)}
                                     className="flex-1 bg-gray-100 dark:bg-slate-700 border border-transparent dark:border-slate-600 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white"
@@ -757,7 +761,9 @@ const ResourceTracking: React.FC = () => {
                                     </span>
                                 ))}
                             </div>
+                            <label htmlFor="destination" className="sr-only">Destination</label>
                             <input
+                                id="destination"
                                 type="text"
                                 required
                                 value={vehicleForm.destination}
@@ -765,7 +771,9 @@ const ResourceTracking: React.FC = () => {
                                 className="w-full bg-gray-100 dark:bg-slate-700 border border-transparent dark:border-slate-600 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white placeholder:text-gray-400"
                                 placeholder="Destination"
                             />
+                            <label htmlFor="purpose" className="sr-only">Purpose</label>
                             <input
+                                id="purpose"
                                 type="text"
                                 required
                                 value={vehicleForm.purpose}

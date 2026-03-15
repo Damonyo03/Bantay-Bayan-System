@@ -160,8 +160,10 @@ const ResolvedCases: React.FC = () => {
             <div className="glass-panel p-4 rounded-2xl border border-white/60 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center">
                 {/* Search */}
                 <div className="relative flex-1 w-full">
+                    <label htmlFor="searchQuery" className="sr-only">Search case #, names, or details</label>
                     <Search className="absolute left-3 top-3 text-gray-400" size={18} />
                     <input
+                        id="searchQuery"
                         type="text"
                         placeholder="Search case #, names, or details..."
                         className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
@@ -174,8 +176,9 @@ const ResolvedCases: React.FC = () => {
                     {/* Filter */}
                     <div className="flex items-center space-x-3 w-full sm:w-auto">
                         <Filter size={18} className="text-gray-400" />
-                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">Filter:</span>
+                        <label htmlFor="filterType" className="text-sm font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">Filter:</label>
                         <select
+                            id="filterType"
                             value={filterType}
                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterType(e.target.value)}
                             className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 px-4 outline-none text-sm font-bold text-slate-900 dark:text-white w-full sm:w-48 transition-colors cursor-pointer"
@@ -188,8 +191,9 @@ const ResolvedCases: React.FC = () => {
                     {/* Sort */}
                     <div className="flex items-center space-x-3 w-full sm:w-auto">
                         <ArrowUpDown size={18} className="text-gray-400" />
-                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">Sort:</span>
+                        <label htmlFor="sortOption" className="text-sm font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">Sort:</label>
                         <select
+                            id="sortOption"
                             value={sortOption}
                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOption(e.target.value as SortOption)}
                             className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 px-4 outline-none text-sm font-bold text-slate-900 dark:text-white w-full sm:w-48 transition-colors cursor-pointer"

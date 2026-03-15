@@ -700,8 +700,10 @@ const UserManagement: React.FC = () => {
                     {activeTab === 'personnel' && (
                         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                             <div className="relative w-full md:max-w-md">
+                                <label htmlFor="searchOfficers" className="sr-only">Search officer name, badge, or email</label>
                                 <Search className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                 <input
+                                    id="searchOfficers"
                                     type="text"
                                     placeholder="Search officer name, badge, or email..."
                                     className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-slate-800 dark:text-white transition-all"
@@ -1164,8 +1166,9 @@ const UserManagement: React.FC = () => {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.fullName}</label>
+                                    <label htmlFor="editFullName" className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.fullName}</label>
                                     <input
+                                        id="editFullName"
                                         required type="text"
                                         className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white font-semibold transition-all"
                                         value={editFormData.full_name}
@@ -1173,8 +1176,9 @@ const UserManagement: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
+                                    <label htmlFor="editBadgeId" className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
                                     <input
+                                        id="editBadgeId"
                                         readOnly
                                         type="text"
                                         className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl py-3.5 px-4 outline-none text-slate-500 dark:text-slate-500 font-mono transition-all cursor-not-allowed"
@@ -1330,8 +1334,9 @@ const UserManagement: React.FC = () => {
 
                         <div className="p-6 space-y-6">
                             <div>
-                                <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Standard Shift Time</label>
+                                <label htmlFor="bulkShift" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Standard Shift Time</label>
                                 <select
+                                    id="bulkShift"
                                     className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold text-sm"
                                     value={bulkConfig.shift}
                                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setBulkConfig({ ...bulkConfig, shift: e.target.value as ShiftType })}
@@ -1403,8 +1408,9 @@ const UserManagement: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Full Name</label>
+                                        <label htmlFor="newFullName" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Full Name</label>
                                         <input
+                                            id="newFullName"
                                             type="text"
                                             required
                                             className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold placeholder:text-slate-400"
@@ -1414,8 +1420,9 @@ const UserManagement: React.FC = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Username</label>
+                                        <label htmlFor="newUsername" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Username</label>
                                         <input
+                                            id="newUsername"
                                             type="text"
                                             required
                                             className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold placeholder:text-slate-400"
@@ -1425,8 +1432,9 @@ const UserManagement: React.FC = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Access Role</label>
+                                        <label htmlFor="newRole" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Access Role</label>
                                         <select
+                                            id="newRole"
                                             className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold font-display"
                                             value={newUser.role}
                                             onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
@@ -1438,8 +1446,9 @@ const UserManagement: React.FC = () => {
                                 </div>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Email Address</label>
+                                        <label htmlFor="newEmail" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Email Address</label>
                                         <input
+                                            id="newEmail"
                                             type="email"
                                             required
                                             className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold placeholder:text-slate-400"
@@ -1449,8 +1458,9 @@ const UserManagement: React.FC = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Temporary Password</label>
+                                        <label htmlFor="newPassword" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Temporary Password</label>
                                         <input
+                                            id="newPassword"
                                             type="password"
                                             required
                                             className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold placeholder:text-slate-400"

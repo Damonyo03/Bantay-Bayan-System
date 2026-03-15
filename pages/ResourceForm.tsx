@@ -147,10 +147,11 @@ const ResourceForm: React.FC = () => {
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Borrower Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.borrowerName}</label>
+                            <label htmlFor="borrowerName" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.borrowerName}</label>
                             <div className="relative">
                                 <User className="absolute left-3 top-3 text-gray-400" size={18} />
                                 <input
+                                    id="borrowerName"
                                     required
                                     type="text"
                                     value={formData.borrower_name}
@@ -161,10 +162,11 @@ const ResourceForm: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.contactNo}</label>
+                            <label htmlFor="contactNo" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.contactNo}</label>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
                                 <input
+                                    id="contactNo"
                                     required
                                     type="text"
                                     value={formData.contact_number}
@@ -175,10 +177,11 @@ const ResourceForm: React.FC = () => {
                             </div>
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.address}</label>
+                            <label htmlFor="address" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.address}</label>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-3 text-gray-400" size={18} />
                                 <input
+                                    id="address"
                                     required
                                     type="text"
                                     value={formData.address}
@@ -196,10 +199,11 @@ const ResourceForm: React.FC = () => {
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Request Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.pickupDate}</label>
+                            <label htmlFor="pickupDate" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.pickupDate}</label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-3 text-gray-400" size={18} />
                                 <input
+                                    id="pickupDate"
                                     required
                                     type="date"
                                     min={today}
@@ -211,10 +215,11 @@ const ResourceForm: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.returnDate}</label>
+                            <label htmlFor="returnDate" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.returnDate}</label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-3 text-gray-400" size={18} />
                                 <input
+                                    id="returnDate"
                                     required
                                     type="date"
                                     min={formData.pickup_date || today}
@@ -226,8 +231,9 @@ const ResourceForm: React.FC = () => {
                             </div>
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.purpose}</label>
+                            <label htmlFor="purpose" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.purpose}</label>
                             <input
+                                id="purpose"
                                 required
                                 type="text"
                                 value={formData.purpose}
