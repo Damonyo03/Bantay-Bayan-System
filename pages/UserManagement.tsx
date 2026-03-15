@@ -476,9 +476,9 @@ const UserManagement: React.FC = () => {
     };
 
     const handleToggleStatus = async (id: string, currentStatus: string) => {
-        const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+        const newStatus = currentStatus === 'active' ? 'deactivated' : 'active';
         try {
-            await userService.updateUserStatus(id, newStatus);
+            await userService.updateUserStatus(id, newStatus as any);
             showToast(`User ${newStatus === 'active' ? 'activated' : 'deactivated'}.`, "success");
             fetchUsers();
         } catch (error) {
@@ -636,7 +636,7 @@ const UserManagement: React.FC = () => {
 
     const currentWeekRange = getWeekRange(currentDate);
     const pendingUsers = users.filter((u: UserProfile) => u.status === 'inactive');
-    const activeUsers = users.filter((u: UserProfile) => u.status === 'active');
+    const activeUsers = users.filter((u: UserProfile) => u.status === 'active' || u.status === 'deactivated');
 
     const filteredUsers = (activeTab === 'pending' ? pendingUsers : activeUsers).filter((u: UserProfile) => {
         const q = searchQuery.toLowerCase();
@@ -797,10 +797,10 @@ const UserManagement: React.FC = () => {
                                                             </td>
                                                             <td className="p-5 text-slate-700 dark:text-slate-300 font-mono text-sm font-semibold hidden md:table-cell">{rowUser.badge_number || '---'}</td>
                                                             <td className="p-5">
-                                                                {rowUser.status === 'active' ? (
-                                                                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all ${liveStatus.badge}`}>
-                                                                        <Clock size={10} className="mr-1.5" />
-                                                                        {liveStatus.label}
+                                                                {rowUser.status === 'active' || rowUser.status === 'deactivated' ? (
+                                                                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all ${rowUser.status === 'deactivated' ? 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700' : liveStatus.badge}`}>
+                                                                        {rowUser.status === 'active' ? <Clock size={10} className="mr-1.5" /> : <UserX size={10} className="mr-1.5" />}
+                                                                        {rowUser.status === 'deactivated' ? 'Deactivated' : liveStatus.label}
                                                                     </div>
                                                                 ) : rowUser.status === 'rejected' ? (
                                                                     <span className="text-xs font-bold text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full border border-red-200 dark:border-red-800 flex items-center w-fit">
@@ -816,9 +816,10 @@ const UserManagement: React.FC = () => {
                                                             </td>
                                                             <td className="p-5 hidden lg:table-cell">
                                                                 <div className="flex items-center text-sm">
-                                                                    {rowUser.status === 'active' ? (
-                                                                        <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-bold">
-                                                                            <UserCheck size={16} className="mr-1.5" /> Approved
+                                                                    {rowUser.status === 'active' || rowUser.status === 'deactivated' ? (
+                                                                        <span className={`flex items-center font-bold ${rowUser.status === 'deactivated' ? 'text-slate-500 dark:text-slate-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                                                            {rowUser.status === 'active' ? <UserCheck size={16} className="mr-1.5" /> : <UserX size={16} className="mr-1.5" />}
+                                                                            {rowUser.status === 'deactivated' ? 'Deactivated' : 'Approved'}
                                                                         </span>
                                                                     ) : rowUser.status === 'rejected' ? (
                                                                         <span className="flex items-center text-red-600 dark:text-red-400 font-bold">
@@ -848,7 +849,7 @@ const UserManagement: React.FC = () => {
                                                                             : 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'
                                                                             }`}
                                                                     >
-                                                                        {rowUser.status === 'active' ? 'Deactivate' : 'Approve'}
+                                                                        {rowUser.status === 'active' ? 'Deactivate' : rowUser.status === 'deactivated' ? 'Activate' : 'Approve'}
                                                                     </button>
 
                                                                     {rowUser.status !== 'active' && (

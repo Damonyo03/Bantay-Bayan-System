@@ -18,7 +18,7 @@ export const userService = {
         return data as UserProfile[];
     },
 
-    updateUserStatus: async (id: string, status: 'active' | 'inactive' | 'rejected') => {
+    updateUserStatus: async (id: string, status: 'active' | 'inactive' | 'rejected' | 'deactivated') => {
         const { error } = await supabase.from('profiles').update({ status }).eq('id', id);
         if (error) throw error;
     },
