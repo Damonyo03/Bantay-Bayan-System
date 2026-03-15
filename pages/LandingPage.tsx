@@ -65,7 +65,7 @@ const LandingPage: React.FC = () => {
                             and seamless resource coordination.
                         </p>
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4 animate-slide-up delay-200">
-                            <Link to="/" className="px-8 py-4 bg-taguig-gold text-taguig-navy font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-xl shadow-taguig-gold/30 flex items-center group">
+                            <Link to="/dashboard" className="px-8 py-4 bg-taguig-gold text-taguig-navy font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-xl shadow-taguig-gold/30 flex items-center group">
                                 Open Dashboard
                                 <ChevronRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
                             </Link>
@@ -90,7 +90,7 @@ const LandingPage: React.FC = () => {
                     icon={LayoutDashboard} 
                     title="Command Center" 
                     desc="Real-time incident monitoring and tactical overview."
-                    link="/"
+                    link="/dashboard"
                     color="blue"
                 />
                 <FeatureBox 
@@ -208,7 +208,7 @@ const LandingPage: React.FC = () => {
                             )}
                         </div>
 
-                        <Link to="/guidelines" className="mt-10 w-full inline-flex items-center justify-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-taguig-blue transition-all group">
+                        <Link to="/archives" className="mt-10 w-full inline-flex items-center justify-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-taguig-blue transition-all group">
                             View All Operations
                             <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
                         </Link>
