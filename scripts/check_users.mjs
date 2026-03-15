@@ -1,0 +1,17 @@
+
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://vgahcqivuashzahdbsue.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnYWhjcWl2dWFzaHphaGRic3VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxNzU0MzQsImV4cCI6MjA4NTc1MTQzNH0.43MixMmNb3Cj4eWTxpADnMIwqycH76jS2ZnmVt9AYJE';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+async function checkUsers() {
+  const { data, error } = await supabase.from('profiles').select('email, full_name, role, status, username');
+  if (error) {
+    console.error(error);
+    return;
+  }
+  console.log(JSON.stringify(data, null, 2));
+}
+
+checkUsers();

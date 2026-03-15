@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { UserProfile } from './types';
 import Sidebar from './components/Sidebar';
 import CommandCenter from './pages/CommandCenter';
 import IncidentForm from './pages/IncidentForm';
@@ -23,7 +24,7 @@ import { authService } from './services/authService';
 import { supabase } from './lib/supabaseClient';
 import { Lock, Save } from 'lucide-react';
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode, requiredRole?: 'supervisor' }> = ({ children, requiredRole }) => {
+const ProtectedRoute: React.FC<{ children: React.ReactNode, check?: (user: UserProfile) => boolean }> = ({ children, check }) => {
     const { user, isLoading } = useAuth();
 
     if (isLoading) {
@@ -34,7 +35,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, requiredRole?: 'supe
         return <Navigate to="/login" replace />;
     }
 
-    if (requiredRole && user.role !== requiredRole) {
+    if (check && !check(user)) {
         return <Navigate to="/" replace />;
     }
 
@@ -253,13 +254,15 @@ const UpdatePasswordPage: React.FC = () => {
 
 const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
-        <div className="min-h-screen text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-taguig-blue/20 selection:text-taguig-blue">
+        <div className="min-h-screen flex bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-taguig-blue/20 selection:text-taguig-blue overflow-x-hidden">
             <Sidebar />
-            <main className="pb-24 md:pb-8 md:pl-64 transition-all duration-300 pt-safe">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-10">
-                    {children}
-                </div>
-            </main>
+            <div className="flex-1 flex flex-col min-w-0">
+                <main className="flex-1 pb-24 md:pb-8 ml-0 md:ml-64 transition-all duration-300 pt-safe">
+                    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-10">
+                        {children}
+                    </div>
+                </main>
+            </div>
         </div>
     );
 };
@@ -287,17 +290,17 @@ const AppContent: React.FC = () => {
                     <PrivateLayout>
                         <Routes>
                             <Route path="/" element={<CommandCenter />} />
-                            <Route path="/report" element={<IncidentForm />} />
-                            <Route path="/cctv-request" element={<CCTVRequestForm />} />
-                            <Route path="/resources" element={<ResourceTracking />} />
-                            <Route path="/resources/new" element={<ResourceForm />} />
-                            <Route path="/archives" element={<ResolvedCases />} />
+                            <Route path="/report" element={<ProtectedRoute check={u => u.role !== 'guest'}><IncidentForm /></ProtectedRoute>} />
+                            <Route path="/cctv-request" element={<ProtectedRoute check={u => u.role !== 'guest'}><CCTVRequestForm /></ProtectedRoute>} />
+                            <Route path="/resources" element={<ProtectedRoute check={u => u.role !== 'guest' && u.role !== 'resident'}><ResourceTracking /></ProtectedRoute>} />
+                            <Route path="/resources/new" element={<ProtectedRoute check={u => u.role !== 'guest' && u.role !== 'resident'}><ResourceForm /></ProtectedRoute>} />
+                            <Route path="/archives" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan'].includes(u.role)}><ResolvedCases /></ProtectedRoute>} />
                             <Route path="/restricted" element={<RestrictedPersons />} />
-                            <Route path="/users" element={<UserManagement />} />
-                            <Route path="/audit-logs" element={<ProtectedRoute requiredRole="supervisor"><AuditLogs /></ProtectedRoute>} />
+                            <Route path="/users" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident'].includes(u.role)}><UserManagement /></ProtectedRoute>} />
+                            <Route path="/audit-logs" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad'].includes(u.role)}><AuditLogs /></ProtectedRoute>} />
                             <Route path="/guidelines" element={<SystemGuidelines />} />
                             <Route path="/download-forms" element={<DownloadForms />} />
-                            <Route path="/settings" element={<Settings />} />
+                            <Route path="/settings" element={<ProtectedRoute check={u => u.role !== 'guest'}><Settings /></ProtectedRoute>} />
                             <Route path="*" element={<Navigate to="/" />} />
                         </Routes>
                     </PrivateLayout>

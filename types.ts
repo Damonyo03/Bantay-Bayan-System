@@ -1,7 +1,7 @@
 
 export type IncidentType = 'Medical' | 'Fire' | 'Theft' | 'Disturbance' | 'Traffic' | 'Logistics' | 'Other';
 export type IncidentStatus = 'Pending' | 'Dispatched' | 'Resolved' | 'Closed';
-export type UserRole = 'supervisor' | 'field_operator';
+export type UserRole = 'barangay_captain' | 'barangay_secretary' | 'barangay_kagawad' | 'supervisor' | 'bantay_bayan' | 'resident' | 'guest';
 export type UserStatus = 'active' | 'inactive' | 'rejected' | 'deactivated';
 export type AssetStatus = 'Pending' | 'Approved' | 'Released' | 'Returned' | 'Rejected';
 

@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { authService } from '../services/authService';
 import { userService } from '../services/userService';
-import { UserProfile, PersonnelSchedule, ShiftType, DutyStatus } from '../types';
+import { UserProfile, PersonnelSchedule, ShiftType, DutyStatus, UserRole } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,7 +28,7 @@ const MONTHS = [
 const UserManagement: React.FC = () => {
     const { t } = useLanguage();
     const { showToast } = useToast();
-    const { user } = useAuth(); // Current logged-in user
+    const { user, isSupremeAdmin, canEditRole } = useAuth(); // Current logged-in user
 
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
@@ -486,6 +486,16 @@ const UserManagement: React.FC = () => {
         }
     };
 
+    const handleRoleChange = async (id: string, newRole: string) => {
+        try {
+            await userService.updateProfile(id, { role: newRole as UserRole });
+            showToast(`User role updated to ${formatRoleName(newRole)}.`, "success");
+            fetchUsers();
+        } catch (error: any) {
+            showToast(error.message || "Failed to update role", "error");
+        }
+    };
+
     const handleRejectUser = async (id: string) => {
         if (!confirm("Are you sure you want to reject this application?")) return;
         try {
@@ -648,13 +658,37 @@ const UserManagement: React.FC = () => {
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
+    // Filter available roles based on current user's permissions
+    const getAvailableRoles = () => {
+        const allRoles = [
+            { id: 'barangay_captain', label: 'Barangay Captain' },
+            { id: 'barangay_secretary', label: 'Barangay Secretary' },
+            { id: 'barangay_kagawad', label: 'Barangay Kagawad' },
+            { id: 'supervisor', label: 'Supervisor' },
+            { id: 'bantay_bayan', label: 'Bantay Bayan' },
+            { id: 'resident', label: 'Resident' },
+            { id: 'guest', label: 'Guest' }
+        ];
+
+        if (isSupremeAdmin()) {
+            return allRoles;
+        } else {
+            // High-Level Admins (Secretary/Kagawad) cannot assign 'Barangay Captain'
+            return allRoles.filter(role => role.id !== 'barangay_captain');
+        }
+    };
+
+    const formatRoleName = (roleStr: string) => {
+        return roleStr.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
+
     return (
         <div className="space-y-8 pb-20 animate-fade-in">
             <PageHeader
                 title="Staff Directory"
                 subtitle="Member Management • Post Proper Northside"
             >
-                {user?.role === 'supervisor' && (
+                {(user?.role === 'barangay_captain' || user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad' || user?.role === 'supervisor') && (
                     <div className="flex bg-taguig-blue/5 dark:bg-white/5 p-2 rounded-2xl w-full xl:w-auto overflow-x-auto no-scrollbar border border-taguig-blue/10 shadow-sm">
                         <button
                             onClick={() => setActiveTab('personnel')}
@@ -788,12 +822,28 @@ const UserManagement: React.FC = () => {
                                                                 </div>
                                                             </td>
                                                             <td className="p-5">
-                                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${rowUser.role === 'supervisor'
-                                                                    ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800'
-                                                                    : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
-                                                                    }`}>
-                                                                    {rowUser.role === 'supervisor' ? 'Official' : 'Field Operator'}
-                                                                </span>
+                                                                {canEditRole(rowUser.role) ? (
+                                                                    <select
+                                                                        value={rowUser.role}
+                                                                        onChange={(e) => handleRoleChange(rowUser.id, e.target.value)}
+                                                                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 text-slate-700 dark:text-slate-300 transition-colors shadow-sm"
+                                                                    >
+                                                                        {getAvailableRoles().map((roleOption) => (
+                                                                            <option key={roleOption.id} value={roleOption.id}>
+                                                                                {roleOption.label}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                ) : (
+                                                                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${rowUser.role.includes('barangay')
+                                                                        ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800'
+                                                                        : rowUser.role === 'supervisor'
+                                                                            ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
+                                                                            : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800'
+                                                                        }`}>
+                                                                        {formatRoleName(rowUser.role)}
+                                                                    </span>
+                                                                )}
                                                             </td>
                                                             <td className="p-5 text-slate-700 dark:text-slate-300 font-mono text-sm font-semibold hidden md:table-cell">{rowUser.badge_number || '---'}</td>
                                                             <td className="p-5">

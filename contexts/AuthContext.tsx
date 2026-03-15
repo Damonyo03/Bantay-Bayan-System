@@ -11,6 +11,12 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   refreshUser: () => Promise<void>;
+  
+  // Permission Helpers
+  isSupremeAdmin: () => boolean;
+  isHighLevelAdmin: () => boolean;
+  canEditRole: (targetUserRole?: string) => boolean;
+  canDeleteData: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -111,8 +117,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // --- Permission Helpers ---
+  const isSupremeAdmin = () => {
+    return user?.role === 'barangay_captain';
+  };
+
+  const isHighLevelAdmin = () => {
+    return user?.role === 'barangay_captain' || user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad';
+  };
+
+  const canEditRole = (targetUserRole?: string) => {
+    if (!user) return false;
+    if (user.role === 'barangay_captain') return true; // Supreme admin can edit anyone
+    
+    // Secretary and Kagawad can edit roles, but NOT the captain
+    if (user.role === 'barangay_secretary' || user.role === 'barangay_kagawad') {
+       if (targetUserRole === 'barangay_captain') return false;
+       return true;
+    }
+    
+    return false; // Supervisors and below cannot edit roles
+  };
+
+  const canDeleteData = () => {
+    return isHighLevelAdmin(); // Only Captain, Secretary, Kagawad can delete
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, verifyLoginMFA, logout, isLoading, refreshUser }}>
+    <AuthContext.Provider value={{ 
+      user, login, verifyLoginMFA, logout, isLoading, refreshUser,
+      isSupremeAdmin, isHighLevelAdmin, canEditRole, canDeleteData
+    }}>
       {children}
     </AuthContext.Provider>
   );

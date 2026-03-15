@@ -8,40 +8,42 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isHighLevelAdmin } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
-  // Base items for everyone
+  // Define permissions for roles
+  const role = user?.role || 'guest';
+  const isGuest = role === 'guest';
+  const isResident = role === 'resident';
+  const isBantayBayan = role === 'bantay_bayan';
+  const isSupervisor = role === 'supervisor';
+  const isStaff = isBantayBayan || isSupervisor || isHighLevelAdmin();
+
   const navItems = [
-    { icon: LayoutDashboard, label: t.dashboard, path: '/' },
-    { icon: FileText, label: t.blotter, path: '/report' },
-    { icon: Video, label: 'CCTV Request', path: '/cctv-request' },
-    { icon: Package, label: t.resources, path: '/resources' },
-    { icon: Archive, label: t.archives, path: '/archives' },
-    { icon: AlertOctagon, label: t.restrictedList, path: '/restricted' },
-    // Personnel/Roster accessible to all (Role logic inside)
+    { icon: LayoutDashboard, label: t.dashboard, path: '/', visible: !isGuest && !isResident },
+    { icon: Globe, label: 'Landing Page', path: '/landing', visible: true }, // Hypothetical landing page or home
+    { icon: FileText, label: t.blotter, path: '/report', visible: !isGuest },
+    { icon: Video, label: 'CCTV Request', path: '/cctv-request', visible: !isGuest },
+    { icon: Package, label: t.resources, path: '/resources', visible: !isGuest },
+    { icon: Archive, label: t.archives, path: '/archives', visible: isStaff },
+    { icon: AlertOctagon, label: t.restrictedList, path: '/restricted', visible: true },
     {
       icon: Users,
-      label: user?.role === 'supervisor' ? t.personnel : 'Duty Roster',
-      path: '/users'
+      label: isHighLevelAdmin() || isSupervisor ? t.personnel : 'Duty Roster',
+      path: '/users',
+      visible: isStaff || isResident
     },
-    { icon: FileDown, label: 'Printable Forms', path: '/download-forms' },
-  ];
-
-  // Admin/Supervisor only items
-  if (user?.role === 'supervisor') {
-    navItems.push({ icon: FileClock, label: t.auditLogs, path: '/audit-logs' });
-  }
-
-  // Settings for everyone (Added at the end)
-  navItems.push({ icon: Settings, label: 'Settings', path: '/settings' });
+    { icon: FileDown, label: 'Printable Forms', path: '/download-forms', visible: true },
+    { icon: FileClock, label: t.auditLogs, path: '/audit-logs', visible: isHighLevelAdmin() },
+    { icon: Settings, label: 'Settings', path: '/settings', visible: !isGuest },
+  ].filter(item => item.visible);
 
   // --- DESKTOP SIDEBAR ---
   const DesktopSidebar = (
-    <div className="hidden md:flex w-64 glass-sidebar h-screen fixed left-0 top-0 flex-col p-4 z-40 transition-all">
+    <div className="hidden md:flex w-64 glass-sidebar h-screen fixed left-0 top-0 flex-col p-4 z-40">
       {/* Branding */}
       <div className="mb-8 px-1 mt-4">
         <div className="flex items-center justify-center mb-4 space-x-2">
