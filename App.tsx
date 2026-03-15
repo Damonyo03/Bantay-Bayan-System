@@ -16,6 +16,7 @@ import RestrictedPersons from './pages/RestrictedPersons';
 import CCTVRequestForm from './pages/CCTVRequestForm';
 import SystemGuidelines from './pages/SystemGuidelines';
 import DownloadForms from './pages/DownloadForms';
+import LandingPage from './pages/LandingPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
@@ -289,7 +290,9 @@ const AppContent: React.FC = () => {
                 <ProtectedRoute>
                     <PrivateLayout>
                         <Routes>
-                            <Route path="/" element={<CommandCenter />} />
+                            <Route path="/" element={<Navigate to="/landing" replace />} />
+                            <Route path="/landing" element={<LandingPage />} />
+                            <Route path="/dashboard" element={<CommandCenter />} />
                             <Route path="/report" element={<ProtectedRoute check={u => u.role !== 'guest'}><IncidentForm /></ProtectedRoute>} />
                             <Route path="/cctv-request" element={<ProtectedRoute check={u => u.role !== 'guest'}><CCTVRequestForm /></ProtectedRoute>} />
                             <Route path="/resources" element={<ProtectedRoute check={u => u.role !== 'guest' && u.role !== 'resident'}><ResourceTracking /></ProtectedRoute>} />
