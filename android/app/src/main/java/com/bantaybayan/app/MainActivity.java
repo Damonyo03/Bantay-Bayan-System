@@ -16,6 +16,11 @@ import com.getcapacitor.BridgeActivity;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import android.print.PrintManager;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentInfo;
+import android.print.PageRange;
 
 public class MainActivity extends BridgeActivity {
 
@@ -127,6 +132,63 @@ public class MainActivity extends BridgeActivity {
             } catch (IOException e) {
                 e.printStackTrace();
                 runOnUiThread(() -> Toast.makeText(context, "Error saving PDF", Toast.LENGTH_SHORT).show());
+            }
+        }
+
+        @JavascriptInterface
+        public void printBlob(String base64Data, String jobName) {
+            try {
+                byte[] pdfAsBytes = Base64.decode(base64Data, Base64.DEFAULT);
+                File dwldDir = context.getExternalCacheDir();
+                File file = new File(dwldDir, jobName + ".pdf");
+                
+                FileOutputStream os = new FileOutputStream(file, false);
+                os.write(pdfAsBytes);
+                os.flush();
+                os.close();
+
+                PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
+                String jobNameEscaped = jobName != null ? jobName : "Bantay Bayan Document";
+                PrintDocumentAdapter pda = new PrintDocumentAdapter() {
+                    @Override
+                    public void onWrite(PageRange[] pages, android.os.ParcelFileDescriptor destination, android.os.CancellationSignal cancellationSignal, WriteResultCallback callback) {
+                        java.io.InputStream input = null;
+                        java.io.OutputStream output = null;
+                        try {
+                            input = new java.io.FileInputStream(file);
+                            output = new java.io.FileOutputStream(destination.getFileDescriptor());
+                            byte[] buf = new byte[1024];
+                            int bytesRead;
+                            while ((bytesRead = input.read(buf)) > 0) {
+                                output.write(buf, 0, bytesRead);
+                            }
+                            callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
+                        } catch (Exception e) {
+                            callback.onWriteFailed(e.toString());
+                        } finally {
+                            try { if (input != null) input.close(); } catch (IOException e) {}
+                            try { if (output != null) output.close(); } catch (IOException e) {}
+                        }
+                    }
+
+                    @Override
+                    public void onLayout(PrintAttributes oldAttributes, PrintAttributes newAttributes, android.os.CancellationSignal cancellationSignal, LayoutResultCallback callback, Bundle extras) {
+                        if (cancellationSignal.isCanceled()) {
+                            callback.onLayoutCancelled();
+                            return;
+                        }
+                        PrintDocumentInfo pdi = new PrintDocumentInfo.Builder(jobNameEscaped)
+                                .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
+                                .build();
+                        callback.onLayoutFinished(pdi, true);
+                    }
+                };
+                
+                printManager.print(jobNameEscaped, pda, new PrintAttributes.Builder().build());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(context, "Error printing PDF", Toast.LENGTH_SHORT).show());
             }
         }
     }

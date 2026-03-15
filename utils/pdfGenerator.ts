@@ -58,10 +58,17 @@ const drawOfficialHeader = (doc: jsPDF) => {
 const savePdf = async (doc: jsPDF, fileName: string) => {
     try {
         if (Capacitor.isNativePlatform()) {
-            // Native platform (Android/iOS) logic using Filesystem and FileOpener
+            // Native platform (Android/iOS) logic
             const pdfOutput = doc.output('datauristring');
             const base64Data = pdfOutput.split(',')[1];
 
+            // Use our custom Native Print implementation if available
+            if ((window as any).AndroidBlobDownloader && (window as any).AndroidBlobDownloader.printBlob) {
+                (window as any).AndroidBlobDownloader.printBlob(base64Data, fileName.replace('.pdf', ''));
+                return;
+            }
+
+            // Fallback to FileOpener if printBlob isn't injected
             const savedFile = await Filesystem.writeFile({
                 path: fileName,
                 data: base64Data,
