@@ -456,9 +456,10 @@ const Settings: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
-                                <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Full Name</label>
+                                <label htmlFor="fullName" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Full Name</label>
                                 <div className="relative">
                                     <input
+                                        id="fullName"
                                         type="text"
                                         value={fullName}
                                         onChange={e => setFullName(e.target.value)}
@@ -468,9 +469,10 @@ const Settings: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Badge Number</label>
+                                <label htmlFor="badgeNumber" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Badge Number</label>
                                 <div className="relative">
                                     <input
+                                        id="badgeNumber"
                                         readOnly
                                         type="text"
                                         value={badgeNumber}
@@ -562,9 +564,10 @@ const Settings: React.FC = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Verify Code</label>
+                                        <label htmlFor="verifyCode" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Verify Code</label>
                                         <div className="flex space-x-2">
                                             <input
+                                                id="verifyCode"
                                                 type="text"
                                                 placeholder="000000"
                                                 maxLength={6}
@@ -602,10 +605,11 @@ const Settings: React.FC = () => {
                         </h2>
                         <form onSubmit={handleUpdateSecurity} className="space-y-5">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1">Email Address</label>
+                                <label htmlFor="email" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1">Email Address</label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
                                     <input
+                                        id="email"
                                         type="email"
                                         value={email}
                                         onChange={e => setEmail(e.target.value)}
@@ -614,10 +618,11 @@ const Settings: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1">Current Password (Required)</label>
+                                <label htmlFor="oldPassword" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1">Current Password (Required)</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 text-red-400" size={18} />
                                     <input
+                                        id="oldPassword"
                                         type="password"
                                         required
                                         value={oldPassword}
@@ -628,10 +633,11 @@ const Settings: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1">New Password</label>
+                                <label htmlFor="newPassword" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1">New Password</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
                                     <input
+                                        id="newPassword"
                                         type="password"
                                         value={password}
                                         onChange={e => setPassword(e.target.value)}
@@ -760,8 +766,9 @@ const Settings: React.FC = () => {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 text-center">Enter 6-digit Code</label>
+                                    <label htmlFor="stepUpCode" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 text-center">Enter 6-digit Code</label>
                                     <input
+                                        id="stepUpCode"
                                         type="text"
                                         autoFocus
                                         maxLength={6}

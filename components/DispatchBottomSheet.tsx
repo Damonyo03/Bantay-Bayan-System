@@ -148,10 +148,11 @@ const DispatchBottomSheet: React.FC<Props> = ({ dispatchLog, availableOfficers, 
           <div className="grid grid-cols-1 gap-4">
               {/* Vehicle Selection */}
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">Response Asset / Vehicle</label>
+                <label htmlFor="vehicleSelect" className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">Response Asset / Vehicle</label>
                 <div className="relative">
                     <Car className="absolute left-3 top-3.5 text-gray-400" size={20}/>
                     <select
+                        id="vehicleSelect"
                         value={selectedVehicle}
                         onChange={(e) => setSelectedVehicle(e.target.value)}
                         className="w-full bg-gray-100/50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-2xl pl-10 pr-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-gray-800 dark:text-white"
@@ -165,13 +166,14 @@ const DispatchBottomSheet: React.FC<Props> = ({ dispatchLog, availableOfficers, 
 
               {/* Officer Selection (Multi) */}
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">Officers in Charge (Dispatched)</label>
+                <label htmlFor="officerSelect" className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">Officers in Charge (Dispatched)</label>
                 
                 {/* Add Officer Input */}
                 <div className="flex space-x-2 mb-3">
                     <div className="relative flex-1">
                         <UserCircle className="absolute left-3 top-3.5 text-gray-400" size={20}/>
                         <select
+                            id="officerSelect"
                             value={currentOfficerSelect}
                             onChange={(e) => setCurrentOfficerSelect(e.target.value)}
                             className="w-full bg-gray-100/50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-2xl pl-10 pr-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-gray-800 dark:text-white"

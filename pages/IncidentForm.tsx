@@ -120,8 +120,9 @@ const IncidentForm: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em] mb-2 ml-1">Type of Problem (Uri)</label>
+                <label htmlFor="incidentType" className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em] mb-2 ml-1">Type of Problem (Uri)</label>
                 <select
+                  id="incidentType"
                   className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-slate-500/20 outline-none transition-all font-medium text-slate-800 dark:text-white"
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as IncidentType })}
@@ -137,8 +138,9 @@ const IncidentForm: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em] mb-2 ml-1">Location (Lugar)</label>
+                <label htmlFor="location" className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em] mb-2 ml-1">Location (Lugar)</label>
                 <input
+                  id="location"
                   type="text"
                   className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-slate-500/20 outline-none text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   value={formData.location}
@@ -148,8 +150,9 @@ const IncidentForm: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2 ml-1">Action Taken</label>
+                <label htmlFor="actionTaken" className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2 ml-1">Action Taken</label>
                 <select
+                  id="actionTaken"
                   className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-slate-500/20 outline-none text-slate-800 dark:text-white"
                   value={formData.status}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, status: e.target.value as IncidentStatus })}
@@ -187,8 +190,9 @@ const IncidentForm: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2 ml-1">Narrative (Salaysay)</label>
+              <label htmlFor="narrative" className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2 ml-1">Narrative (Salaysay)</label>
               <textarea
+                id="narrative"
                 className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 h-40 focus:ring-2 focus:ring-slate-500/20 outline-none resize-none font-normal leading-relaxed text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 value={formData.narrative}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, narrative: e.target.value })}
@@ -242,8 +246,9 @@ const IncidentForm: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <div className="md:col-span-4">
-                      <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Full Name</label>
+                      <label htmlFor={`party-name-${idx}`} className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Full Name</label>
                       <input
+                        id={`party-name-${idx}`}
                         type="text"
                         value={party.name}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePartyChange(idx, 'name', e.target.value)}
@@ -252,8 +257,9 @@ const IncidentForm: React.FC = () => {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Age</label>
+                      <label htmlFor={`party-age-${idx}`} className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Age</label>
                       <input
+                        id={`party-age-${idx}`}
                         type="number"
                         value={party.age || ''}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePartyChange(idx, 'age', parseInt(e.target.value))}
@@ -261,8 +267,9 @@ const IncidentForm: React.FC = () => {
                       />
                     </div>
                     <div className="md:col-span-3">
-                      <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Role</label>
+                      <label htmlFor={`party-role-${idx}`} className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Role</label>
                       <select
+                        id={`party-role-${idx}`}
                         value={party.role}
                         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handlePartyChange(idx, 'role', e.target.value)}
                         className="w-full bg-white/80 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-slate-800 dark:text-white"
@@ -275,8 +282,9 @@ const IncidentForm: React.FC = () => {
                       </select>
                     </div>
                     <div className="md:col-span-3">
-                      <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Contact #</label>
+                      <label htmlFor={`party-contact-${idx}`} className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Contact #</label>
                       <input
+                        id={`party-contact-${idx}`}
                         type="text"
                         value={party.contact_info || ''}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePartyChange(idx, 'contact_info', e.target.value)}
@@ -285,8 +293,9 @@ const IncidentForm: React.FC = () => {
                       />
                     </div>
                     <div className="md:col-span-12">
-                      <label className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Statement / Remarks</label>
+                      <label htmlFor={`party-statement-${idx}`} className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase mb-1 block">Statement / Remarks</label>
                       <input
+                        id={`party-statement-${idx}`}
                         type="text"
                         value={party.statement}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePartyChange(idx, 'statement', e.target.value)}

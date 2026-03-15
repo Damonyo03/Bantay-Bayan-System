@@ -196,6 +196,7 @@ const Login: React.FC = () => {
                     <form onSubmit={handleMfaVerify} className="space-y-6">
                         <div>
                             <input
+                                id="mfaCode"
                                 type="text"
                                 maxLength={6}
                                 autoFocus
@@ -272,10 +273,11 @@ const Login: React.FC = () => {
 
                             <form onSubmit={handleRegister} className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
+                                    <label htmlFor="regFullName" className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                         <input
+                                            id="regFullName"
                                             type="text"
                                             required
                                             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
@@ -288,10 +290,11 @@ const Login: React.FC = () => {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
+                                        <label htmlFor="regUsername" className="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
                                         <div className="relative">
                                             <Fingerprint className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                             <input
+                                                id="regUsername"
                                                 type="text"
                                                 required
                                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
@@ -302,10 +305,11 @@ const Login: React.FC = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                                        <label htmlFor="regEmail" className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                             <input
+                                                id="regEmail"
                                                 type="email"
                                                 required
                                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
@@ -320,10 +324,11 @@ const Login: React.FC = () => {
                                 <hr className="border-gray-100 my-2" />
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
+                                    <label htmlFor="regPassword" className="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                         <input
+                                            id="regPassword"
                                             type={showRegPassword ? "text" : "password"}
                                             required
                                             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-12 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
@@ -342,10 +347,11 @@ const Login: React.FC = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Confirm Password</label>
+                                    <label htmlFor="regConfirmPassword" className="block text-xs font-bold text-slate-500 uppercase mb-1">Confirm Password</label>
                                     <div className="relative">
                                         <CheckCircle className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                         <input
+                                            id="regConfirmPassword"
                                             type={showConfirmPassword ? "text" : "password"}
                                             required
                                             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-12 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800"
@@ -409,10 +415,11 @@ const Login: React.FC = () => {
 
                 <form onSubmit={handleLogin} className="space-y-5">
                     <div className="group">
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1 group-focus-within:text-taguig-blue transition-colors">Credential Entry</label>
+                        <label htmlFor="loginIdentifier" className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1 group-focus-within:text-taguig-blue transition-colors">Credential Entry</label>
                         <div className="relative">
                             <User className="absolute left-4 top-4 text-slate-400 w-5 h-5 group-focus-within:text-taguig-blue transition-colors" />
                             <input
+                                id="loginIdentifier"
                                 type="text"
                                 required
                                 value={identifier}
@@ -425,7 +432,7 @@ const Login: React.FC = () => {
 
                     <div className="group">
                         <div className="flex justify-between items-center mb-2 ml-1">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-focus-within:text-taguig-blue transition-colors">Security Key</label>
+                            <label htmlFor="loginPassword" className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-focus-within:text-taguig-blue transition-colors">Security Key</label>
                             <button
                                 type="button"
                                 onClick={() => setView('forgot')}
@@ -437,6 +444,7 @@ const Login: React.FC = () => {
                         <div className="relative">
                             <Lock className="absolute left-4 top-4 text-slate-400 w-5 h-5 group-focus-within:text-taguig-blue transition-colors" />
                             <input
+                                id="loginPassword"
                                 type={showPassword ? "text" : "password"}
                                 required
                                 value={password}
@@ -507,10 +515,11 @@ const Login: React.FC = () => {
 
                                             <form onSubmit={handleFindAccount} className="space-y-6">
                                                 <div>
-                                                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2 ml-1">Username / Email</label>
+                                                    <label htmlFor="resetIdentifier" className="block text-xs font-bold text-gray-400 uppercase mb-2 ml-1">Username / Email</label>
                                                     <div className="relative">
                                                         <User className="absolute left-4 top-3.5 text-slate-400" size={20} />
                                                         <input
+                                                            id="resetIdentifier"
                                                             required
                                                             autoFocus
                                                             type="text"

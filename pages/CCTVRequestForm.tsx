@@ -155,31 +155,31 @@ const CCTVRequestForm: React.FC = () => {
                     <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Requester Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                         <div className="md:col-span-5">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Last Name</label>
-                            <input type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.lastName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('lastName', e.target.value)} />
+                            <label htmlFor="lastName" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Last Name</label>
+                            <input id="lastName" type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.lastName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('lastName', e.target.value)} />
                         </div>
                         <div className="md:col-span-5">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">First Name</label>
-                            <input type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.firstName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('firstName', e.target.value)} />
+                            <label htmlFor="firstName" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">First Name</label>
+                            <input id="firstName" type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.firstName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('firstName', e.target.value)} />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">M.I.</label>
-                            <input type="text" maxLength={2} className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.middleInitial} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('middleInitial', e.target.value)} />
+                            <label htmlFor="middleInitial" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">M.I.</label>
+                            <input id="middleInitial" type="text" maxLength={2} className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.middleInitial} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('middleInitial', e.target.value)} />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div className="md:col-span-1">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">House No. & Street</label>
-                            <input type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.street} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('street', e.target.value)} />
+                            <label htmlFor="street" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">House No. & Street</label>
+                            <input id="street" type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.street} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('street', e.target.value)} />
                         </div>
                         <div className="flex gap-2">
                             <div className="flex-1">
-                                <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Barangay</label>
-                                <input type="text" className="w-full bg-gray-100 dark:bg-slate-800 border border-gray-200 rounded-xl py-3 px-4 text-gray-500" value={formData.barangay} readOnly />
+                                <label htmlFor="barangay" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Barangay</label>
+                                <input id="barangay" type="text" className="w-full bg-gray-100 dark:bg-slate-800 border border-gray-200 rounded-xl py-3 px-4 text-gray-500" value={formData.barangay} readOnly />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">City</label>
-                                <input type="text" className="w-full bg-gray-100 dark:bg-slate-800 border border-gray-200 rounded-xl py-3 px-4 text-gray-500" value={formData.city} readOnly />
+                                <label htmlFor="city" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">City</label>
+                                <input id="city" type="text" className="w-full bg-gray-100 dark:bg-slate-800 border border-gray-200 rounded-xl py-3 px-4 text-gray-500" value={formData.city} readOnly />
                             </div>
                         </div>
                     </div>
@@ -196,8 +196,8 @@ const CCTVRequestForm: React.FC = () => {
                         ))}
                     </div>
                     <div className="mt-4">
-                        <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Others (Specify)</label>
-                        <input type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.others} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('others', e.target.value)} />
+                        <label htmlFor="othersInput" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Others (Specify)</label>
+                        <input id="othersInput" type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.others} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('others', e.target.value)} />
                     </div>
                 </section>
 
@@ -205,26 +205,26 @@ const CCTVRequestForm: React.FC = () => {
                     <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Incident Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Date of Incident</label>
+                            <label htmlFor="dateOfIncident" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Date of Incident</label>
                             <div className="relative" onClick={(e) => openPicker(e, dateInputRef)}>
                                 <Calendar className="absolute left-3 top-3.5 text-slate-600 dark:text-gray-400 pointer-events-none" size={18} />
-                                <input ref={dateInputRef} type="date" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white font-medium cursor-pointer" value={formData.dateOfIncident} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('dateOfIncident', e.target.value)} />
+                                <input id="dateOfIncident" ref={dateInputRef} type="date" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white font-medium cursor-pointer" value={formData.dateOfIncident} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('dateOfIncident', e.target.value)} />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Time of Incident</label>
+                            <label htmlFor="timeOfIncident" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Time of Incident</label>
                             <div className="relative" onClick={(e) => openPicker(e, timeInputRef)}>
                                 <Clock className="absolute left-3 top-3.5 text-slate-600 dark:text-gray-400 pointer-events-none" size={18} />
-                                <input ref={timeInputRef} type="time" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white font-medium cursor-pointer" value={formData.timeOfIncident} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('timeOfIncident', e.target.value)} />
+                                <input id="timeOfIncident" ref={timeInputRef} type="time" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white font-medium cursor-pointer" value={formData.timeOfIncident} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('timeOfIncident', e.target.value)} />
                             </div>
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Place of Incident</label>
-                            <input type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.placeOfIncident} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('placeOfIncident', e.target.value)} />
+                            <label htmlFor="placeOfIncident" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Place of Incident</label>
+                            <input id="placeOfIncident" type="text" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 dark:text-white" value={formData.placeOfIncident} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('placeOfIncident', e.target.value)} />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Purpose of Request</label>
-                            <textarea className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 h-24 resize-none text-slate-800 dark:text-white" value={formData.purpose} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange('purpose', e.target.value)} />
+                            <label htmlFor="purposeOfRequest" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1 ml-1">Purpose of Request</label>
+                            <textarea id="purposeOfRequest" className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-red-500/20 h-24 resize-none text-slate-800 dark:text-white" value={formData.purpose} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange('purpose', e.target.value)} />
                         </div>
                     </div>
                 </section>
