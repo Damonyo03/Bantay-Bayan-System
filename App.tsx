@@ -256,8 +256,8 @@ const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     return (
         <div className="min-h-screen flex bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-taguig-blue/20 selection:text-taguig-blue overflow-x-hidden">
             <Sidebar />
-            <div className="flex-1 flex flex-col min-w-0">
-                <main className="flex-1 pb-24 md:pb-8 ml-0 md:ml-64 transition-all duration-300 pt-safe">
+            <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-900">
+                <main className="flex-1 pb-24 md:pb-8 transition-all duration-300 pt-safe">
                     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-10">
                         {children}
                     </div>

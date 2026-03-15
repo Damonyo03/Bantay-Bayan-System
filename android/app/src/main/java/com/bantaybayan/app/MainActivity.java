@@ -138,17 +138,30 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public void printBlob(String base64Data, String jobName) {
             try {
+                // Ensure data is clean
+                if (base64Data == null || base64Data.isEmpty()) {
+                    runOnUiThread(() -> Toast.makeText(context, "Print Error: No data received", Toast.LENGTH_SHORT).show());
+                    return;
+                }
+
+                // Remove anything that isn't base64 (e.g. data:application/pdf;base64,) if wrongly passed
+                if (base64Data.contains(",")) {
+                    base64Data = base64Data.split(",")[1];
+                }
+
                 byte[] pdfAsBytes = Base64.decode(base64Data, Base64.DEFAULT);
-                File dwldDir = context.getExternalCacheDir();
-                File file = new File(dwldDir, jobName + ".pdf");
+                File cacheDir = context.getExternalCacheDir();
+                final String finalJobName = (jobName != null && !jobName.isEmpty()) ? jobName : "BantayBayan_Report";
+                final File file = new File(cacheDir, finalJobName + ".pdf");
                 
                 FileOutputStream os = new FileOutputStream(file, false);
                 os.write(pdfAsBytes);
                 os.flush();
                 os.close();
 
+                runOnUiThread(() -> Toast.makeText(context, "Preparing print: " + finalJobName, Toast.LENGTH_SHORT).show());
+
                 PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
-                String jobNameEscaped = jobName != null ? jobName : "Bantay Bayan Document";
                 PrintDocumentAdapter pda = new PrintDocumentAdapter() {
                     @Override
                     public void onWrite(PageRange[] pages, android.os.ParcelFileDescriptor destination, android.os.CancellationSignal cancellationSignal, WriteResultCallback callback) {
@@ -177,18 +190,26 @@ public class MainActivity extends BridgeActivity {
                             callback.onLayoutCancelled();
                             return;
                         }
-                        PrintDocumentInfo pdi = new PrintDocumentInfo.Builder(jobNameEscaped)
+                        PrintDocumentInfo pdi = new PrintDocumentInfo.Builder(finalJobName + ".pdf")
                                 .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
                                 .build();
                         callback.onLayoutFinished(pdi, true);
                     }
+
+                    @Override
+                    public void onFinish() {
+                        super.onFinish();
+                        // Optional: Clean up cache file after printing
+                        // if (file.exists()) file.delete();
+                    }
                 };
                 
-                printManager.print(jobNameEscaped, pda, new PrintAttributes.Builder().build());
+                printManager.print(finalJobName, pda, new PrintAttributes.Builder().build());
 
             } catch (Exception e) {
                 e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(context, "Error printing PDF", Toast.LENGTH_SHORT).show());
+                final String errorMessage = e.getMessage();
+                runOnUiThread(() -> Toast.makeText(context, "Print Runtime Error: " + errorMessage, Toast.LENGTH_LONG).show());
             }
         }
     }
