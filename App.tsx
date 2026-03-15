@@ -251,6 +251,19 @@ const UpdatePasswordPage: React.FC = () => {
     );
 };
 
+const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    return (
+        <div className="min-h-screen text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-taguig-blue/20 selection:text-taguig-blue">
+            <Sidebar />
+            <main className="pb-24 md:pb-8 md:pl-64 transition-all duration-300 pt-safe">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-10">
+                    {children}
+                </div>
+            </main>
+        </div>
+    );
+};
+
 const AppContent: React.FC = () => {
     const { user, isLoading } = useAuth();
 
@@ -262,40 +275,35 @@ const AppContent: React.FC = () => {
         );
     }
 
-    if (!user) {
-        return (
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/update-password" element={<UpdatePasswordPage />} />
-                <Route path="*" element={<Navigate to="/login" />} />
-            </Routes>
-        );
-    }
-
     return (
-        <div className="min-h-screen text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-taguig-blue/20 selection:text-taguig-blue">
-            <Sidebar />
-            <main className="pb-24 md:pb-8 md:pl-64 transition-all duration-300 pt-safe">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-10">
-                    <Routes>
-                        <Route path="/" element={<ProtectedRoute><CommandCenter /></ProtectedRoute>} />
-                        <Route path="/report" element={<ProtectedRoute><IncidentForm /></ProtectedRoute>} />
-                        <Route path="/cctv-request" element={<ProtectedRoute><CCTVRequestForm /></ProtectedRoute>} />
-                        <Route path="/resources" element={<ProtectedRoute><ResourceTracking /></ProtectedRoute>} />
-                        <Route path="/resources/new" element={<ProtectedRoute><ResourceForm /></ProtectedRoute>} />
-                        <Route path="/archives" element={<ProtectedRoute><ResolvedCases /></ProtectedRoute>} />
-                        <Route path="/restricted" element={<ProtectedRoute><RestrictedPersons /></ProtectedRoute>} />
-                        <Route path="/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
-                        <Route path="/audit-logs" element={<ProtectedRoute requiredRole="supervisor"><AuditLogs /></ProtectedRoute>} />
-                        <Route path="/guidelines" element={<ProtectedRoute><SystemGuidelines /></ProtectedRoute>} />
-                        <Route path="/download-forms" element={<ProtectedRoute><DownloadForms /></ProtectedRoute>} />
-                        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                        <Route path="/update-password" element={<UpdatePasswordPage />} />
-                        <Route path="*" element={<Navigate to="/" />} />
-                    </Routes>
-                </div>
-            </main>
-        </div>
+        <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
+            <Route path="/update-password" element={<UpdatePasswordPage />} />
+            
+            {/* Protected Routes encapsulated in PrivateLayout */}
+            <Route path="/*" element={
+                <ProtectedRoute>
+                    <PrivateLayout>
+                        <Routes>
+                            <Route path="/" element={<CommandCenter />} />
+                            <Route path="/report" element={<IncidentForm />} />
+                            <Route path="/cctv-request" element={<CCTVRequestForm />} />
+                            <Route path="/resources" element={<ResourceTracking />} />
+                            <Route path="/resources/new" element={<ResourceForm />} />
+                            <Route path="/archives" element={<ResolvedCases />} />
+                            <Route path="/restricted" element={<RestrictedPersons />} />
+                            <Route path="/users" element={<UserManagement />} />
+                            <Route path="/audit-logs" element={<ProtectedRoute requiredRole="supervisor"><AuditLogs /></ProtectedRoute>} />
+                            <Route path="/guidelines" element={<SystemGuidelines />} />
+                            <Route path="/download-forms" element={<DownloadForms />} />
+                            <Route path="/settings" element={<Settings />} />
+                            <Route path="*" element={<Navigate to="/" />} />
+                        </Routes>
+                    </PrivateLayout>
+                </ProtectedRoute>
+            } />
+        </Routes>
     );
 }
 
