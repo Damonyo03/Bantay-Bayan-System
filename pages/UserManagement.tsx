@@ -826,17 +826,22 @@ const UserManagement: React.FC = () => {
                                                             </td>
                                                             <td className="p-5">
                                                                 {canEditRole(rowUser.role) ? (
-                                                                    <select
-                                                                        value={rowUser.role}
-                                                                        onChange={(e) => handleRoleChange(rowUser.id, e.target.value)}
-                                                                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 text-slate-700 dark:text-slate-300 transition-colors shadow-sm"
-                                                                    >
-                                                                        {getAvailableRoles().map((roleOption) => (
-                                                                            <option key={roleOption.id} value={roleOption.id}>
-                                                                                {roleOption.label}
-                                                                            </option>
-                                                                        ))}
-                                                                    </select>
+                                                                    <div className="relative group/role min-w-[140px]">
+                                                                        <select
+                                                                            value={rowUser.role}
+                                                                            onChange={(e) => handleRoleChange(rowUser.id, e.target.value)}
+                                                                            className="appearance-none w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold uppercase tracking-wider rounded-xl py-2.5 px-4 pr-10 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-taguig-blue/20 outline-none transition-all cursor-pointer hover:border-taguig-blue/50"
+                                                                        >
+                                                                            {getAvailableRoles().map((roleOption) => (
+                                                                                <option key={roleOption.id} value={roleOption.id} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white py-2">
+                                                                                    {roleOption.label}
+                                                                                </option>
+                                                                            ))}
+                                                                        </select>
+                                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover/role:text-taguig-blue transition-colors">
+                                                                            <ChevronDown size={14} />
+                                                                        </div>
+                                                                    </div>
                                                                 ) : (
                                                                     <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${rowUser.role.includes('barangay')
                                                                         ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800'
@@ -1485,19 +1490,24 @@ const UserManagement: React.FC = () => {
                                             placeholder="jdelacruz"
                                         />
                                     </div>
-                                    <div>
+                                    <div className="space-y-3 relative group/role">
                                         <label htmlFor="newRole" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Access Role</label>
-                                        <select
-                                            id="newRole"
-                                            className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold font-display"
-                                            value={newUser.role}
-                                            onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                                        >
-                                            <option value="bantay_bayan">Bantay Bayan</option>
-                                            <option value="resident">Resident</option>
-                                            <option value="guest">Guest</option>
-                                            <option value="supervisor">Brgy. Official (Admin)</option>
-                                        </select>
+                                        <div className="relative">
+                                            <select
+                                                id="newRole"
+                                                className="appearance-none w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 pr-12 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold font-display cursor-pointer"
+                                                value={newUser.role}
+                                                onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                                            >
+                                                <option value="bantay_bayan" className="bg-white dark:bg-slate-800">Bantay Bayan</option>
+                                                <option value="resident" className="bg-white dark:bg-slate-800">Resident</option>
+                                                <option value="guest" className="bg-white dark:bg-slate-800">Guest</option>
+                                                <option value="supervisor" className="bg-white dark:bg-slate-800">Brgy. Official (Admin)</option>
+                                            </select>
+                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover/role:text-taguig-blue transition-colors">
+                                                <ChevronDown size={18} />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
