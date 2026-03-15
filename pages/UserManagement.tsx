@@ -470,7 +470,7 @@ const UserManagement: React.FC = () => {
             username: '',
             password: '',
             fullName: '',
-            role: 'field_operator',
+            role: 'bantay_bayan',
         });
         setIsModalOpen(true);
     };
@@ -631,7 +631,7 @@ const UserManagement: React.FC = () => {
 
             showToast("Account created successfully. User is Pending approval.", "success");
             setIsModalOpen(false);
-            setNewUser({ email: '', username: '', password: '', fullName: '', role: 'field_operator' });
+            setNewUser({ email: '', username: '', password: '', fullName: '', role: 'bantay_bayan' });
             setActiveTab('pending');
             // Update list immediately
             fetchUsers();
@@ -672,9 +672,12 @@ const UserManagement: React.FC = () => {
 
         if (isSupremeAdmin()) {
             return allRoles;
-        } else {
-            // High-Level Admins (Secretary/Kagawad) cannot assign 'Barangay Captain'
+        } else if (user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad') {
+            // High-Level Admins cannot assign 'Barangay Captain'
             return allRoles.filter(role => role.id !== 'barangay_captain');
+        } else {
+            // Supervisors and others (though UI should hide it) can see minimal roles
+            return allRoles.filter(role => ['supervisor', 'bantay_bayan', 'resident', 'guest'].includes(role.id));
         }
     };
 
@@ -1490,7 +1493,9 @@ const UserManagement: React.FC = () => {
                                             value={newUser.role}
                                             onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                                         >
-                                            <option value="field_operator">Field Operator (Personnel)</option>
+                                            <option value="bantay_bayan">Bantay Bayan</option>
+                                            <option value="resident">Resident</option>
+                                            <option value="guest">Guest</option>
                                             <option value="supervisor">Brgy. Official (Admin)</option>
                                         </select>
                                     </div>

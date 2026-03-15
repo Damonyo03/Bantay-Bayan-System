@@ -67,7 +67,7 @@ export const userService = {
             email,
             password,
             options: {
-                data: { full_name: fullName, username: username, role: 'field_operator', status: 'inactive' }
+                data: { full_name: fullName, username: username, role: 'bantay_bayan', status: 'inactive' }
             }
         });
         if (error) throw error;

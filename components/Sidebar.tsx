@@ -23,8 +23,8 @@ const Sidebar: React.FC = () => {
   const isStaff = isBantayBayan || isSupervisor || isHighLevelAdmin();
 
   const navItems = [
-    { icon: LayoutDashboard, label: t.dashboard, path: '/', visible: !isGuest && !isResident },
-    { icon: Globe, label: 'Landing Page', path: '/landing', visible: true }, // Hypothetical landing page or home
+    { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: !isGuest && !isResident },
+    { icon: Globe, label: 'Landing Page', path: '/landing', visible: true },
     { icon: FileText, label: t.blotter, path: '/report', visible: !isGuest },
     { icon: Video, label: 'CCTV Request', path: '/cctv-request', visible: !isGuest },
     { icon: Package, label: t.resources, path: '/resources', visible: !isGuest },
