@@ -43,7 +43,7 @@ const Sidebar: React.FC = () => {
 
   // --- DESKTOP SIDEBAR ---
   const DesktopSidebar = (
-    <div className="hidden md:flex w-64 glass-sidebar h-screen fixed left-0 top-0 flex-col p-4 z-40">
+    <div className="hidden md:flex w-64 glass-sidebar h-screen sticky top-0 flex-col p-4 z-40">
       {/* Branding */}
       <div className="mb-8 px-1 mt-4">
         <div className="flex items-center justify-center mb-4 space-x-2">

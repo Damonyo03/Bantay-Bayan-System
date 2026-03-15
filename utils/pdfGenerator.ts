@@ -64,6 +64,7 @@ const savePdf = async (doc: jsPDF, fileName: string) => {
 
             // Use our custom Native Print implementation if available
             if ((window as any).AndroidBlobDownloader && (window as any).AndroidBlobDownloader.printBlob) {
+                console.log('Invoking native AndroidBlobDownloader.printBlob for:', fileName);
                 (window as any).AndroidBlobDownloader.printBlob(base64Data, fileName.replace('.pdf', ''));
                 return;
             }
