@@ -116,13 +116,11 @@ const LandingPage: React.FC = () => {
                                             icon={Mail}
                                             label="Official Email"
                                             value="barangaypostpropernorthside@gmail.com"
-                                            href="mailto:barangaypostpropernorthside@gmail.com"
                                         />
                                         <ContactCard 
                                             icon={FileText}
                                             label="Tel./Fax Numbers"
                                             value="8710-6711 / 8788-1764"
-                                            href="tel:87106711"
                                         />
                                         
                                         <div className="pt-6 border-t border-slate-100 dark:border-white/5 space-y-4">
@@ -373,8 +371,8 @@ const OrgMember: React.FC<{ role: string, name: string, desc?: string, isLeader?
 
 );
 
-const ContactCard: React.FC<{ icon: any, label: string, value: string, href: string }> = ({ icon: Icon, label, value, href }) => (
-    <a href={href} className="group p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-taguig-blue/50 dark:hover:border-taguig-gold/50 transition-all shadow-sm">
+const ContactCard: React.FC<{ icon: any, label: string, value: string }> = ({ icon: Icon, label, value }) => (
+    <div className="p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 transition-all shadow-sm">
         <div className="flex items-center space-x-4">
             <div className="p-3 bg-white dark:bg-slate-800 rounded-xl text-slate-400 group-hover:text-taguig-blue dark:group-hover:text-taguig-gold transition-colors">
                 <Icon size={20} />
@@ -384,14 +382,14 @@ const ContactCard: React.FC<{ icon: any, label: string, value: string, href: str
                 <p className="text-sm font-bold text-slate-900 dark:text-white truncate lg:max-w-xs">{value}</p>
             </div>
         </div>
-    </a>
+    </div>
 );
 
 const HotlineButton: React.FC<{ label: string, number: string }> = ({ label, number }) => (
-    <a href={`tel:${number.replace(/-/g, '')}`} className="flex flex-col p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-2xl hover:bg-taguig-blue hover:text-white transition-all group shadow-sm">
-        <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest group-hover:text-white/70 mb-1">{label}</span>
+    <div className="flex flex-col p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-2xl transition-all shadow-sm">
+        <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{label}</span>
         <span className="text-xs font-black tracking-tight">{number}</span>
-    </a>
+    </div>
 );
 
 export default LandingPage;

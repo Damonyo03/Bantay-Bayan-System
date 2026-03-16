@@ -464,7 +464,7 @@ const ViewContainer: React.FC<{ children: React.ReactNode, title: string, subtit
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
             <Background />
-            <div className="w-full max-w-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3rem] p-8 sm:p-12 shadow-premium relative z-10 animate-fade-in transition-colors duration-500">
+            <div className="w-full max-w-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3rem] p-8 sm:p-12 shadow-premium relative z-10 transition-colors duration-500">
                 <div className="flex flex-col items-center mb-10 text-center">
                     {Icon ? (
                         <div className="p-4 bg-taguig-blue/10 dark:bg-taguig-gold/10 rounded-2xl text-taguig-blue dark:text-taguig-gold mb-6 animate-pulse">
