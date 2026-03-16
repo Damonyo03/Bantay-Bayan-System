@@ -30,10 +30,10 @@ const LandingPage: React.FC = () => {
             {/* Top Navigation Bar */}
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-6 py-3 transition-colors duration-500">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center space-x-4 group cursor-pointer">
-                        <div className="flex items-center -space-x-2">
-                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-12 w-auto drop-shadow-md z-20 group-hover:scale-110 transition-transform" />
-                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-10 w-auto drop-shadow-md z-10 opacity-80" />
+                    <div className="flex items-center space-x-3 group cursor-pointer">
+                        <div className="flex items-center space-x-2">
+                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-14 w-auto drop-shadow-md group-hover:scale-110 transition-transform" />
+                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-14 w-auto drop-shadow-md opacity-90" />
                         </div>
                         <div className="hidden sm:block border-l border-slate-200 dark:border-white/10 pl-4">
                             <h1 className="text-xl font-black text-taguig-blue dark:text-white uppercase italic leading-none tracking-tight">Bantay Bayan</h1>
@@ -60,79 +60,75 @@ const LandingPage: React.FC = () => {
                 </div>
             </nav>
 
-            {/* Hero Section with Emergency Hotlines */}
             <section id="about" className="pt-32 pb-24 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
-                        {/* Left Content */}
-                        <div className="lg:col-span-7 space-y-10 animate-fade-in">
-                            <div className="inline-flex items-center px-4 py-2 bg-taguig-blue/5 dark:bg-taguig-gold/5 border border-taguig-blue/10 dark:border-taguig-gold/20 rounded-full text-taguig-blue dark:text-taguig-gold text-[10px] font-black uppercase tracking-[0.2em]">
-                                <Shield size={14} className="mr-2" />
-                                Official Public Information Portal
-                            </div>
-                            
-                            <h2 className="text-5xl md:text-8xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic leading-[0.9]">
-                                Securing the <br />
-                                <span className="text-taguig-blue dark:text-taguig-gold">Post Proper</span> <br />
-                                Northside
-                            </h2>
+                <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
+                    <div className="space-y-10 animate-fade-in flex flex-col items-center max-w-4xl">
+                        <div className="inline-flex items-center px-4 py-2 bg-taguig-blue/5 dark:bg-taguig-gold/5 border border-taguig-blue/10 dark:border-taguig-gold/20 rounded-full text-taguig-blue dark:text-taguig-gold text-[10px] font-black uppercase tracking-[0.2em]">
+                            <Shield size={14} className="mr-2" />
+                            Official Public Information Portal
+                        </div>
+                        
+                        <h2 className="text-5xl md:text-8xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic leading-[0.9]">
+                            Securing the <br />
+                            <span className="text-taguig-blue dark:text-taguig-gold">Post Proper</span> <br />
+                            Northside
+                        </h2>
 
-                            <div className="space-y-6 text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-2xl">
-                                <p>
-                                    Welcome to the official Unified Security and Incident Response Management gateway for 
-                                    Barangay Post Proper Northside. We are dedicated to maintaining peace, order, and 
-                                    safety for all residents and visitors within the Bonifacio Global City district.
-                                </p>
-                            </div>
-
-                            <div className="flex flex-wrap gap-4 pt-4">
-                                <a href="#hotlines" className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl flex items-center">
-                                    <Bell size={16} className="mr-3 text-taguig-gold" />
-                                    Emergency Hotlines
-                                </a>
-                                <a href="#team" className="px-10 py-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-xl flex items-center">
-                                    <span>Leadership Chart</span>
-                                </a>
-                            </div>
+                        <div className="space-y-6 text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-2xl">
+                            <p>
+                                Welcome to the official Unified Security and Incident Response Management gateway for 
+                                Barangay Post Proper Northside. We are dedicated to maintaining peace, order, and 
+                                safety for all residents and visitors within the Bonifacio Global City district.
+                            </p>
                         </div>
 
-                        {/* Right Content: Primary Contact Card */}
-                        <div id="hotlines" className="lg:col-span-5 relative animate-fade-in delay-200">
-                            <div className="absolute inset-0 bg-taguig-blue/10 dark:bg-taguig-gold/5 blur-[120px] rounded-full"></div>
-                            <div className="relative bg-white/70 dark:bg-slate-900/80 backdrop-blur-3xl p-8 sm:p-10 rounded-[3rem] border border-white dark:border-white/10 shadow-premium">
-                                <div className="space-y-8">
-                                    <div className="flex items-center space-x-4 mb-6">
-                                        <div className="p-4 bg-red-500 rounded-2xl text-white shadow-lg shadow-red-500/30 animate-pulse">
-                                            <Smartphone size={24} />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">Emergency Center</h3>
-                                            <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">24/7 Rapid Response</p>
-                                        </div>
-                                    </div>
+                        <div className="flex flex-wrap justify-center gap-4 pt-4">
+                            <a href="#hotlines" className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl flex items-center">
+                                <Bell size={16} className="mr-3 text-taguig-gold" />
+                                Emergency Hotlines
+                            </a>
+                            <a href="#team" className="px-10 py-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-xl flex items-center">
+                                <span>Leadership Chart</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <ContactCard 
-                                            icon={Mail}
-                                            label="Official Email"
-                                            value="barangaypostpropernorthside@gmail.com"
-                                        />
-                                        <ContactCard 
-                                            icon={FileText}
-                                            label="Tel./Fax Numbers"
-                                            value="8710-6711 / 8788-1764"
-                                        />
-                                        
-                                        <div className="pt-6 border-t border-slate-100 dark:border-white/5 space-y-4">
-                                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">Dispatcher Unit Hotlines</p>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <HotlineButton label="Bantay Bayan 1" number="0917-810-6711" />
-                                                <HotlineButton label="Bantay Bayan 2" number="0917-811-6711" />
-                                                <HotlineButton label="Rescue Unit" number="0917-812-6711" />
-                                                <HotlineButton label="Office Admin" number="0917-813-6711" />
-                                            </div>
-                                        </div>
-                                    </div>
+            {/* Emergency & Contact Hotlines Section (Full Width Centered) */}
+            <section id="hotlines" className="pb-24 px-6 animate-fade-in delay-200">
+                <div className="max-w-4xl mx-auto relative content-center">
+                    <div className="absolute inset-0 bg-taguig-blue/10 dark:bg-taguig-gold/5 blur-[120px] rounded-full"></div>
+                    <div className="relative bg-white/70 dark:bg-slate-900/80 backdrop-blur-3xl p-8 sm:p-12 rounded-[3.5rem] border border-white dark:border-white/10 shadow-premium flex flex-col items-center">
+                        <div className="w-full">
+                            <div className="flex flex-col items-center mb-10 text-center">
+                                <div className="p-5 bg-red-500 rounded-3xl text-white shadow-xl shadow-red-500/30 animate-pulse mb-6">
+                                    <Smartphone size={32} />
+                                </div>
+                                <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">Emergency Center</h3>
+                                <p className="text-[12px] font-bold text-red-500 uppercase tracking-widest mt-2">24/7 Rapid Response Unit</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                                <ContactCard 
+                                    icon={Mail}
+                                    label="Official Email"
+                                    value="barangaypostpropernorthside@gmail.com"
+                                />
+                                <ContactCard 
+                                    icon={FileText}
+                                    label="Tel./Fax Numbers"
+                                    value="8710-6711 / 8788-1764"
+                                />
+                            </div>
+                            
+                            <div className="pt-10 border-t border-slate-100 dark:border-white/5 space-y-6 flex flex-col items-center">
+                                <p className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Dispatcher Unit Hotlines</p>
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                                    <HotlineButton label="Bantay Bayan 1" number="0917-810-6711" />
+                                    <HotlineButton label="Bantay Bayan 2" number="0917-811-6711" />
+                                    <HotlineButton label="Rescue Unit" number="0917-812-6711" />
+                                    <HotlineButton label="Office Admin" number="0917-813-6711" />
                                 </div>
                             </div>
                         </div>
@@ -283,9 +279,9 @@ const LandingPage: React.FC = () => {
             <footer className="py-20 bg-slate-900 dark:bg-black text-white px-6">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 text-center md:text-left">
                     <div className="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
-                        <div className="flex items-center space-x-3">
-                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-14 w-auto" />
-                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-14 w-auto" />
+                        <div className="flex items-center space-x-4">
+                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-16 w-auto" />
+                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-16 w-auto opacity-80" />
                         </div>
                         <div className="md:border-l border-white/10 md:pl-8 space-y-1">
                             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-taguig-gold">City of Taguig</h3>
@@ -296,9 +292,9 @@ const LandingPage: React.FC = () => {
                     <div className="space-y-4 md:text-right">
                         <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">BMS Command Interface © 2026</p>
                         <div className="flex flex-wrap justify-center md:justify-end gap-6 text-[9px] font-black text-white/20 uppercase tracking-widest">
-                            <a href="#" className="hover:text-taguig-gold transition-colors">Safety Code</a>
-                            <a href="#" className="hover:text-taguig-gold transition-colors">Privacy</a>
-                            <a href="#" className="hover:text-taguig-gold transition-colors">Sitemap</a>
+                            <a href="#about" className="hover:text-taguig-gold transition-colors">Safety Code</a>
+                            <a href="#about" className="hover:text-taguig-gold transition-colors">Privacy</a>
+                            <a href="#about" className="hover:text-taguig-gold transition-colors">Sitemap</a>
                         </div>
                     </div>
                 </div>
@@ -350,9 +346,9 @@ const NoticeItem: React.FC<{ date: string, type: string, title: string, desc: st
             <h4 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic leading-tight">{title}</h4>
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{desc}</p>
         </div>
-        <button className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-taguig-blue transition-colors flex-shrink-0">
+        <Link to="/login" className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-taguig-blue transition-colors flex-shrink-0">
             <Info size={24} />
-        </button>
+        </Link>
     </div>
 );
 
