@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 import { supabase } from '../lib/supabaseClient';
 import { useTheme } from '../contexts/ThemeContext';
+import { UserProfile, UserRole } from '../types';
 import { 
     Shield, 
     Lock, 
@@ -24,8 +25,10 @@ import {
     EyeOff,
     ArrowLeft,
     Moon,
-    Sun
+    Sun,
+    ChevronDown
 } from 'lucide-react';
+
 import { Link } from 'react-router-dom';
 
 const Login: React.FC = () => {
@@ -53,8 +56,10 @@ const Login: React.FC = () => {
         username: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        role: 'guest' as UserRole
     });
+
     const [showRegPassword, setShowRegPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [regSuccess, setRegSuccess] = useState(false);
@@ -149,9 +154,11 @@ const Login: React.FC = () => {
                 regForm.email,
                 regForm.username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
                 regForm.password,
-                regForm.fullName
+                regForm.fullName,
+                regForm.role
             );
             setRegSuccess(true);
+
         } catch (err: any) {
             setError(err.message || "Registration failed.");
         } finally {
@@ -302,6 +309,38 @@ const Login: React.FC = () => {
                                 onChange={e => setRegForm({ ...regForm, password: e.target.value })}
                                 className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
                                 placeholder="••••••••"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Applying as</label>
+                            <div className="relative group">
+                                <select 
+                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all appearance-none cursor-pointer"
+                                    value={regForm.role}
+                                    onChange={e => setRegForm({ ...regForm, role: e.target.value as UserRole })}
+                                >
+                                    <option value="guest" className="dark:bg-slate-900">Guest / Observer</option>
+                                    <option value="resident" className="dark:bg-slate-900">Verified Resident</option>
+                                    <option value="bantay_bayan" className="dark:bg-slate-900">Bantay Bayan Personnel</option>
+                                    <option value="barangay_kagawad" className="dark:bg-slate-900">Barangay Kagawad</option>
+                                    <option value="barangay_secretary" className="dark:bg-slate-900">Barangay Secretary</option>
+                                    <option value="supervisor" className="dark:bg-slate-900">System Supervisor</option>
+                                    <option value="barangay_captain" className="dark:bg-slate-900">Barangay Captain</option>
+                                </select>
+                                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-focus-within:text-taguig-blue transition-colors" size={18} />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm Identity Key</label>
+                            <input
+                                type="password"
+                                required
+                                value={regForm.confirmPassword}
+                                onChange={e => setRegForm({ ...regForm, confirmPassword: e.target.value })}
+                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                placeholder="Re-enter security key"
                             />
                         </div>
 
