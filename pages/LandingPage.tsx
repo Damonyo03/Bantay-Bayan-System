@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { 
     Shield, 
     Bell, 
@@ -17,20 +16,22 @@ import {
     ArrowUpRight,
     Moon,
     Sun,
-    Mail
+    Mail,
+    X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 
 const LandingPage: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
+    const [modalData, setModalData] = useState<{ title: string, content: string, icon?: any } | null>(null);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans selection:bg-taguig-blue/20 selection:text-taguig-blue transition-colors duration-500">
             {/* Top Navigation Bar */}
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-6 py-3 transition-colors duration-500">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center space-x-3 group cursor-pointer">
+                    <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                         <div className="flex items-center space-x-2">
                             <img src="/taguig_seal.png" alt="Taguig Seal" className="h-14 w-auto drop-shadow-md group-hover:scale-110 transition-transform" />
                             <img src="/brgy_seal.png" alt="Barangay Seal" className="h-14 w-auto drop-shadow-md opacity-90" />
@@ -44,10 +45,7 @@ const LandingPage: React.FC = () => {
                     <div className="flex items-center space-x-8">
                         <div className="hidden lg:flex items-center space-x-8 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
                             <a href="#about" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">About</a>
-                            <a href="#hotlines" className="text-taguig-blue dark:text-taguig-gold">Hotlines</a>
-                            <a href="#systems" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Directory</a>
-                            <a href="#notices" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Bulletins</a>
-                            <a href="#team" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Hierarchy</a>
+                            <a href="#hotlines" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Emergency</a>
                         </div>
                         <Link 
                             to="/login" 
@@ -86,9 +84,6 @@ const LandingPage: React.FC = () => {
                             <a href="#hotlines" className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl flex items-center">
                                 <Bell size={16} className="mr-3 text-taguig-gold" />
                                 Emergency Hotlines
-                            </a>
-                            <a href="#team" className="px-10 py-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-xl flex items-center">
-                                <span>Leadership Chart</span>
                             </a>
                         </div>
                     </div>
@@ -155,26 +150,42 @@ const LandingPage: React.FC = () => {
                         <SystemCard 
                             icon={Building2} 
                             title="BGC Command" 
-                            desc="Real-time emergency monitoring and tactical coordination hub for the whole district."
-                            url="/login"
+                            desc="Real-time emergency monitoring hub."
+                            onClick={() => setModalData({
+                                title: "BGC Command Center",
+                                icon: Building2,
+                                content: "The BGC Command Center serves as the primary tactical coordination hub for the Bonifacio Global City district. It integrates high-definition surveillance, emergency response dispatch, and inter-agency coordination to ensure rapid response to all security and safety incidents."
+                            })}
                         />
                         <SystemCard 
                             icon={Globe} 
                             title="City Hall Online" 
-                            desc="Official e-services portal for permits, licenses, and local government certification."
-                            url="/login"
+                            desc="Official e-services portal."
+                            onClick={() => setModalData({
+                                title: "Taguig City Hall E-Services",
+                                icon: Globe,
+                                content: "Access official local government services including permit applications, license renewals, and digital certification. This portal streamlines the interaction between residents and the city governance, bringing bureaucratic processes into a modernized digital interface."
+                            })}
                         />
                         <SystemCard 
                             icon={Users} 
                             title="Resident Portal" 
-                            desc="Digital gateway for public assistance, community programs, and official requests."
-                            url="/login"
+                            desc="Digital gateway for public assistance."
+                            onClick={() => setModalData({
+                                title: "Community Resident Portal",
+                                icon: Users,
+                                content: "Designed specifically for Post Proper Northside residents, this portal provides direct access to barangay-level public assistance, community programs, and official document requests without the need for physical queues."
+                            })}
                         />
                         <SystemCard 
                             icon={Shield} 
                             title="Health Hub" 
-                            desc="Emergency medical data access and barangay health center appointment system."
-                            url="/login"
+                            desc="Emergency medical data access."
+                            onClick={() => setModalData({
+                                title: "Smart Health & Response Hub",
+                                icon: Shield,
+                                content: "The Health Hub provides residents with a secure gateway for barangay health center appointments and emergency medical data retrieval. It ensures that critical health services are accessible and coordinated during local medical emergencies."
+                            })}
                         />
                     </div>
                 </div>
@@ -199,19 +210,34 @@ const LandingPage: React.FC = () => {
                             date="March 16, 2026"
                             type="Operational"
                             title="Strategic Deployment: Night Patrol Enhancement"
-                            desc="Our tactical response units have implemented a high-visibility rotation tonight to ensure community-wide safety."
+                            desc="Our tactical response units have implemented a high-visibility rotation tonight..."
+                            onClick={() => setModalData({
+                                title: "Night Patrol Enhancement",
+                                icon: Shield,
+                                content: "In response to community feedback and strategic safety assessments, our tactical response units have implemented an enhanced high-visibility rotation. This operation focuses on residential corridors and internal district paths to ensure maximum safety during late-night hours. All units are equipped with real-time GPS tracking and direct comms to the central command."
+                            })}
                         />
                         <NoticeItem 
                             date="March 12, 2026"
                             type="Advisory"
                             title="CCTV Infrastructure Upgrades"
-                            desc="Phase 4 of our smart-surveillance expansion is now complete. Expect improved coverage in North residential corridors."
+                            desc="Phase 4 of our smart-surveillance expansion is now complete. Expect improved coverage..."
+                            onClick={() => setModalData({
+                                title: "Infrastructure Advisory",
+                                icon: Smartphone,
+                                content: "The Office of the Bantay Bayan is pleased to announce the completion of Phase 4 of our CCTV infrastructure upgrade. This expansion brings 10 additional high-resolution points of interest under active 24/7 monitoring. This upgrade significantly improves coverage in Northern residential sectors, providing higher safety standards for our residents."
+                            })}
                         />
                         <NoticeItem 
                             date="March 08, 2026"
                             type="Community"
                             title="Security Readiness Briefing"
-                            desc="Join the upcoming quarterly seminar on neighborhood safety protocols and disaster response procedures."
+                            desc="Join the upcoming quarterly seminar on neighborhood safety protocols and procedures..."
+                            onClick={() => setModalData({
+                                title: "Security Readiness Briefing",
+                                icon: Users,
+                                content: "Community safety is a shared responsibility. Join our upcoming quarterly briefing to learn about the latest neighborhood safety protocols, fire prevention strategies, and disaster response procedures. The briefing will be held at the Barangay Hall Multi-Purpose Center. All residents are encouraged to attend."
+                            })}
                         />
                     </div>
                 </div>
@@ -311,6 +337,43 @@ const LandingPage: React.FC = () => {
                     Switch to {theme === 'dark' ? 'Day' : 'Night'} Mode
                 </span>
             </button>
+
+            {/* Information Modal */}
+            {modalData && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setModalData(null)}></div>
+                    <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl overflow-hidden border border-white dark:border-white/10 animate-in zoom-in-95 duration-300">
+                        <div className="p-8 sm:p-12 space-y-8">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                    {modalData.icon && (
+                                        <div className="p-4 bg-taguig-blue/10 dark:bg-taguig-gold/10 rounded-2xl text-taguig-blue dark:text-taguig-gold">
+                                            <modalData.icon size={24} />
+                                        </div>
+                                    )}
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">{modalData.title}</h3>
+                                </div>
+                                <button onClick={() => setModalData(null)} className="p-3 bg-slate-100 dark:bg-white/5 rounded-2xl text-slate-400 hover:text-red-500 transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <div className="prose dark:prose-invert">
+                                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                                    {modalData.content}
+                                </p>
+                            </div>
+                            <div className="pt-8 border-t border-slate-100 dark:border-white/5 flex justify-end">
+                                <button 
+                                    onClick={() => setModalData(null)}
+                                    className="px-8 py-4 bg-slate-900 dark:bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-taguig-navy transition-all shadow-xl"
+                                >
+                                    Dismiss Detailed View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -322,33 +385,39 @@ const StatsBox: React.FC<{ value: string, label: string }> = ({ value, label }) 
     </div>
 );
 
-const SystemCard: React.FC<{ icon: any, title: string, desc: string, url: string }> = ({ icon: Icon, title, desc, url }) => (
-    <div className="bg-white dark:bg-slate-800 p-10 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-premium hover:shadow-2xl hover:-translate-y-2 transition-all group flex flex-col items-center text-center">
+const SystemCard: React.FC<{ icon: any, title: string, desc: string, onClick: () => void }> = ({ icon: Icon, title, desc, onClick }) => (
+    <div 
+        onClick={onClick}
+        className="bg-white dark:bg-slate-800 p-10 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-premium hover:shadow-2xl hover:-translate-y-2 transition-all group flex flex-col items-center text-center cursor-pointer"
+    >
         <div className="mb-8 p-5 bg-taguig-blue/5 dark:bg-taguig-gold/5 text-taguig-blue dark:text-taguig-gold rounded-[2rem] group-hover:bg-taguig-blue group-hover:text-white transition-all transform group-hover:rotate-6">
             <Icon size={32} />
         </div>
         <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic mb-4">{title}</h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-8">{desc}</p>
-        <Link to={url} className="mt-auto px-6 py-3 bg-slate-50 dark:bg-white/5 rounded-2xl text-[10px] font-black text-slate-400 dark:text-slate-500 hover:text-taguig-blue dark:hover:text-taguig-gold transition-all uppercase tracking-widest flex items-center space-x-2">
-            <span>Terminal Access</span>
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-4">{desc}</p>
+        <div className="mt-auto px-6 py-3 bg-slate-50 dark:bg-white/5 rounded-2xl text-[10px] font-black text-slate-400 dark:text-slate-500 hover:text-taguig-blue dark:hover:text-taguig-gold transition-all uppercase tracking-widest flex items-center space-x-2">
+            <span>Read Details</span>
             <ChevronRight size={14} />
-        </Link>
+        </div>
     </div>
 );
 
-const NoticeItem: React.FC<{ date: string, type: string, title: string, desc: string }> = ({ date, type, title, desc }) => (
-    <div className="bg-white dark:bg-slate-900/30 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-premium transition-all flex flex-col md:flex-row gap-10 items-center md:items-start text-center md:text-left">
+const NoticeItem: React.FC<{ date: string, type: string, title: string, desc: string, onClick: () => void }> = ({ date, type, title, desc, onClick }) => (
+    <div 
+        onClick={onClick}
+        className="bg-white dark:bg-slate-900/30 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-premium transition-all flex flex-col md:flex-row gap-10 items-center md:items-start text-center md:text-left cursor-pointer group"
+    >
         <div className="md:w-36 flex-shrink-0 flex flex-col items-center md:items-start">
             <p className="text-[11px] font-black text-taguig-blue dark:text-taguig-gold mb-2 tabular-nums">{date}</p>
             <span className="px-3 py-1 bg-slate-100 dark:bg-white/10 rounded-lg text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{type}</span>
         </div>
         <div className="flex-1 space-y-3">
-            <h4 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic leading-tight">{title}</h4>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{desc}</p>
+            <h4 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic leading-tight group-hover:text-taguig-blue transition-colors">{title}</h4>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">{desc}</p>
         </div>
-        <Link to="/login" className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-taguig-blue transition-colors flex-shrink-0">
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 text-slate-400 group-hover:bg-taguig-blue group-hover:text-white transition-all flex-shrink-0">
             <Info size={24} />
-        </Link>
+        </div>
     </div>
 );
 
