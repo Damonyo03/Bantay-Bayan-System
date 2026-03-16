@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { UserProfile } from './types';
-import Sidebar from './components/Sidebar';
 import CommandCenter from './pages/CommandCenter';
 import IncidentForm from './pages/IncidentForm';
 import UserManagement from './pages/UserManagement';
@@ -17,6 +16,8 @@ import CCTVRequestForm from './pages/CCTVRequestForm';
 import SystemGuidelines from './pages/SystemGuidelines';
 import DownloadForms from './pages/DownloadForms';
 import LandingPage from './pages/LandingPage';
+import DashboardLayout from './components/DashboardLayout';
+import PublicLayout from './components/PublicLayout';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
@@ -253,20 +254,7 @@ const UpdatePasswordPage: React.FC = () => {
     );
 };
 
-const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    return (
-        <div className="min-h-screen flex bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-taguig-blue/20 selection:text-taguig-blue overflow-x-hidden">
-            <Sidebar />
-            <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-900">
-                <main className="flex-1 pb-24 md:pb-8 transition-all duration-300 pt-safe">
-                    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-10">
-                        {children}
-                    </div>
-                </main>
-            </div>
-        </div>
-    );
-};
+// DashboardLayout wraps all authenticated routes
 
 const AppContent: React.FC = () => {
     const { user, isLoading } = useAuth();
@@ -281,15 +269,15 @@ const AppContent: React.FC = () => {
 
     return (
         <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
-            <Route path="/update-password" element={<UpdatePasswordPage />} />
+            {/* Public Routes wrapped in PublicLayout */}
+            <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
+            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <PublicLayout><Login /></PublicLayout>} />
+            <Route path="/update-password" element={<PublicLayout><UpdatePasswordPage /></PublicLayout>} />
             
-            {/* Protected Routes encapsulated in PrivateLayout */}
+            {/* Protected Routes encapsulated in DashboardLayout */}
             <Route path="/*" element={
                 <ProtectedRoute>
-                    <PrivateLayout>
+                    <DashboardLayout>
                         <Routes>
                             <Route path="/dashboard" element={<CommandCenter />} />
                             <Route path="/report" element={<ProtectedRoute check={u => u.role !== 'guest'}><IncidentForm /></ProtectedRoute>} />
@@ -305,7 +293,7 @@ const AppContent: React.FC = () => {
                             <Route path="/settings" element={<ProtectedRoute check={u => u.role !== 'guest'}><Settings /></ProtectedRoute>} />
                             <Route path="*" element={<Navigate to="/" />} />
                         </Routes>
-                    </PrivateLayout>
+                    </DashboardLayout>
                 </ProtectedRoute>
             } />
         </Routes>

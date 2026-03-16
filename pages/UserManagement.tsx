@@ -692,12 +692,12 @@ const UserManagement: React.FC = () => {
                 subtitle="Member Management • Post Proper Northside"
             >
                 {(user?.role === 'barangay_captain' || user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad' || user?.role === 'supervisor') && (
-                    <div className="flex bg-taguig-blue/5 dark:bg-white/5 p-2 rounded-2xl w-full xl:w-auto overflow-x-auto no-scrollbar border border-taguig-blue/10 shadow-sm">
+                    <div className="flex bg-taguig-navy/5 dark:bg-white/5 p-2 rounded-[1.5rem] w-full xl:w-auto overflow-x-auto no-scrollbar border border-slate-200 dark:border-white/10 shadow-sm">
                         <button
                             onClick={() => setActiveTab('personnel')}
                             className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center whitespace-nowrap ${activeTab === 'personnel'
-                                ? 'bg-white dark:bg-slate-800 text-taguig-blue shadow-premium'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-taguig-blue dark:hover:text-white'
+                                ? 'bg-white dark:bg-slate-800 text-taguig-navy shadow-sm border border-slate-200 dark:border-white/10'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-taguig-navy dark:hover:text-white'
                                 }`}
                         >
                             <Users size={16} className="mr-2" />
@@ -706,7 +706,7 @@ const UserManagement: React.FC = () => {
                         <button
                             onClick={() => setActiveTab('pending')}
                             className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center whitespace-nowrap ${activeTab === 'pending'
-                                ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-premium'
+                                ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-sm border border-slate-200 dark:border-white/10'
                                 : 'text-slate-500 dark:text-slate-400 hover:text-taguig-red dark:hover:text-white'
                                 }`}
                         >
@@ -718,8 +718,8 @@ const UserManagement: React.FC = () => {
                         <button
                             onClick={() => setActiveTab('roster')}
                             className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center whitespace-nowrap ${activeTab === 'roster'
-                                ? 'bg-white dark:bg-slate-800 text-taguig-blue shadow-premium'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-taguig-blue dark:hover:text-white'
+                                ? 'bg-white dark:bg-slate-800 text-taguig-navy shadow-sm border border-slate-200 dark:border-white/10'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-taguig-navy dark:hover:text-white'
                                 }`}
                         >
                             <CalendarIcon size={16} className="mr-2" />
@@ -758,7 +758,7 @@ const UserManagement: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={handleOpenModal}
-                                    className="flex-1 md:flex-none bg-taguig-blue text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-3"
+                                    className="flex-1 md:flex-none bg-taguig-navy text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-taguig-blue hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-taguig-navy/20 flex items-center justify-center space-x-3"
                                 >
                                     <Plus size={20} />
                                     <span>{t.addPersonnel}</span>
@@ -782,17 +782,17 @@ const UserManagement: React.FC = () => {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-premium border border-white dark:border-white/10 animate-fade-in relative z-10">
+                                <div className="card-premium p-0 overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 animate-fade-in relative z-10">
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse whitespace-nowrap">
                                             <thead>
-                                                <tr className="bg-taguig-blue/5 dark:bg-white/5 border-b border-taguig-blue/10 dark:border-white/10">
-                                                    <th className="p-6 font-black text-taguig-blue dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">{t.officer}</th>
-                                                    <th className="p-6 font-black text-taguig-blue dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">{t.role}</th>
-                                                    <th className="p-6 font-black text-taguig-blue dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em] hidden md:table-cell">{t.badgeId}</th>
-                                                    <th className="p-6 font-black text-taguig-blue dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Assignment</th>
-                                                    <th className="p-6 font-black text-taguig-blue dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em] hidden lg:table-cell">Account</th>
-                                                    <th className="p-6 font-black text-taguig-blue dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em] text-right">{t.actions}</th>
+                                                <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
+                                                    <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">{t.officer}</th>
+                                                    <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">{t.role}</th>
+                                                    <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em] hidden md:table-cell">{t.badgeId}</th>
+                                                    <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Assignment</th>
+                                                    <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em] hidden lg:table-cell">Account</th>
+                                                    <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em] text-right">{t.actions}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
@@ -987,7 +987,7 @@ const UserManagement: React.FC = () => {
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => setCurrentDate(new Date())}
-                                    className="px-6 py-4 bg-white dark:bg-white/5 text-taguig-blue dark:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest border border-taguig-blue/10 shadow-sm hover:bg-taguig-blue/5 transition-all"
+                                    className="px-6 py-4 bg-white dark:bg-white/5 text-taguig-navy dark:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest border border-slate-200 dark:border-white/10 shadow-sm hover:bg-taguig-navy/5 transition-all"
                                 >
                                     Today
                                 </button>
@@ -996,7 +996,7 @@ const UserManagement: React.FC = () => {
                                     <button
                                         onClick={handleDuplicatePreviousWeek}
                                         disabled={rosterLoading}
-                                        className="px-6 py-4 bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center space-x-2 disabled:opacity-50"
+                                        className="px-6 py-4 bg-taguig-navy text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-taguig-blue hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-taguig-navy/20 flex items-center space-x-2 disabled:opacity-50"
                                     >
                                         <Copy size={14} />
                                         <span>Clone Week</span>
@@ -1007,7 +1007,7 @@ const UserManagement: React.FC = () => {
                     </div>
 
                     {/* Main Roster Card */}
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[600px]">
+                    <div className="card-premium p-0 overflow-hidden flex flex-col min-h-[600px] border border-slate-200 dark:border-white/10">
 
                         {rosterLoading ? (
                             <div className="flex flex-col items-center justify-center h-80 text-slate-400">
@@ -1026,10 +1026,10 @@ const UserManagement: React.FC = () => {
                             <div className="flex-1 overflow-x-auto custom-scrollbar relative">
                                 <table className="w-full border-collapse min-w-[1000px]">
                                     <thead>
-                                        <tr className="bg-taguig-blue/5 dark:bg-white/5 border-b border-taguig-blue/10 dark:border-white/10 backdrop-blur-md">
+                                        <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 backdrop-blur-md">
                                             {/* Sticky Header Corner */}
-                                            <th className="p-6 text-left min-w-[160px] md:min-w-[240px] sticky left-0 z-30 bg-white dark:bg-slate-900 border-r border-taguig-blue/10 dark:border-white/10 shadow-premium">
-                                                <span className="text-[10px] font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-[0.2em] pl-2">Personnel</span>
+                                            <th className="p-6 text-left min-w-[160px] md:min-w-[240px] sticky left-0 z-30 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-sm">
+                                                <span className="text-[10px] font-black text-slate-800 dark:text-taguig-gold uppercase tracking-[0.2em] pl-2">Personnel</span>
                                             </th>
 
                                             {/* Days Header */}
@@ -1041,13 +1041,13 @@ const UserManagement: React.FC = () => {
                                                 const isToday = todayStr === currentStr;
 
                                                 return (
-                                                    <th key={i} className={`p-4 min-w-[140px] text-center border-r border-taguig-blue/10 dark:border-white/10 last:border-0 relative ${isToday ? 'bg-taguig-blue/10 dark:bg-taguig-blue/20' : ''}`}>
-                                                        {isToday && <div className="absolute top-0 left-0 right-0 h-1.5 bg-taguig-blue"></div>}
-                                                        <div className={`inline-flex flex-col items-center justify-center rounded-[1.25rem] px-5 py-3 ${isToday ? 'bg-taguig-blue text-white shadow-lg shadow-taguig-blue/30' : ''}`}>
+                                                    <th key={i} className={`p-4 min-w-[140px] text-center border-r border-slate-200 dark:border-white/10 last:border-0 relative ${isToday ? 'bg-taguig-navy/5 dark:bg-taguig-navy/20' : ''}`}>
+                                                        {isToday && <div className="absolute top-0 left-0 right-0 h-1.5 bg-taguig-navy"></div>}
+                                                        <div className={`inline-flex flex-col items-center justify-center rounded-[1.25rem] px-5 py-3 ${isToday ? 'bg-taguig-navy text-white shadow-lg shadow-taguig-navy/30' : ''}`}>
                                                             <span className={`text-[10px] font-black uppercase tracking-widest ${isToday ? 'text-white' : 'text-slate-400'}`}>
                                                                 {d.toLocaleDateString('en-US', { weekday: 'short' })}
                                                             </span>
-                                                            <span className={`text-xl font-black ${isToday ? 'text-white' : 'text-taguig-blue dark:text-taguig-gold'}`}>
+                                                            <span className={`text-xl font-black ${isToday ? 'text-white' : 'text-taguig-navy dark:text-taguig-gold'}`}>
                                                                 {d.getDate()}
                                                             </span>
                                                         </div>

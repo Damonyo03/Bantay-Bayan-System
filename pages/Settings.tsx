@@ -410,11 +410,11 @@ const Settings: React.FC = () => {
             <div className="grid grid-cols-1 gap-8">
 
                 {/* PROFILE SECTION */}
-                <div className="glass-panel p-10 rounded-[2.5rem] shadow-premium border border-white dark:border-white/10 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-2 h-full bg-taguig-blue"></div>
-                    <h2 className="text-xl font-black text-taguig-blue dark:text-white uppercase tracking-tight italic mb-8 flex items-center">
-                        <div className="p-2 bg-taguig-blue/10 dark:bg-white/10 rounded-lg mr-4">
-                            <User className="text-taguig-blue dark:text-taguig-gold" size={24} />
+                <div className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-white/10 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-navy"></div>
+                    <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic mb-8 flex items-center">
+                        <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-lg mr-4">
+                            <User className="text-taguig-navy dark:text-taguig-gold" size={24} />
                         </div>
                         Public Profile
                     </h2>
@@ -423,7 +423,7 @@ const Settings: React.FC = () => {
                         {/* AVATAR UPLOAD */}
                         <div className="flex flex-col items-center">
                             <div className="relative group cursor-pointer" onClick={handlePhotoAction}>
-                                <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-white dark:border-white/10 shadow-premium bg-slate-50 dark:bg-white/5 relative">
+                                <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-lg bg-slate-50 dark:bg-white/5 relative">
                                     {imagePreview ? (
                                         <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" key={imagePreview} />
                                     ) : (
@@ -432,15 +432,15 @@ const Settings: React.FC = () => {
                                         </div>
                                     )}
                                     {profileLoading && (
-                                        <div className="absolute inset-0 bg-taguig-blue/40 backdrop-blur-sm flex items-center justify-center">
+                                        <div className="absolute inset-0 bg-taguig-navy/40 backdrop-blur-sm flex items-center justify-center">
                                             <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
                                         </div>
                                     )}
-                                    <div className="absolute inset-0 bg-taguig-blue/0 group-hover:bg-taguig-blue/20 transition-all flex items-center justify-center">
+                                    <div className="absolute inset-0 bg-taguig-navy/0 group-hover:bg-taguig-navy/20 transition-all flex items-center justify-center">
                                         <CameraIcon size={32} className="text-white opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all" />
                                     </div>
                                 </div>
-                                <div className="absolute -bottom-2 -right-2 bg-taguig-blue text-white p-4 rounded-2xl shadow-xl border-4 border-white dark:border-slate-900">
+                                <div className="absolute -bottom-2 -right-2 bg-taguig-navy text-white p-4 rounded-2xl shadow-xl border-4 border-white dark:border-slate-900 transition-transform group-hover:scale-110">
                                     <CameraIcon size={20} />
                                 </div>
                                 <input
@@ -451,32 +451,32 @@ const Settings: React.FC = () => {
                                     onChange={handleFileChange}
                                 />
                             </div>
-                            <p className="text-[10px] font-black text-taguig-blue/40 dark:text-taguig-gold/40 uppercase tracking-[0.2em] mt-6">Change Official Portrait</p>
+                            <p className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/40 uppercase tracking-[0.2em] mt-6">Change Official Portrait</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
-                                <label htmlFor="fullName" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Full Name</label>
+                                <label htmlFor="fullName" className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Full Name</label>
                                 <div className="relative">
                                     <input
                                         id="fullName"
                                         type="text"
                                         value={fullName}
                                         onChange={e => setFullName(e.target.value)}
-                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-6 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold placeholder:text-slate-400"
+                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 focus:ring-4 focus:ring-taguig-navy/10 outline-none text-slate-800 dark:text-white transition-all font-bold placeholder:text-slate-400"
                                         placeholder="Officer Name"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label htmlFor="badgeNumber" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Badge Number</label>
+                                <label htmlFor="badgeNumber" className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Badge Number</label>
                                 <div className="relative">
                                     <input
                                         id="badgeNumber"
                                         readOnly
                                         type="text"
                                         value={badgeNumber}
-                                        className="w-full bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl px-6 py-4 outline-none text-slate-400 dark:text-slate-500 font-black tracking-widest transition-all cursor-not-allowed uppercase"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl px-6 py-4 outline-none text-slate-400 dark:text-slate-500 font-black tracking-widest transition-all cursor-not-allowed uppercase"
                                         placeholder="BB-202X-XXX"
                                     />
                                 </div>
@@ -486,7 +486,7 @@ const Settings: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={profileLoading}
-                                className="px-10 py-5 bg-taguig-blue text-white rounded-[2rem] font-black uppercase tracking-widest text-sm hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-blue/20 flex items-center space-x-3"
+                                className="px-10 py-5 bg-taguig-navy text-white rounded-[2rem] font-black uppercase tracking-widest text-sm hover:bg-taguig-blue hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-taguig-navy/20 flex items-center space-x-3"
                             >
                                 {profileLoading ? (
                                     <>
@@ -507,11 +507,11 @@ const Settings: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                     {/* MFA / 2FA SECTION */}
-                    <div className="glass-panel p-10 rounded-[2.5rem] shadow-premium border border-white dark:border-white/10 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-2 h-full bg-taguig-gold"></div>
-                        <h2 className="text-xl font-black text-taguig-blue dark:text-white uppercase tracking-tight italic mb-8 flex items-center">
-                            <div className="p-2 bg-taguig-gold/10 dark:bg-white/10 rounded-lg mr-4">
-                                <Smartphone className="text-taguig-blue dark:text-taguig-gold" size={24} />
+                    <div className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-white/10 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-gold"></div>
+                        <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic mb-8 flex items-center">
+                            <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-lg mr-4">
+                                <Smartphone className="text-taguig-navy dark:text-taguig-gold" size={24} />
                             </div>
                             Identity Security
                         </h2>
@@ -595,10 +595,10 @@ const Settings: React.FC = () => {
                     </div>
 
                     {/* PASSWORD SECTION */}
-                    <div className="glass-panel p-10 rounded-[2.5rem] shadow-premium border border-white dark:border-white/10 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-2 h-full bg-taguig-red"></div>
-                        <h2 className="text-xl font-black text-taguig-blue dark:text-white uppercase tracking-tight italic mb-8 flex items-center">
-                            <div className="p-2 bg-taguig-red/10 dark:bg-white/10 rounded-lg mr-4">
+                    <div className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-white/10 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
+                        <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic mb-8 flex items-center">
+                            <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-lg mr-4">
                                 <Lock className="text-taguig-red" size={24} />
                             </div>
                             Access Credentials
@@ -607,27 +607,27 @@ const Settings: React.FC = () => {
                             <div>
                                 <label htmlFor="email" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1">Email Address</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+                                    <Mail className="absolute left-4 top-3.5 text-slate-400" size={18} />
                                     <input
                                         id="email"
                                         type="email"
                                         value={email}
                                         onChange={e => setEmail(e.target.value)}
-                                        className="w-full bg-white/50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-red-500/20 outline-none text-slate-800 dark:text-white"
+                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 pl-12 pr-4 focus:ring-4 focus:ring-taguig-red/10 outline-none text-slate-800 dark:text-white font-medium"
                                     />
                                 </div>
                             </div>
                             <div>
                                 <label htmlFor="oldPassword" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1">Current Password (Required)</label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-3 text-red-400" size={18} />
+                                    <Lock className="absolute left-4 top-3.5 text-taguig-red" size={18} />
                                     <input
                                         id="oldPassword"
                                         type="password"
                                         required
                                         value={oldPassword}
                                         onChange={e => setOldPassword(e.target.value)}
-                                        className="w-full bg-white/50 dark:bg-slate-900 border border-red-200 dark:border-red-900/30 rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-red-500/20 outline-none text-slate-800 dark:text-white"
+                                        className="w-full bg-white dark:bg-slate-900 border border-taguig-red/30 dark:border-taguig-red/20 rounded-xl py-3.5 pl-12 pr-4 focus:ring-4 focus:ring-taguig-red/10 outline-none text-slate-800 dark:text-white font-medium"
                                         placeholder="Verify current password"
                                     />
                                 </div>
@@ -635,13 +635,13 @@ const Settings: React.FC = () => {
                             <div>
                                 <label htmlFor="newPassword" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1">New Password</label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+                                    <Lock className="absolute left-4 top-3.5 text-slate-400" size={18} />
                                     <input
                                         id="newPassword"
                                         type="password"
                                         value={password}
                                         onChange={e => setPassword(e.target.value)}
-                                        className="w-full bg-white/50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-red-500/20 outline-none text-slate-800 dark:text-white"
+                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 pl-12 pr-4 focus:ring-4 focus:ring-taguig-red/10 outline-none text-slate-800 dark:text-white font-medium"
                                         placeholder="Leave blank to keep current"
                                         minLength={8}
                                     />
@@ -652,7 +652,7 @@ const Settings: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={securityLoading}
-                                    className="w-full bg-slate-900 dark:bg-white/5 text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-black dark:hover:bg-white/10 transition-all shadow-xl flex items-center justify-center space-x-3 border border-white/10"
+                                    className="w-full bg-taguig-navy text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-taguig-red hover:shadow-taguig-red/20 transition-all shadow-xl flex items-center justify-center space-x-3 border border-white/10"
                                 >
                                     {securityLoading ? (
                                         <>
@@ -674,8 +674,8 @@ const Settings: React.FC = () => {
 
                 {/* ADMIN DATA MANAGEMENT (Supervisor Only) */}
                 {user?.role === 'supervisor' && (
-                    <div className="glass-panel p-10 rounded-[2.5rem] shadow-premium border border-taguig-red/20 bg-taguig-red/[0.02] dark:bg-taguig-red/[0.05] relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-2 h-full bg-taguig-red"></div>
+                    <div className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-red/20 bg-taguig-red/[0.01] dark:bg-taguig-red/[0.03] relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
                         <h2 className="text-xl font-black text-taguig-red uppercase tracking-tight italic mb-2 flex items-center">
                             <div className="p-2 bg-taguig-red/10 rounded-lg mr-4">
                                 <Database size={24} />
