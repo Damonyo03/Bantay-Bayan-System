@@ -175,47 +175,7 @@ const Login: React.FC = () => {
     };
 
     // --- RENDERERS ---
-
-    const Background = () => (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-[-10%] left-[-5%] w-[800px] h-[800px] bg-taguig-blue/10 dark:bg-taguig-blue/5 rounded-full blur-[120px]" />
-            <div className="absolute bottom-[-10%] right-[-5%] w-[800px] h-[800px] bg-taguig-red/5 dark:bg-taguig-gold/5 rounded-full blur-[120px]" />
-        </div>
-    );
-
-    const ViewContainer: React.FC<{ children: React.ReactNode, title: string, subtitle?: string, icon?: any }> = ({ children, title, subtitle, icon: Icon }) => (
-        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
-            <Background />
-            <div className="w-full max-w-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3rem] p-8 sm:p-12 shadow-premium relative z-10 animate-fade-in transition-colors duration-500">
-                <div className="flex flex-col items-center mb-10 text-center">
-                    {Icon ? (
-                        <div className="p-4 bg-taguig-blue/10 dark:bg-taguig-gold/10 rounded-2xl text-taguig-blue dark:text-taguig-gold mb-6 animate-pulse">
-                            <Icon size={32} />
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-center space-x-3 mb-8">
-                            <img src="/taguig_seal.png" alt="Taguig Seal" className="w-16 h-16 object-contain" />
-                            <img src="/brgy_seal.png" alt="Brgy Seal" className="w-16 h-16 object-contain" />
-                            <img src="/logo.png" alt="Bantay Bayan Logo" className="w-20 h-20 object-contain" />
-                        </div>
-                    )}
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">{title}</h1>
-                    {subtitle && <p className="text-taguig-blue dark:text-taguig-gold text-[10px] font-black uppercase tracking-[0.2em] mt-2">{subtitle}</p>}
-                </div>
-                {children}
-                
-                <div className="mt-10 pt-6 border-t border-slate-200 dark:border-white/5 flex items-center justify-between">
-                    <Link to="/" className="text-[10px] font-black text-slate-400 dark:text-slate-500 hover:text-taguig-blue uppercase tracking-widest flex items-center space-x-2 transition-colors">
-                        <ArrowLeft size={14} />
-                        <span>Public Portal</span>
-                    </Link>
-                    <button onClick={toggleTheme} className="text-slate-400 dark:text-slate-500 hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">
-                        {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+    // (Moved outside to prevent re-mounts on input change)
 
     if (view === 'mfa') {
         return (
@@ -487,5 +447,51 @@ const Login: React.FC = () => {
     );
 };
 
+export default Login;
 
-export default Login;
+// --- SHARED UI COMPONENTS (Defined outside to prevent unmounts) ---
+
+const Background: React.FC = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-5%] w-[800px] h-[800px] bg-taguig-blue/10 dark:bg-taguig-blue/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[800px] h-[800px] bg-taguig-red/5 dark:bg-taguig-gold/5 rounded-full blur-[120px]" />
+    </div>
+);
+
+const ViewContainer: React.FC<{ children: React.ReactNode, title: string, subtitle?: string, icon?: any }> = ({ children, title, subtitle, icon: Icon }) => {
+    const { theme, toggleTheme } = useTheme();
+    
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
+            <Background />
+            <div className="w-full max-w-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3rem] p-8 sm:p-12 shadow-premium relative z-10 animate-fade-in transition-colors duration-500">
+                <div className="flex flex-col items-center mb-10 text-center">
+                    {Icon ? (
+                        <div className="p-4 bg-taguig-blue/10 dark:bg-taguig-gold/10 rounded-2xl text-taguig-blue dark:text-taguig-gold mb-6 animate-pulse">
+                            <Icon size={32} />
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center space-x-3 mb-8">
+                            <img src="/taguig_seal.png" alt="Taguig Seal" className="w-16 h-16 object-contain" />
+                            <img src="/brgy_seal.png" alt="Brgy Seal" className="w-16 h-16 object-contain" />
+                            <img src="/logo.png" alt="Bantay Bayan Logo" className="w-20 h-20 object-contain" />
+                        </div>
+                    )}
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">{title}</h1>
+                    {subtitle && <p className="text-taguig-blue dark:text-taguig-gold text-[10px] font-black uppercase tracking-[0.2em] mt-2">{subtitle}</p>}
+                </div>
+                {children}
+                
+                <div className="mt-10 pt-6 border-t border-slate-200 dark:border-white/5 flex items-center justify-between">
+                    <Link to="/" className="text-[10px] font-black text-slate-400 dark:text-slate-500 hover:text-taguig-blue uppercase tracking-widest flex items-center space-x-2 transition-colors">
+                        <ArrowLeft size={14} />
+                        <span>Public Portal</span>
+                    </Link>
+                    <button onClick={toggleTheme} className="text-slate-400 dark:text-slate-500 hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">
+                        {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
