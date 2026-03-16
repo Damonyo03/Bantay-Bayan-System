@@ -62,12 +62,12 @@ export const userService = {
         }
     },
 
-    registerUser: async (email: string, username: string, password: string, fullName: string) => {
+    registerUser: async (email: string, username: string, password: string, fullName: string, role: string) => {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
-                data: { full_name: fullName, username: username, role: 'bantay_bayan', status: 'inactive' }
+                data: { full_name: fullName, username: username, role: role, status: 'inactive' }
             }
         });
         if (error) throw error;

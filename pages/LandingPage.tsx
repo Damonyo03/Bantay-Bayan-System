@@ -16,7 +16,8 @@ import {
     Info,
     ArrowUpRight,
     Moon,
-    Sun
+    Sun,
+    Mail
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
@@ -27,212 +28,254 @@ const LandingPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans selection:bg-taguig-blue/20 selection:text-taguig-blue transition-colors duration-500">
             {/* Top Navigation Bar */}
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-6 py-4 flex items-center justify-between transition-colors duration-500">
-                <div className="flex items-center space-x-3 group cursor-pointer">
-                    <img src="/logo.png" alt="Bantay Bayan Logo" className="h-10 w-auto group-hover:rotate-12 transition-transform" />
-                    <div className="hidden sm:block">
-                        <h1 className="text-lg font-black text-taguig-blue dark:text-white uppercase italic leading-none">Bantay Bayan</h1>
-                        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mt-1">Post Proper Northside</p>
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-6 py-3 transition-colors duration-500">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <div className="flex items-center space-x-4 group cursor-pointer">
+                        <div className="flex items-center -space-x-2">
+                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-12 w-auto drop-shadow-md z-20 group-hover:scale-110 transition-transform" />
+                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-10 w-auto drop-shadow-md z-10 opacity-80" />
+                        </div>
+                        <div className="hidden sm:block border-l border-slate-200 dark:border-white/10 pl-4">
+                            <h1 className="text-xl font-black text-taguig-blue dark:text-white uppercase italic leading-none tracking-tight">Bantay Bayan</h1>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mt-1">Unified Security & Incident Response</p>
+                        </div>
                     </div>
-                </div>
-                <div className="flex items-center space-x-8">
-                    <div className="hidden md:flex items-center space-x-8 text-xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest">
-                        <a href="#about" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">About</a>
-                        <a href="#systems" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Systems</a>
-                        <a href="#notices" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Notices</a>
-                        <a href="#team" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Our Team</a>
+                    
+                    <div className="flex items-center space-x-8">
+                        <div className="hidden lg:flex items-center space-x-8 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
+                            <a href="#about" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">About</a>
+                            <a href="#hotlines" className="text-taguig-blue dark:text-taguig-gold">Hotlines</a>
+                            <a href="#systems" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Directory</a>
+                            <a href="#notices" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Bulletins</a>
+                            <a href="#team" className="hover:text-taguig-blue dark:hover:text-taguig-gold transition-colors">Hierarchy</a>
+                        </div>
+                        <Link 
+                            to="/login" 
+                            className="px-8 py-3 bg-taguig-blue text-white font-black uppercase tracking-widest text-[10px] rounded-full hover:bg-taguig-navy hover:scale-105 active:scale-95 transition-all shadow-xl shadow-taguig-blue/20 flex items-center"
+                        >
+                            <span>Staff Login</span>
+                            <ArrowUpRight size={14} className="ml-2" />
+                        </Link>
                     </div>
-                    <Link 
-                        to="/login" 
-                        className="px-8 py-3 bg-taguig-blue text-white font-black uppercase tracking-widest text-[10px] rounded-full hover:bg-taguig-navy hover:scale-105 active:scale-95 transition-all shadow-xl shadow-taguig-blue/20"
-                    >
-                        Login
-                    </Link>
                 </div>
             </nav>
 
-            {/* Hero & About Section */}
-            <section id="about" className="pt-40 pb-24 px-6 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                    <div className="space-y-10 animate-fade-in text-center lg:text-left flex flex-col items-center lg:items-start">
-                        <div className="inline-flex items-center px-4 py-2 bg-taguig-blue/5 dark:bg-white/5 border border-taguig-blue/10 dark:border-white/10 rounded-full text-taguig-blue dark:text-taguig-gold text-[10px] font-black uppercase tracking-widest">
-                            <Shield size={14} className="mr-2" />
-                            Official Community Portal
-                        </div>
-                        <h2 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic leading-[1] max-w-xl">
-                            Elite Security <br />
-                            <span className="text-taguig-blue dark:text-taguig-gold">Defined</span>
-                        </h2>
-                        <div className="space-y-6 text-base text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-lg">
-                            <p>
-                                The Bantay Bayan of Post Proper Northside represents the pinnacle of community protection. 
-                                We merge discipline with advanced technology to safeguard Bonifacio Global City's premier district.
-                            </p>
-                            <p>
-                                Every resident and visitor is protected by our proactive surveillance network and rapid 
-                                tactical response units, operating 24/7 with unwavering commitment.
-                            </p>
-                        </div>
-                        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                            <div className="p-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-white/5 shadow-premium flex items-center space-x-4 hover:border-taguig-blue/30 transition-colors">
-                                <div className="p-3 bg-taguig-blue/5 dark:bg-taguig-gold/5 rounded-2xl text-taguig-blue dark:text-taguig-gold">
-                                    <MapPin size={20} />
-                                </div>
-                                <div className="text-left">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">HQ Access</p>
-                                    <p className="text-sm font-bold text-slate-800 dark:text-white leading-none">BGC Northside Tower</p>
-                                </div>
+            {/* Hero Section with Emergency Hotlines */}
+            <section id="about" className="pt-32 pb-24 px-6">
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+                        {/* Left Content */}
+                        <div className="lg:col-span-7 space-y-10 animate-fade-in">
+                            <div className="inline-flex items-center px-4 py-2 bg-taguig-blue/5 dark:bg-taguig-gold/5 border border-taguig-blue/10 dark:border-taguig-gold/20 rounded-full text-taguig-blue dark:text-taguig-gold text-[10px] font-black uppercase tracking-[0.2em]">
+                                <Shield size={14} className="mr-2" />
+                                Official Public Information Portal
                             </div>
-                            <div className="p-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-white/5 shadow-premium flex items-center space-x-4 hover:border-taguig-blue/30 transition-colors">
-                                <div className="p-3 bg-taguig-blue/5 dark:bg-taguig-gold/5 rounded-2xl text-taguig-blue dark:text-taguig-gold">
-                                    <Smartphone size={20} />
-                                </div>
-                                <div className="text-left">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Hotline</p>
-                                    <p className="text-sm font-bold text-slate-800 dark:text-white leading-none">02-888-BANTAY</p>
-                                </div>
+                            
+                            <h2 className="text-5xl md:text-8xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic leading-[0.9]">
+                                Securing the <br />
+                                <span className="text-taguig-blue dark:text-taguig-gold">Post Proper</span> <br />
+                                Northside
+                            </h2>
+
+                            <div className="space-y-6 text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-2xl">
+                                <p>
+                                    Welcome to the official Unified Security and Incident Response Management gateway for 
+                                    Barangay Post Proper Northside. We are dedicated to maintaining peace, order, and 
+                                    safety for all residents and visitors within the Bonifacio Global City district.
+                                </p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-4 pt-4">
+                                <a href="#hotlines" className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl flex items-center">
+                                    <Bell size={16} className="mr-3 text-taguig-gold" />
+                                    Emergency Hotlines
+                                </a>
+                                <a href="#team" className="px-10 py-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-xl flex items-center">
+                                    <span>Leadership Chart</span>
+                                </a>
                             </div>
                         </div>
-                    </div>
-                    <div className="relative animate-fade-in delay-200">
-                        <div className="absolute inset-0 bg-taguig-blue/10 dark:bg-taguig-gold/10 blur-[120px] rounded-full"></div>
-                        <div className="relative bg-white/50 dark:bg-slate-900/50 backdrop-blur-3xl p-10 rounded-[4rem] border border-white dark:border-white/5 shadow-premium">
-                            <div className="grid grid-cols-2 gap-10">
-                                <StatsBox value="24/7" label="Tactical Response" />
-                                <StatsBox value="150+" label="Elite Force" />
-                                <StatsBox value="500+" label="Patrol Cycles" />
-                                <StatsBox value="100%" label="Area Coverage" />
+
+                        {/* Right Content: Primary Contact Card */}
+                        <div id="hotlines" className="lg:col-span-5 relative animate-fade-in delay-200">
+                            <div className="absolute inset-0 bg-taguig-blue/10 dark:bg-taguig-gold/5 blur-[120px] rounded-full"></div>
+                            <div className="relative bg-white/70 dark:bg-slate-900/80 backdrop-blur-3xl p-8 sm:p-10 rounded-[3rem] border border-white dark:border-white/10 shadow-premium">
+                                <div className="space-y-8">
+                                    <div className="flex items-center space-x-4 mb-6">
+                                        <div className="p-4 bg-red-500 rounded-2xl text-white shadow-lg shadow-red-500/30 animate-pulse">
+                                            <Smartphone size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">Emergency Center</h3>
+                                            <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">24/7 Rapid Response</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <ContactCard 
+                                            icon={Mail}
+                                            label="Official Email"
+                                            value="barangaypostpropernorthside@gmail.com"
+                                            href="mailto:barangaypostpropernorthside@gmail.com"
+                                        />
+                                        <ContactCard 
+                                            icon={FileText}
+                                            label="Tel./Fax Numbers"
+                                            value="8710-6711 / 8788-1764"
+                                            href="tel:87106711"
+                                        />
+                                        
+                                        <div className="pt-6 border-t border-slate-100 dark:border-white/5 space-y-4">
+                                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">Dispatcher Unit Hotlines</p>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <HotlineButton label="Bantay Bayan 1" number="0917-810-6711" />
+                                                <HotlineButton label="Bantay Bayan 2" number="0917-811-6711" />
+                                                <HotlineButton label="Rescue Unit" number="0917-812-6711" />
+                                                <HotlineButton label="Office Admin" number="0917-813-6711" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
+
             {/* Connected Systems Directory */}
-            <section id="systems" className="py-24 bg-slate-100/50 dark:bg-slate-900/50 px-6 backdrop-blur-sm transition-colors duration-500">
-                <div className="max-w-7xl mx-auto space-y-4 mb-20 flex flex-col items-center text-center">
-                    <div className="p-2 bg-taguig-blue/10 dark:bg-taguig-gold/10 rounded-xl text-taguig-blue dark:text-taguig-gold mb-2">
-                        <Globe size={20} />
+            <section id="systems" className="py-24 bg-slate-50/50 dark:bg-slate-900/50 px-6 backdrop-blur-sm transition-colors duration-500 border-t border-slate-100 dark:border-white/5">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-16 space-y-4 animate-fade-in">
+                        <div className="inline-flex items-center px-4 py-1.5 bg-blue-500/10 dark:bg-taguig-gold/10 rounded-full text-blue-600 dark:text-taguig-gold text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+                            <Globe size={14} className="mr-2" />
+                            Village Network Directory
+                        </div>
+                        <h3 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic leading-none">Connected Systems</h3>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">
+                            Bantay Bayan integrates with various public and local services to provide a seamless coordination network for the Post Proper Northside community.
+                        </p>
                     </div>
-                    <h3 className="text-xs font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-[0.3em]">Command Infrastructure</h3>
-                    <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">Unified Digital Network</h2>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl">State-of-the-art tools enabling precision and speed across our entire jurisdiction.</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                    <SystemCard 
-                        icon={TrendingUp} 
-                        title="Command Center" 
-                        desc="Real-time strategic oversight and personnel dispatch coordination." 
-                        url="/dashboard"
-                    />
-                    <SystemCard 
-                        icon={FileText} 
-                        title="Incident Matrix" 
-                        desc="Secure digitized documentation and community blotter management." 
-                        url="/report"
-                    />
-                    <SystemCard 
-                        icon={Smartphone} 
-                        title="Tactical App" 
-                        desc="Advanced mobile interface for field personnel and rapid-response units." 
-                        url="/mobile-app"
-                    />
-                    <SystemCard 
-                        icon={Shield} 
-                        title="Verification Hub" 
-                        desc="Identity and background access for secure area operations." 
-                        url="/audit-logs"
-                    />
-                    <SystemCard 
-                        icon={MessageSquare} 
-                        title="Resident Pulse" 
-                        desc="Direct feedback and alert portal for every community member." 
-                        url="/resident-portal"
-                    />
-                    <SystemCard 
-                        icon={Building2} 
-                        title="Logisti-Track" 
-                        desc="End-to-end management for fleet and official security equipment." 
-                        url="/resources"
-                    />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <SystemCard 
+                            icon={Building2} 
+                            title="BGC Command" 
+                            desc="Real-time emergency monitoring and tactical coordination hub for the whole district."
+                            url="/login"
+                        />
+                        <SystemCard 
+                            icon={Globe} 
+                            title="City Hall Online" 
+                            desc="Official e-services portal for permits, licenses, and local government certification."
+                            url="/login"
+                        />
+                        <SystemCard 
+                            icon={Users} 
+                            title="Resident Portal" 
+                            desc="Digital gateway for public assistance, community programs, and official requests."
+                            url="/login"
+                        />
+                        <SystemCard 
+                            icon={Shield} 
+                            title="Health Hub" 
+                            desc="Emergency medical data access and barangay health center appointment system."
+                            url="/login"
+                        />
+                    </div>
                 </div>
             </section>
 
             {/* Notices & Announcements */}
-            <section id="notices" className="py-24 px-6 max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 gap-8 text-center md:text-left">
-                    <div className="space-y-4 flex flex-col items-center md:items-start">
-                        <h3 className="text-xs font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-[0.3em]">Strategic Briefings</h3>
-                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">Operations & Advisories</h2>
+            <section id="notices" className="py-24 px-6 border-y border-slate-200 dark:border-white/10">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-10 animate-fade-in">
+                        <div className="space-y-4">
+                            <h3 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic leading-none">Public Bulletins</h3>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl leading-relaxed">Official updates and operational notices from the Office of the Bantay Bayan and Barangay Leadership.</p>
+                        </div>
+                        <Link to="/login" className="px-8 py-4 bg-slate-900 dark:bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-taguig-navy transition-all flex items-center w-fit shadow-xl group">
+                            <span>Access Archives</span>
+                            <ChevronRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Link>
                     </div>
-                    <button className="flex items-center space-x-3 px-6 py-3 bg-slate-100 dark:bg-white/5 rounded-2xl text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest text-[10px] hover:bg-taguig-blue hover:text-white transition-all">
-                        <span>Archive Access</span>
-                        <ArrowUpRight size={16} />
-                    </button>
-                </div>
-                <div className="grid grid-cols-1 gap-6">
-                    <NoticeItem 
-                        date="MAR 16, 2026" 
-                        type="ADVISORY" 
-                        title="Strategic Deployment: Night Patrol Enhancement"
-                        desc="Increased mobile units deployed in the BGC Northside corridor to ensure total safety during late-shift rotations."
-                    />
-                    <NoticeItem 
-                        date="MAR 12, 2026" 
-                        type="TECH-UP" 
-                        title="Mobile Dispatch System Version 2.0"
-                        desc="Implementation of low-latency field tracking for even faster incident response accuracy."
-                    />
-                    <NoticeItem 
-                        date="MAR 08, 2026" 
-                        type="COMMUNITY" 
-                        title="Quarterly Security Readiness Briefing"
-                        desc="A comprehensive seminar on community safety standards and proactive emergency reporting."
-                    />
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <NoticeItem 
+                            date="March 16, 2026"
+                            type="Operational"
+                            title="Strategic Deployment: Night Patrol Enhancement"
+                            desc="Our tactical response units have implemented a high-visibility rotation tonight to ensure community-wide safety."
+                        />
+                        <NoticeItem 
+                            date="March 12, 2026"
+                            type="Advisory"
+                            title="CCTV Infrastructure Upgrades"
+                            desc="Phase 4 of our smart-surveillance expansion is now complete. Expect improved coverage in North residential corridors."
+                        />
+                        <NoticeItem 
+                            date="March 08, 2026"
+                            type="Community"
+                            title="Security Readiness Briefing"
+                            desc="Join the upcoming quarterly seminar on neighborhood safety protocols and disaster response procedures."
+                        />
+                    </div>
                 </div>
             </section>
 
             {/* Organizational Chart */}
             <section id="team" className="py-24 bg-white dark:bg-slate-950 px-6 border-t border-slate-100 dark:border-white/5 transition-colors duration-500">
                 <div className="max-w-7xl mx-auto">
-                    <div className="text-center space-y-4 mb-24 flex flex-col items-center">
+                    <div className="text-center space-y-4 mb-24 flex flex-col items-center animate-fade-in">
                         <div className="p-3 bg-taguig-blue/5 dark:bg-taguig-gold/5 rounded-full text-taguig-blue dark:text-taguig-gold mb-2">
                             <Users size={24} />
                         </div>
-                        <h3 className="text-xs font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-[0.3em]">Chain of Command</h3>
-                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">Leadership Structure</h2>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-lg">The strategic minds guiding our mission to protect and serve.</p>
+                        <h3 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic whitespace-nowrap leading-none">Leadership Matrix</h3>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">The strategic command structure guiding the safety and welfare of Barangay Post Proper Northside.</p>
                     </div>
 
-                    <div className="flex flex-col items-center space-y-16">
+                    <div className="flex flex-col items-center space-y-20">
+                        {/* Tier 1: Punong Barangay */}
                         <OrgMember 
-                            role="District Supervisor" 
-                            name="Hon. Ricardo S. Delos Santos" 
-                            desc="Executive Oversight & Strategic Governance"
+                            role="Punong Barangay" 
+                            name="HON. RICHARD C. PASADILLA" 
+                            desc="Executive Command & Administrative Governance"
                             isLeader
                         />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-5xl relative">
-                            <div className="hidden md:block absolute top-[-4rem] left-1/2 w-px h-16 bg-slate-200 dark:bg-white/10"></div>
-                            <div className="hidden md:block absolute top-[-4rem] left-1/4 right-1/4 h-px bg-slate-200 dark:bg-white/10"></div>
+                        {/* Tier 2: Secretary & Treasurer */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl relative">
+                            {/* Connector line for large screens */}
+                            <div className="hidden md:block absolute -top-10 left-1/2 w-px h-10 bg-slate-200 dark:bg-white/10" />
                             
                             <OrgMember 
-                                role="Chief of Operations" 
-                                name="Col. Manuel V. Garcia" 
-                                desc="Tactical Execution & Force Management"
+                                role="Barangay Secretary" 
+                                name="HON. [SECRETARY NAME]" 
+                                desc="Administrative Oversight & Records Management"
                             />
                             <OrgMember 
-                                role="Chief of Logistics" 
-                                name="Capt. Sarah Jane Robles" 
-                                desc="Asset Management & Systems Integration"
+                                role="Barangay Treasurer" 
+                                name="HON. [TREASURER NAME]" 
+                                desc="Fiscal Management & Resource Allocation"
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-6xl">
-                            <OrgMember role="Patrol Lead" name="Sgt. Mateo Cruz" sm />
-                            <OrgMember role="S-V Lead" name="Insp. Elena White" sm />
-                            <OrgMember role="Intel Lead" name="Sgt. Robert Tan" sm />
-                            <OrgMember role="Liaison" name="Ms. Ana Mendoza" sm />
+                        {/* Tier 3: Kagawads (The Council) */}
+                        <div className="w-full relative pt-10">
+                            <div className="hidden md:block absolute top-0 left-1/2 w-px h-10 bg-slate-200 dark:bg-white/10" />
+                            <div className="text-center mb-10">
+                                <span className="px-4 py-1 bg-slate-100 dark:bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400">Barangay Council</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl mx-auto">
+                                <OrgMember role="Kagawad" name="HON. [NAME 1]" desc="Chairperson: Peace & Order" sm />
+                                <OrgMember role="Kagawad" name="HON. [NAME 2]" desc="Chairperson: Infrastructure" sm />
+                                <OrgMember role="Kagawad" name="HON. [NAME 3]" desc="Chairperson: Health & Safety" sm />
+                                <OrgMember role="Kagawad" name="HON. [NAME 4]" desc="Chairperson: Education" sm />
+                                <OrgMember role="Kagawad" name="HON. [NAME 5]" desc="Chairperson: Environment" sm />
+                                <OrgMember role="Kagawad" name="HON. [NAME 6]" desc="Chairperson: Finance" sm />
+                                <OrgMember role="Kagawad" name="HON. [NAME 7]" desc="Chairperson: Social Services" sm />
+                                <OrgMember role="SK Chairman" name="HON. [SK NAME]" desc="Sangguniang Kabataan Oversight" sm />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -330,5 +373,27 @@ const OrgMember: React.FC<{ role: string, name: string, desc?: string, isLeader?
 
 );
 
+const ContactCard: React.FC<{ icon: any, label: string, value: string, href: string }> = ({ icon: Icon, label, value, href }) => (
+    <a href={href} className="group p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-taguig-blue/50 dark:hover:border-taguig-gold/50 transition-all shadow-sm">
+        <div className="flex items-center space-x-4">
+            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl text-slate-400 group-hover:text-taguig-blue dark:group-hover:text-taguig-gold transition-colors">
+                <Icon size={20} />
+            </div>
+            <div>
+                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white truncate lg:max-w-xs">{value}</p>
+            </div>
+        </div>
+    </a>
+);
+
+const HotlineButton: React.FC<{ label: string, number: string }> = ({ label, number }) => (
+    <a href={`tel:${number.replace(/-/g, '')}`} className="flex flex-col p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-2xl hover:bg-taguig-blue hover:text-white transition-all group shadow-sm">
+        <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest group-hover:text-white/70 mb-1">{label}</span>
+        <span className="text-xs font-black tracking-tight">{number}</span>
+    </a>
+);
+
 export default LandingPage;
+
 
