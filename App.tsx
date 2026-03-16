@@ -282,7 +282,8 @@ const AppContent: React.FC = () => {
     return (
         <Routes>
             {/* Public Routes */}
-            <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
             <Route path="/update-password" element={<UpdatePasswordPage />} />
             
             {/* Protected Routes encapsulated in PrivateLayout */}
@@ -290,8 +291,6 @@ const AppContent: React.FC = () => {
                 <ProtectedRoute>
                     <PrivateLayout>
                         <Routes>
-                            <Route path="/" element={<Navigate to="/landing" replace />} />
-                            <Route path="/landing" element={<LandingPage />} />
                             <Route path="/dashboard" element={<CommandCenter />} />
                             <Route path="/report" element={<ProtectedRoute check={u => u.role !== 'guest'}><IncidentForm /></ProtectedRoute>} />
                             <Route path="/cctv-request" element={<ProtectedRoute check={u => u.role !== 'guest'}><CCTVRequestForm /></ProtectedRoute>} />
