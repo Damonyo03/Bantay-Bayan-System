@@ -362,27 +362,27 @@ const ResourceTracking: React.FC = () => {
                 </button>
             </PageHeader>
 
-            <div className="flex space-x-2 bg-taguig-blue/5 dark:bg-white/5 p-2 rounded-2xl w-full sm:w-fit overflow-x-auto no-scrollbar border border-taguig-blue/10 shadow-sm mb-10">
-                <button onClick={() => setFilter('Pending')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'Pending' ? 'bg-white dark:bg-slate-800 text-taguig-blue shadow-premium' : 'text-slate-500 dark:text-slate-400 hover:text-taguig-blue dark:hover:text-white'}`}>
+            <div className="flex space-x-2 bg-slate-100 dark:bg-white/5 p-2 rounded-2xl w-full sm:w-fit overflow-x-auto no-scrollbar border border-slate-200 dark:border-white/10 shadow-sm mb-10">
+                <button onClick={() => setFilter('Pending')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'Pending' ? 'bg-white dark:bg-slate-800 text-taguig-navy shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-taguig-navy dark:hover:text-white'}`}>
                     <Clock size={16} />
                     <span>Pending</span>
                     {counts.Pending > 0 && <span className="ml-2 px-2 py-0.5 bg-taguig-red text-white rounded-full text-[9px] shadow-sm">{counts.Pending}</span>}
                 </button>
-                <button onClick={() => setFilter('Scheduled')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'Scheduled' ? 'bg-white dark:bg-slate-800 text-taguig-blue shadow-premium' : 'text-slate-500 dark:text-slate-400 hover:text-taguig-blue dark:hover:text-white'}`}>
+                <button onClick={() => setFilter('Scheduled')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'Scheduled' ? 'bg-white dark:bg-slate-800 text-taguig-navy shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-taguig-navy dark:hover:text-white'}`}>
                     <CalendarCheck size={16} />
                     <span>Approved</span>
-                    {counts.Scheduled > 0 && <span className="ml-2 px-2 py-0.5 bg-taguig-blue text-white rounded-full text-[9px] shadow-sm">{counts.Scheduled}</span>}
+                    {counts.Scheduled > 0 && <span className="ml-2 px-2 py-0.5 bg-taguig-navy text-white rounded-full text-[9px] shadow-sm">{counts.Scheduled}</span>}
                 </button>
-                <button onClick={() => setFilter('History')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'History' ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-premium' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
+                <button onClick={() => setFilter('History')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'History' ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
                     <Archive size={16} />
                     <span>History</span>
                 </button>
-                <button onClick={() => setFilter('CCTV')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'CCTV' ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-premium' : 'text-slate-500 dark:text-slate-400 hover:text-taguig-red dark:hover:text-white'}`}>
+                <button onClick={() => setFilter('CCTV')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'CCTV' ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-taguig-red dark:hover:text-white'}`}>
                     <Video size={16} />
                     <span>CCTV Logs</span>
                     {counts.CCTV > 0 && <span className="ml-2 px-2 py-0.5 bg-taguig-red text-white rounded-full text-[9px] shadow-sm">{counts.CCTV}</span>}
                 </button>
-                <button onClick={() => setFilter('Vehicles')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'Vehicles' ? 'bg-white dark:bg-slate-800 text-orange-600 shadow-premium' : 'text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-white'}`}>
+                <button onClick={() => setFilter('Vehicles')} className={`flex-shrink-0 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 whitespace-nowrap ${filter === 'Vehicles' ? 'bg-white dark:bg-slate-800 text-orange-600 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-white'}`}>
                     <Car size={16} />
                     <span>Vehicles</span>
                 </button>
@@ -393,10 +393,10 @@ const ResourceTracking: React.FC = () => {
             ) : (
                 <div className="animate-fade-in">
                     {filter === 'Vehicles' ? (
-                        <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-premium border border-white dark:border-white/10 relative z-10">
-                            <div className="p-6 bg-taguig-blue/5 dark:bg-white/5 border-b border-taguig-blue/10 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-                                <h3 className="text-[11px] font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-[0.2em]">Dispatch Log Registry</h3>
-                                <button onClick={() => setIsVehicleModalOpen(true)} className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-taguig-blue text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-taguig-navy transition-all shadow-lg shadow-taguig-blue/20">
+                        <div className="card-premium p-0 overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 relative z-10">
+                            <div className="p-6 bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+                                <h3 className="text-[10px] font-black text-slate-800 dark:text-taguig-gold uppercase tracking-[0.2em]">Dispatch Log Registry</h3>
+                                <button onClick={() => setIsVehicleModalOpen(true)} className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-taguig-navy text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-taguig-blue transition-all shadow-lg shadow-taguig-navy/20">
                                     <Navigation size={16} />
                                     <span>New Mission</span>
                                 </button>
@@ -404,12 +404,12 @@ const ResourceTracking: React.FC = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse whitespace-nowrap">
                                     <thead>
-                                        <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-200 dark:border-slate-700">
-                                            <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Vehicle / Plate</th>
-                                            <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Personnel / Destination</th>
-                                            <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Departure</th>
-                                            <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider">Status</th>
-                                            <th className="p-6 font-semibold text-slate-600 dark:text-slate-400 text-sm uppercase tracking-wider text-right">Actions</th>
+                                        <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
+                                            <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Vehicle / Plate</th>
+                                            <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Personnel / Destination</th>
+                                            <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Departure</th>
+                                            <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Status</th>
+                                            <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em] text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
@@ -510,7 +510,7 @@ const ResourceTracking: React.FC = () => {
                         <div className="grid gap-6">
                             {cctvRequests.length === 0 && <p className="text-center text-slate-400 py-10">No CCTV logs found.</p>}
                             {cctvRequests.map(req => (
-                                <div key={req.id} className="glass-panel p-6 rounded-3xl border-l-4 border-l-red-500 shadow-lg border border-white/60 dark:border-white/10 flex flex-col gap-4 group">
+                                <div key={req.id} className="card-premium p-6 rounded-3xl border-l-4 border-l-taguig-red shadow-sm border border-slate-200 dark:border-white/10 flex flex-col gap-4 group">
                                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                         <div className="flex-1">
                                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{req.request_number}</p>
@@ -582,7 +582,7 @@ const ResourceTracking: React.FC = () => {
                         <div className="grid gap-6">
                             {getFilteredRequests().length === 0 && <p className="text-center py-10 text-slate-400">No matching requests found.</p>}
                             {getFilteredRequests().map((req) => (
-                                <div key={req.id} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-lg transition-all relative overflow-hidden flex flex-col">
+                                <div key={req.id} className="card-premium p-6 rounded-3xl border border-slate-200 dark:border-white/10 hover:shadow-md transition-all relative overflow-hidden flex flex-col">
                                     <div className={`absolute left-0 top-0 bottom-0 w-2 ${getStatusColor(req.status).split(' ')[0]}`} />
                                     <div className="flex flex-col lg:flex-row justify-between lg:items-start gap-6 pl-4">
                                         <div className="space-y-4 flex-1">

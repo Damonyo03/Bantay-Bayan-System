@@ -85,14 +85,14 @@ const AuditLogs: React.FC = () => {
       >
         <button
           onClick={fetchLogs}
-          className="w-full md:w-auto p-4 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center"
+          className="w-full md:w-auto p-4 bg-white dark:bg-white/5 text-taguig-navy dark:text-white rounded-xl hover:bg-taguig-navy hover:text-white transition-all shadow-sm border border-slate-200 dark:border-white/10 flex items-center justify-center group"
         >
-          <RotateCcw size={20} className={loading ? 'animate-spin' : ''} />
+          <RotateCcw size={20} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
         </button>
       </PageHeader>
 
       {/* FILTER BAR */}
-      <div className="glass-panel p-4 rounded-[2rem] border border-white/60 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center">
+      <div className="card-premium p-4 rounded-[2rem] border border-slate-200 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center">
         <div className="relative flex-1 w-full">
           <label htmlFor="searchLogs" className="sr-only">Search by user, record ID, or table...</label>
           <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
@@ -100,7 +100,7 @@ const AuditLogs: React.FC = () => {
             id="searchLogs"
             type="text"
             placeholder="Search by user, record ID, or table..."
-            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none text-slate-800 dark:text-white transition-all font-medium"
+            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-taguig-navy/20 outline-none text-slate-800 dark:text-white transition-all font-medium"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -162,16 +162,16 @@ const AuditLogs: React.FC = () => {
           <p className="text-slate-500 font-medium animate-pulse">Retrieving system logs...</p>
         </div>
       ) : (
-        <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/50 dark:border-white/10 animate-slide-up">
+        <div className="card-premium p-0 overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 animate-slide-up">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
-                <tr className="bg-slate-50/50 dark:bg-white/5 border-b border-gray-200 dark:border-slate-700">
-                  <th className="p-6 font-bold text-slate-600 dark:text-slate-400 text-xs uppercase tracking-widest">Timestamp</th>
-                  <th className="p-6 font-bold text-slate-600 dark:text-slate-400 text-xs uppercase tracking-widest">User</th>
-                  <th className="p-6 font-bold text-slate-600 dark:text-slate-400 text-xs uppercase tracking-widest">Action</th>
-                  <th className="p-6 font-bold text-slate-600 dark:text-slate-400 text-xs uppercase tracking-widest">Target</th>
-                  <th className="p-6 font-bold text-slate-600 dark:text-slate-400 text-xs uppercase tracking-widest">Details</th>
+                <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
+                  <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Timestamp</th>
+                  <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">User</th>
+                  <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Action</th>
+                  <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Target</th>
+                  <th className="p-6 font-black text-slate-800 dark:text-taguig-gold text-[10px] uppercase tracking-[0.2em]">Details</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">

@@ -132,41 +132,41 @@ const ResolvedCases: React.FC = () => {
                 icon={FolderOpen}
             >
                 {/* TABS */}
-                <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-xl flex space-x-1 w-full md:w-auto">
+                <div className="bg-slate-100 dark:bg-white/5 p-1.5 rounded-2xl flex space-x-1 w-full md:w-auto border border-slate-200 dark:border-white/10 shadow-sm">
                     <button
                         onClick={() => { setActiveTab('incidents'); setFilterType('All'); }}
-                        className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center ${activeTab === 'incidents'
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center ${activeTab === 'incidents'
+                            ? 'bg-white dark:bg-slate-800 text-taguig-navy dark:text-taguig-gold shadow-sm border border-slate-200 dark:border-white/10'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-taguig-navy dark:hover:text-white'
                             }`}
                     >
-                        <Archive size={16} className="mr-2" />
+                        <Archive size={14} className="mr-2" />
                         Incidents
                     </button>
                     <button
                         onClick={() => { setActiveTab('cctv'); setFilterType('All'); }}
-                        className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center ${activeTab === 'cctv'
-                            ? 'bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 shadow-sm'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center ${activeTab === 'cctv'
+                            ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-sm border border-slate-200 dark:border-white/10'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-taguig-red dark:hover:text-white'
                             }`}
                     >
-                        <Video size={16} className="mr-2" />
+                        <Video size={14} className="mr-2" />
                         CCTV
                     </button>
                 </div>
             </PageHeader>
 
             {/* FILTER & SORT BAR */}
-            <div className="glass-panel p-4 rounded-2xl border border-white/60 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center">
+            <div className="card-premium p-4 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center">
                 {/* Search */}
                 <div className="relative flex-1 w-full">
                     <label htmlFor="searchQuery" className="sr-only">Search case #, names, or details</label>
-                    <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                    <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
                     <input
                         id="searchQuery"
                         type="text"
                         placeholder="Search case #, names, or details..."
-                        className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-taguig-navy/20 text-slate-800 dark:text-white transition-all font-medium"
                         value={searchQuery}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                     />
@@ -175,13 +175,13 @@ const ResolvedCases: React.FC = () => {
                 <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                     {/* Filter */}
                     <div className="flex items-center space-x-3 w-full sm:w-auto">
-                        <Filter size={18} className="text-gray-400" />
-                        <label htmlFor="filterType" className="text-sm font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">Filter:</label>
+                        <Filter size={18} className="text-slate-400" />
+                        <label htmlFor="filterType" className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Filter:</label>
                         <select
                             id="filterType"
                             value={filterType}
                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterType(e.target.value)}
-                            className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 px-4 outline-none text-sm font-bold text-slate-900 dark:text-white w-full sm:w-48 transition-colors cursor-pointer"
+                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 outline-none text-xs font-bold text-slate-900 dark:text-white w-full sm:w-48 transition-colors cursor-pointer"
                         >
                             <option value="All" className="dark:bg-slate-800">All Types</option>
                             {getIncidentOptions().map(opt => <option key={opt} value={opt} className="dark:bg-slate-800">{opt}</option>)}
@@ -190,13 +190,13 @@ const ResolvedCases: React.FC = () => {
 
                     {/* Sort */}
                     <div className="flex items-center space-x-3 w-full sm:w-auto">
-                        <ArrowUpDown size={18} className="text-gray-400" />
-                        <label htmlFor="sortOption" className="text-sm font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">Sort:</label>
+                        <ArrowUpDown size={18} className="text-slate-400" />
+                        <label htmlFor="sortOption" className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Sort:</label>
                         <select
                             id="sortOption"
                             value={sortOption}
                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOption(e.target.value as SortOption)}
-                            className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 px-4 outline-none text-sm font-bold text-slate-900 dark:text-white w-full sm:w-48 transition-colors cursor-pointer"
+                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 outline-none text-xs font-bold text-slate-900 dark:text-white w-full sm:w-48 transition-colors cursor-pointer"
                         >
                             <option value="date_desc" className="dark:bg-slate-800">Date (Newest)</option>
                             <option value="date_asc" className="dark:bg-slate-800">Date (Oldest)</option>
@@ -222,7 +222,7 @@ const ResolvedCases: React.FC = () => {
 
                     {/* INCIDENTS LIST */}
                     {activeTab === 'incidents' && (getFilteredData() as IncidentWithDetails[]).map((incident) => (
-                        <div key={incident.id} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-lg transition-all relative overflow-hidden group">
+                        <div key={incident.id} className="card-premium p-6 rounded-3xl border border-slate-200 dark:border-white/10 hover:shadow-md transition-all relative overflow-hidden group">
                             <div className={`absolute left-0 top-0 bottom-0 w-2 ${incident.status === 'Resolved' ? 'bg-green-500' : 'bg-gray-500'}`} />
 
                             <div className="pl-4 flex flex-col lg:flex-row justify-between lg:items-start gap-6">
@@ -326,7 +326,7 @@ const ResolvedCases: React.FC = () => {
 
                     {/* CCTV LOGS LIST */}
                     {activeTab === 'cctv' && (getFilteredData() as CCTVRequest[]).map((req) => (
-                        <div key={req.id} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-lg transition-all relative group">
+                        <div key={req.id} className="card-premium p-6 rounded-3xl border border-slate-200 dark:border-white/10 hover:shadow-md transition-all relative group">
                             <div className="absolute left-0 top-0 bottom-0 w-2 bg-red-500" />
 
                             <div className="pl-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

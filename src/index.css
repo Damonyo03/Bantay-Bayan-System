@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950;
+  }
+}
+
+@layer components {
+  .card-premium {
+    @apply bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-white/5 p-6 sm:p-8 transition-all hover:shadow-md;
+  }
+  
+  .heading-primary {
+    @apply text-slate-800 dark:text-white font-black tracking-tight uppercase italic;
+  }
+}

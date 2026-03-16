@@ -325,37 +325,37 @@ const CommandCenter: React.FC = () => {
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-                <div onClick={scrollToBlotter} className="glass-panel p-6 md:p-8 rounded-[2.5rem] flex items-center space-x-6 cursor-pointer hover:shadow-premium transition-all group relative overflow-hidden">
+                <div onClick={scrollToBlotter} className="card-premium flex items-center space-x-6 cursor-pointer group relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-taguig-red/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
-                    <div className="p-4 md:p-5 bg-taguig-red text-white rounded-2xl shadow-lg shadow-taguig-red/20 group-hover:scale-110 transition-transform relative z-10">
+                    <div className="p-4 md:p-5 bg-taguig-red text-white rounded-2xl shadow-lg shadow-taguig-red/20 group-hover:scale-110 transition-transform relative z-10 font-black">
                         <AlertCircle size={28} />
                     </div>
                     <div className="relative z-10">
                         <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-1">{t.activeIncidents}</p>
-                        <p className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white font-display">{allActiveIncidents.length}</p>
+                        <p className="text-3xl md:text-4xl font-black text-taguig-navy dark:text-white font-display uppercase italic">{allActiveIncidents.length}</p>
                     </div>
                 </div>
 
-                <div onClick={() => navigate('/resources')} className="glass-panel p-6 md:p-8 rounded-[2.5rem] flex items-center space-x-6 cursor-pointer hover:shadow-premium transition-all group relative overflow-hidden">
+                <div onClick={() => navigate('/resources')} className="card-premium flex items-center space-x-6 cursor-pointer group relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-taguig-blue/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
-                    <div className="p-4 md:p-5 bg-taguig-blue text-white rounded-2xl shadow-lg shadow-taguig-blue/20 group-hover:scale-110 transition-transform relative z-10">
+                    <div className="p-4 md:p-5 bg-taguig-blue text-white rounded-2xl shadow-lg shadow-taguig-blue/20 group-hover:scale-110 transition-transform relative z-10 font-black">
                         <Package size={28} />
                     </div>
                     <div className="relative z-10">
                         <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-1">Equipment for Approval</p>
-                        <p className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white font-display">{pendingAssets.length}</p>
+                        <p className="text-3xl md:text-4xl font-black text-taguig-navy dark:text-white font-display uppercase italic">{pendingAssets.length}</p>
                     </div>
                 </div>
 
-                <div onClick={() => setShowOnDutyModal(true)} className="glass-panel p-6 md:p-8 rounded-[2.5rem] flex items-center space-x-6 cursor-pointer hover:shadow-premium transition-all group relative overflow-hidden sm:col-span-2 lg:col-span-1">
+                <div onClick={() => setShowOnDutyModal(true)} className="card-premium flex items-center space-x-6 cursor-pointer group relative overflow-hidden sm:col-span-2 lg:col-span-1">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
-                    <div className="p-4 md:p-5 bg-green-600 text-white rounded-2xl shadow-lg shadow-green-500/20 group-hover:scale-110 transition-transform relative z-10">
+                    <div className="p-4 md:p-5 bg-green-600 text-white rounded-2xl shadow-lg shadow-green-500/20 group-hover:scale-110 transition-transform relative z-10 font-black">
                         <Users size={28} />
                         <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse shadow-md"></span>
                     </div>
                     <div className="relative z-10">
                         <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-1">{t.onDuty}</p>
-                        <p className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white font-display">{onDutyPersonnel.filter(p => p.statusState.label !== 'Unavailable').length}</p>
+                        <p className="text-3xl md:text-4xl font-black text-taguig-navy dark:text-white font-display uppercase italic">{onDutyPersonnel.filter(p => p.statusState.label !== 'Unavailable').length}</p>
                     </div>
                 </div>
             </div>
@@ -368,7 +368,7 @@ const CommandCenter: React.FC = () => {
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
 
                     <div className="xl:col-span-2 space-y-6" id="blotter-section">
-                        <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center justify-between">
+                        <h2 className="heading-primary text-xl flex items-center justify-between mb-4">
                             {t.recentEntries}
                         </h2>
 
@@ -381,7 +381,7 @@ const CommandCenter: React.FC = () => {
                             )}
 
                             {allActiveIncidents.slice(0, 10).map((incident) => (
-                                <div key={incident.id} className="glass-panel p-5 md:p-6 rounded-3xl border border-white/60 dark:border-white/10 transition-all hover:shadow-lg">
+                                <div key={incident.id} className="card-premium">
                                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 md:gap-6">
                                         <div className="flex-1 space-y-3">
                                             <div className="flex flex-wrap items-center gap-2">
@@ -515,9 +515,9 @@ const CommandCenter: React.FC = () => {
                     </div>
 
                     <div className="space-y-6">
-                        <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center justify-between">
+                        <h2 className="heading-primary text-xl flex items-center justify-between mb-4">
                             Active Resources
-                            <button onClick={() => navigate('/resources')} className="text-xs font-bold bg-white/50 dark:bg-white/10 px-3 py-1 rounded-lg hover:bg-white dark:hover:bg-white/20 transition-colors flex items-center">
+                            <button onClick={() => navigate('/resources')} className="text-xs font-bold bg-taguig-navy/5 dark:bg-white/10 px-3 py-1 rounded-lg hover:bg-taguig-navy hover:text-white transition-all flex items-center">
                                 View All <ArrowRight size={12} className="ml-1" />
                             </button>
                         </h2>
@@ -533,7 +533,7 @@ const CommandCenter: React.FC = () => {
                             {activeLogistics.map((log) => {
                                 const details = parseVehicleLog(log.unit_name);
                                 return (
-                                    <div key={log.id} className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-lg transition-all group">
+                                    <div key={log.id} className="card-premium p-5 group">
                                         <div className="flex items-start justify-between mb-3">
                                             <div className="flex items-center space-x-3">
                                                 <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400 flex items-center justify-center flex-shrink-0">
@@ -591,7 +591,7 @@ const CommandCenter: React.FC = () => {
 
                         {/* UPCOMING ACTIVITIES SECTION */}
                         <div className="space-y-4 pt-4">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center justify-between">
+                            <h2 className="heading-primary text-xl flex items-center justify-between mb-4">
                                 Upcoming Activities
                                 {user?.role === 'supervisor' && (
                                     <button
@@ -612,7 +612,7 @@ const CommandCenter: React.FC = () => {
                                     </div>
                                 ) : (
                                     upcomingActivities.map((activity) => (
-                                        <div key={activity.id} className="glass-panel p-4 rounded-3xl border border-white/60 dark:border-white/10 hover:shadow-premium transition-all group overflow-hidden relative">
+                                    <div key={activity.id} className="card-premium p-4 group overflow-hidden relative border-none shadow-sm bg-slate-50 dark:bg-white/5">
                                             <div className="flex items-start justify-between relative z-10">
                                                 <div className="flex items-start space-x-3">
                                                     <div className={`p-2.5 rounded-2xl flex-shrink-0 ${activity.event_date === todayStrLocal ? 'bg-taguig-blue text-white shadow-lg shadow-taguig-blue/20 animate-pulse' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
@@ -655,7 +655,7 @@ const CommandCenter: React.FC = () => {
 
                         {/* RECENT REQUESTS FOOTPRINT */}
                         <div className="space-y-4 pt-4">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center justify-between">
+                            <h2 className="heading-primary text-xl flex items-center justify-between mb-4">
                                 Recent Requests
                             </h2>
                             <div className="space-y-3">
@@ -667,7 +667,7 @@ const CommandCenter: React.FC = () => {
                                             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                                             .slice(0, 4)
                                             .map((req: any) => (
-                                                <div key={req.id} className="glass-panel p-4 rounded-2xl border border-white/60 dark:border-white/10 flex items-center justify-between hover:scale-[1.02] transition-all cursor-pointer" onClick={() => navigate('/resources')}>
+                                                <div key={req.id} className="card-premium p-4 flex items-center justify-between group cursor-pointer" onClick={() => navigate('/resources')}>
                                                     <div className="flex items-center space-x-3">
                                                         <div className={`p-2 rounded-lg ${req.request_number ? 'bg-red-50 text-red-500' : 'bg-purple-50 text-purple-500'}`}>
                                                             {req.request_number ? <Video size={16} /> : <Package size={16} />}

@@ -92,37 +92,37 @@ const RestrictedPersons: React.FC = () => {
                     ) : (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {people.map((person) => (
-                                <div key={person.id} className="glass-panel p-6 rounded-3xl border-l-4 border-l-red-500 shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform border border-white/60 dark:border-white/10 flex flex-col justify-between">
-                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                                        <Ban size={80} className="text-red-900" />
+                                <div key={person.id} className="card-premium p-6 rounded-3xl border-l-4 border-l-taguig-red shadow-sm relative overflow-hidden group hover:shadow-md transition-all border border-slate-200 dark:border-white/10 flex flex-col justify-between">
+                                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                                        <Ban size={80} className="text-taguig-red" />
                                     </div>
 
                                     <div className="relative z-10">
-                                        <div className="flex items-center space-x-3 mb-4">
-                                            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-700 dark:text-red-400 font-bold shadow-sm">
-                                                <UserX size={20} />
+                                        <div className="flex items-center space-x-4 mb-6">
+                                            <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-taguig-red font-bold shadow-sm border border-slate-100 dark:border-white/5">
+                                                <UserX size={24} />
                                             </div>
                                             <div>
-                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">{person.name}</h3>
-                                                <p className="text-xs text-red-600 dark:text-red-400 font-bold uppercase tracking-wide">{person.role.toUpperCase()}</p>
+                                                <h3 className="text-lg font-black text-slate-800 dark:text-white leading-tight">{person.name}</h3>
+                                                <p className="text-[10px] text-taguig-red font-black uppercase tracking-widest mt-1">{person.role}</p>
                                             </div>
                                         </div>
 
                                         <div className="space-y-3 mb-6">
-                                            <div className="flex items-center text-sm text-slate-600 dark:text-slate-300">
-                                                <FileText size={16} className="mr-2 text-slate-400" />
-                                                <span className="font-mono font-bold">{person.incidents?.case_number}</span>
+                                            <div className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-400">
+                                                <FileText size={14} className="mr-2 text-slate-400" />
+                                                <span className="font-mono">{person.incidents?.case_number}</span>
                                             </div>
-                                            <div className="flex items-center text-sm text-slate-600 dark:text-slate-300">
-                                                <AlertOctagon size={16} className="mr-2 text-slate-400" />
+                                            <div className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-400">
+                                                <AlertOctagon size={14} className="mr-2 text-slate-400" />
                                                 <span>{person.incidents?.type}</span>
                                             </div>
-                                            <div className="flex items-center text-sm text-slate-600 dark:text-slate-300">
-                                                <Calendar size={16} className="mr-2 text-slate-400" />
+                                            <div className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-400">
+                                                <Calendar size={14} className="mr-2 text-slate-400" />
                                                 <span>{new Date(person.incidents?.created_at).toLocaleDateString()}</span>
                                             </div>
-                                            <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl">
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 italic line-clamp-2">
+                                            <div className="mt-4 p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl">
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 italic leading-relaxed line-clamp-3">
                                                     "{person.statement || person.incidents?.narrative}"
                                                 </p>
                                             </div>
@@ -133,12 +133,12 @@ const RestrictedPersons: React.FC = () => {
                                         <button
                                             onClick={() => handleClearRestriction(person)}
                                             disabled={processingId === person.id}
-                                            className="relative z-10 w-full flex items-center justify-center space-x-2 py-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-white hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-800 transition-all shadow-sm disabled:opacity-70"
+                                            className="relative z-10 w-full flex items-center justify-center space-x-2 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-taguig-red hover:text-white hover:border-taguig-red transition-all shadow-sm disabled:opacity-70"
                                         >
                                             {processingId === person.id ? (
                                                 <>
                                                     <Loader2 size={14} className="animate-spin" />
-                                                    <span>Updating...</span>
+                                                    <span>Processing...</span>
                                                 </>
                                             ) : (
                                                 <>

@@ -104,27 +104,28 @@ const ResourceForm: React.FC = () => {
 
     if (successData) {
         return (
-            <div className="max-w-2xl mx-auto pt-10 text-center animate-fade-in">
-                <div className="w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 dark:text-green-400 shadow-xl">
-                    <CheckCircle size={48} strokeWidth={2} />
-                </div>
-                <div className="glass-panel p-8 rounded-3xl border border-white/60 dark:border-white/10">
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{t.submitRequest} Successful!</h2>
-                    <p className="text-slate-500 dark:text-slate-400 mb-8">The request is now pending approval from the Barangay Captain or Admin.</p>
+            <div className="max-w-2xl mx-auto py-20 text-center animate-fade-in">
+                <div className="card-premium p-12 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-white/10 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-green-500"></div>
+                    <div className="w-24 h-24 bg-green-50 dark:bg-green-900/10 rounded-full flex items-center justify-center mx-auto mb-8 text-green-500 dark:text-green-400 border border-green-100 dark:border-green-900/20">
+                        <CheckCircle size={48} />
+                    </div>
+                    <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 uppercase tracking-tight italic">Request Submitted</h2>
+                    <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-sm mx-auto text-sm leading-relaxed">Your resource request has been logged successfully and is currently awaiting command approval.</p>
 
-                    <div className="flex justify-center space-x-4">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <button
                             onClick={async () => await generateBorrowingSlip(successData)}
-                            className="px-6 py-3 rounded-xl bg-slate-900 dark:bg-blue-600 text-white font-semibold shadow-lg hover:scale-105 transition-transform flex items-center"
+                            className="flex-1 px-8 py-5 bg-taguig-navy text-white font-black uppercase tracking-widest text-xs rounded-[2rem] shadow-xl shadow-taguig-navy/20 flex items-center justify-center space-x-2 hover:bg-taguig-blue transition-all"
                         >
-                            <Printer size={18} className="mr-2" />
-                            Print Borrowing Slip
+                            <Printer size={18} />
+                            <span>Print Record Slip</span>
                         </button>
                         <button
                             onClick={() => navigate('/resources')}
-                            className="px-6 py-3 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                            className="px-8 py-5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white font-black uppercase tracking-widest text-xs rounded-[2rem] hover:bg-slate-200 transition-all flex items-center justify-center space-x-2"
                         >
-                            Back to Dashboard
+                            <span>Back to Portal</span>
                         </button>
                     </div>
                 </div>
@@ -140,53 +141,54 @@ const ResourceForm: React.FC = () => {
                 icon={Package}
             />
 
-            <form onSubmit={handleSubmit} className="glass-panel p-8 rounded-[2rem] shadow-xl space-y-8 border border-white/60 dark:border-white/10 animate-fade-in">
+            <form onSubmit={handleSubmit} className="card-premium p-10 rounded-[2.5rem] shadow-sm space-y-10 border border-slate-200 dark:border-white/10 animate-fade-in relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-navy"></div>
 
                 {/* Borrower Details */}
                 <section>
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Borrower Information</h3>
+                    <h3 className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest mb-6 border-b border-slate-100 dark:border-white/5 pb-3">Borrower Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label htmlFor="borrowerName" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.borrowerName}</label>
+                            <label htmlFor="borrowerName" className="block text-[10px] font-black text-slate-400 dark:text-taguig-gold/40 uppercase tracking-widest mb-2 ml-1">{t.borrowerName}</label>
                             <div className="relative">
-                                <User className="absolute left-3 top-3 text-gray-400" size={18} />
+                                <User className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500" size={18} />
                                 <input
                                     id="borrowerName"
                                     required
                                     type="text"
                                     value={formData.borrower_name}
                                     onChange={e => setFormData({ ...formData, borrower_name: e.target.value })}
-                                    className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 pl-12 pr-4 outline-none focus:ring-4 focus:ring-taguig-navy/10 text-slate-800 dark:text-white font-bold"
                                     placeholder="Full Legal Name"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label htmlFor="contactNo" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.contactNo}</label>
+                            <label htmlFor="contactNo" className="block text-[10px] font-black text-slate-400 dark:text-taguig-gold/40 uppercase tracking-widest mb-2 ml-1">{t.contactNo}</label>
                             <div className="relative">
-                                <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
+                                <Phone className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500" size={18} />
                                 <input
                                     id="contactNo"
                                     required
                                     type="text"
                                     value={formData.contact_number}
                                     onChange={e => setFormData({ ...formData, contact_number: e.target.value })}
-                                    className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 pl-12 pr-4 outline-none focus:ring-4 focus:ring-taguig-navy/10 text-slate-800 dark:text-white font-bold"
                                     placeholder="0912..."
                                 />
                             </div>
                         </div>
                         <div className="md:col-span-2">
-                            <label htmlFor="address" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.address}</label>
+                            <label htmlFor="address" className="block text-[10px] font-black text-slate-400 dark:text-taguig-gold/40 uppercase tracking-widest mb-2 ml-1">{t.address}</label>
                             <div className="relative">
-                                <MapPin className="absolute left-3 top-3 text-gray-400" size={18} />
+                                <MapPin className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500" size={18} />
                                 <input
                                     id="address"
                                     required
                                     type="text"
                                     value={formData.address}
                                     onChange={e => setFormData({ ...formData, address: e.target.value })}
-                                    className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 pl-12 pr-4 outline-none focus:ring-4 focus:ring-taguig-navy/10 text-slate-800 dark:text-white font-medium"
                                     placeholder="House No., Street, Block"
                                 />
                             </div>
@@ -196,12 +198,12 @@ const ResourceForm: React.FC = () => {
 
                 {/* Request Details */}
                 <section>
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2">Request Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <h3 className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest mb-6 border-b border-slate-100 dark:border-white/5 pb-3">Logistical Data</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                         <div>
-                            <label htmlFor="pickupDate" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.pickupDate}</label>
+                            <label htmlFor="pickupDate" className="block text-[10px] font-black text-slate-400 dark:text-taguig-gold/40 uppercase tracking-widest mb-2 ml-1">{t.pickupDate}</label>
                             <div className="relative">
-                                <Calendar className="absolute left-3 top-3 text-gray-400" size={18} />
+                                <Calendar className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500" size={18} />
                                 <input
                                     id="pickupDate"
                                     required
@@ -209,15 +211,14 @@ const ResourceForm: React.FC = () => {
                                     min={today}
                                     value={formData.pickup_date}
                                     onChange={e => setFormData({ ...formData, pickup_date: e.target.value })}
-                                    className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 pl-12 pr-4 outline-none focus:ring-4 focus:ring-taguig-navy/10 text-slate-800 dark:text-white font-bold"
                                 />
-
                             </div>
                         </div>
                         <div>
-                            <label htmlFor="returnDate" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.returnDate}</label>
+                            <label htmlFor="returnDate" className="block text-[10px] font-black text-slate-400 dark:text-taguig-gold/40 uppercase tracking-widest mb-2 ml-1">{t.returnDate}</label>
                             <div className="relative">
-                                <Calendar className="absolute left-3 top-3 text-gray-400" size={18} />
+                                <Calendar className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500" size={18} />
                                 <input
                                     id="returnDate"
                                     required
@@ -225,47 +226,50 @@ const ResourceForm: React.FC = () => {
                                     min={formData.pickup_date || today}
                                     value={formData.return_date}
                                     onChange={e => setFormData({ ...formData, return_date: e.target.value })}
-                                    className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 pl-12 pr-4 outline-none focus:ring-4 focus:ring-taguig-navy/10 text-slate-800 dark:text-white font-bold"
                                 />
-
                             </div>
                         </div>
                         <div className="md:col-span-2">
-                            <label htmlFor="purpose" className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 ml-1">{t.purpose}</label>
+                            <label htmlFor="purpose" className="block text-[10px] font-black text-slate-400 dark:text-taguig-gold/40 uppercase tracking-widest mb-2 ml-1">{t.purpose}</label>
                             <input
                                 id="purpose"
                                 required
                                 type="text"
                                 value={formData.purpose}
                                 onChange={e => setFormData({ ...formData, purpose: e.target.value })}
-                                className="w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 px-4 outline-none focus:ring-4 focus:ring-taguig-navy/10 text-slate-800 dark:text-white font-bold"
                                 placeholder="e.g. Wake, Birthday, Medical Transport"
                             />
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 ml-1">{t.itemsRequested}</label>
+                    <div className="space-y-4">
+                        <label className="block text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest ml-1">{t.itemsRequested}</label>
                         {items.map((item, idx) => (
-                            <div key={idx} className="flex items-center space-x-3 animate-fade-in">
-                                <select
-                                    value={item.item}
-                                    onChange={e => handleItemChange(idx, 'item', e.target.value)}
-                                    className="flex-1 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none text-slate-800 dark:text-white"
-                                >
-                                    {ITEM_OPTIONS.map(opt => <option key={opt} value={opt} className="dark:bg-slate-800">{opt}</option>)}
-                                </select>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={item.quantity}
-                                    onChange={e => handleItemChange(idx, 'quantity', parseInt(e.target.value))}
-                                    className="w-24 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none text-center text-slate-800 dark:text-white"
-                                    placeholder="Qty"
-                                />
+                            <div key={idx} className="flex items-center space-x-4 animate-fade-in group">
+                                <div className="flex-1 relative">
+                                    <select
+                                        value={item.item}
+                                        onChange={e => handleItemChange(idx, 'item', e.target.value)}
+                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl py-3.5 px-4 outline-none text-slate-800 dark:text-white font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-taguig-navy/10"
+                                    >
+                                        {ITEM_OPTIONS.map(opt => <option key={opt} value={opt} className="dark:bg-slate-800">{opt}</option>)}
+                                    </select>
+                                </div>
+                                <div className="w-32 relative">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={item.quantity}
+                                        onChange={e => handleItemChange(idx, 'quantity', parseInt(e.target.value))}
+                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl py-3.5 px-4 outline-none text-center text-slate-800 dark:text-white font-black"
+                                        placeholder="Qty"
+                                    />
+                                </div>
                                 {items.length > 1 && (
-                                    <button type="button" onClick={() => handleRemoveItem(idx)} className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl">
-                                        <Trash2 size={18} />
+                                    <button type="button" onClick={() => handleRemoveItem(idx)} className="p-3.5 text-slate-300 hover:text-taguig-red transition-all hover:scale-110">
+                                        <Trash2 size={20} />
                                     </button>
                                 )}
                             </div>
@@ -273,40 +277,40 @@ const ResourceForm: React.FC = () => {
                         <button
                             type="button"
                             onClick={handleAddItem}
-                            className="mt-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center space-x-1"
+                            className="w-full py-4 rounded-xl border-2 border-dashed border-slate-100 dark:border-white/5 text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest text-[10px] flex items-center justify-center space-x-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-all group"
                         >
-                            <Plus size={16} />
-                            <span>{t.newItem}</span>
+                            <Plus size={16} className="group-hover:rotate-90 transition-transform" />
+                            <span>Add New Registry Entry</span>
                         </button>
                     </div>
                 </section>
 
                 {/* DATA PRIVACY CONSENT */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-xl flex items-start space-x-3">
+                <div className="bg-taguig-navy/[0.02] dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 rounded-2xl flex items-start space-x-4">
                     <input
                         type="checkbox"
                         id="privacy-consent"
                         checked={hasConsented}
                         onChange={(e) => setHasConsented(e.target.checked)}
-                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 mt-0.5 border-gray-300"
+                        className="w-5 h-5 text-taguig-navy rounded focus:ring-taguig-navy mt-0.5 border-slate-300 bg-white dark:bg-slate-800"
                     />
-                    <label htmlFor="privacy-consent" className="text-sm text-blue-900 dark:text-blue-300 leading-relaxed cursor-pointer">
-                        <span className="font-bold flex items-center mb-1"><Shield size={14} className="mr-1" /> Data Privacy Consent</span>
+                    <label htmlFor="privacy-consent" className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed cursor-pointer">
+                        <span className="font-black flex items-center mb-2 uppercase tracking-widest text-taguig-navy dark:text-taguig-gold"><Shield size={14} className="mr-2" /> Data Privacy Consent</span>
                         I confirm that the personal data provided is accurate and I consent to its collection and processing for the purpose of this resource request, in compliance with the <strong>Data Privacy Act of 2012</strong>.
                     </label>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 dark:border-white/10 flex justify-end">
+                <div className="pt-8 border-t border-slate-100 dark:border-white/5 flex justify-end">
                     <button
                         type="submit"
                         disabled={isSubmitting || !hasConsented}
-                        className={`px-8 py-4 rounded-xl font-bold flex items-center space-x-2 shadow-lg transition-all ${hasConsented
-                            ? 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 shadow-blue-500/30'
-                            : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
+                        className={`px-12 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs flex items-center space-x-3 transition-all shadow-xl shadow-taguig-navy/20 active:scale-[0.98] ${hasConsented
+                            ? 'bg-taguig-navy text-white hover:bg-taguig-blue'
+                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 cursor-not-allowed shadow-none'
                             }`}
                     >
                         {isSubmitting ? (
-                            <span>Processing...</span>
+                            <span>Processing Request...</span>
                         ) : (
                             <>
                                 <span>{t.submitRequest}</span>
