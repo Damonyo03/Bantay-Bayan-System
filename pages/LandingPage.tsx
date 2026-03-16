@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
     Shield, 
     Bell, 
     Users, 
     ChevronRight, 
+    ChevronLeft,
     Building2,
     Globe,
     FileText,
@@ -24,11 +25,72 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 
+const HERO_SLIDES = [
+    {
+        title: "Peace.",
+        highlight: "Order.",
+        subtitle: "Security.",
+        description: "Establishing a framework of excellence for Barangay Post Proper Northside. The Fleetonix system ensures unified command and rapid response.",
+        image: "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&q=80",
+        badge: "Official BGC Security Operations"
+    },
+    {
+        title: "Tactical.",
+        highlight: "Rapid.",
+        subtitle: "Response.",
+        description: "Our dispatcher units are equipped with real-time telemetry for maximum efficiency. Every second counts in community safety.",
+        image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80",
+        badge: "24/7 Dispatch Control"
+    },
+    {
+        title: "Unified.",
+        highlight: "Smart.",
+        subtitle: "Governance.",
+        description: "Bantay Bayan integrates city-wide resources into a single point of command. Professional excellence in every operation.",
+        image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80",
+        badge: "Smart City Infrastructure"
+    }
+];
+
+const SERVICES = [
+    {
+        icon: Navigation,
+        title: "Dispatch Guidelines",
+        desc: "Institutional protocols for rapid personnel deployment and incident response hierarchy.",
+        content: "Our dispatch system follows the SOP-7 security framework. Every incident report triggers a tiered response: Tier 1 (Immediate Patrol Dispatch), Tier 2 (Tactical Command Support), and Tier 3 (Inter-agency Coordination)."
+    },
+    {
+        icon: Smartphone,
+        title: "Resource Tracking",
+        desc: "Real-time asset management and field operator geolocation for maximized coverage.",
+        content: "Bantay Bayan utilizes encrypted GPS telemetry to track all active patrol vehicles and personnel. This ensures that the nearest unit is always the first on the scene, minimizing response windows."
+    },
+    {
+        icon: AlertTriangle,
+        title: "Incident Logging",
+        desc: "Digital vault for documenting operational activities and security observations.",
+        content: "All operational logs are stored in a secure, immutable ledger. This data provides the core analytics for safety heatmaps and strategic deployment planning within the BGC North sectors."
+    }
+];
+
 const LandingPage: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [modalData, setModalData] = useState<{ title: string, content: string, icon?: any } | null>(null);
+    
+    // Carousel States
+    const [heroIndex, setHeroIndex] = useState(0);
+    const [servicesIndex, setServicesIndex] = useState(0);
+    const [hierarchyIndex, setHierarchyIndex] = useState(0);
+
+    // Auto-advance Hero Carousel
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setHeroIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+        }, 6000);
+        return () => clearInterval(timer);
+    }, []);
 
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
@@ -116,57 +178,79 @@ const LandingPage: React.FC = () => {
                 )}
             </nav>
 
-            {/* Hero Banner with Dark Overlay */}
-            <section id="about" className="relative min-h-[85vh] flex items-center px-6 overflow-hidden">
-                <div className="absolute inset-0 bg-slate-900">
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-10"></div>
-                    <div className="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&q=80')] bg-cover bg-center"></div>
-                    <div className="absolute inset-0 bg-taguig-blue/10 mix-blend-overlay"></div>
-                </div>
-
-                <div className="max-w-7xl mx-auto w-full relative z-20">
-                    <div className="max-w-3xl space-y-8 animate-fade-in translate-y-10">
-                        <div className="inline-flex items-center px-4 py-2 bg-taguig-blue/20 border border-taguig-blue/30 rounded-full text-white text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-md">
-                            <Shield size={14} className="mr-3 text-taguig-gold" />
-                            Official BGC Security Operations
+            {/* Introduction Carousel (Hero) */}
+            <section id="about" className="relative min-h-[90vh] flex items-center px-6 overflow-hidden">
+                {HERO_SLIDES.map((slide, index) => (
+                    <div 
+                        key={index}
+                        className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === heroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
+                    >
+                        <div className="absolute inset-0 bg-slate-900">
+                            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-10"></div>
+                            <div className="absolute inset-0 opacity-40 bg-cover bg-center" style={{ backgroundImage: `url('${slide.image}')` }}></div>
+                            <div className="absolute inset-0 bg-taguig-blue/10 mix-blend-overlay"></div>
                         </div>
-                        
-                        <h2 className="text-6xl md:text-8xl lg:text-9xl font-black text-white uppercase tracking-tighter italic leading-[0.85]">
-                            Peace. <br />
-                            <span className="text-taguig-gold">Order.</span> <br />
-                            Security.
-                        </h2>
 
-                        <p className="text-xl text-white/60 font-medium leading-relaxed max-w-xl">
-                            Establishing a framework of excellence for Barangay Post Proper Northside. 
-                            The Fleetonix system ensures unified command and rapid response.
-                        </p>
+                        <div className="max-w-7xl mx-auto h-full flex items-center w-full relative z-20">
+                            <div className={`max-w-3xl space-y-8 transition-all duration-1000 delay-300 ${index === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
+                                <div className="inline-flex items-center px-4 py-2 bg-taguig-blue/20 border border-taguig-blue/30 rounded-full text-white text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-md">
+                                    <Shield size={14} className="mr-3 text-taguig-gold" />
+                                    {slide.badge}
+                                </div>
+                                
+                                <h2 className="text-6xl md:text-8xl lg:text-9xl font-black text-white uppercase tracking-tighter italic leading-[0.85]">
+                                    {slide.title} <br />
+                                    <span className="text-taguig-gold">{slide.highlight}</span> <br />
+                                    {slide.subtitle}
+                                </h2>
 
-                        <div className="flex flex-wrap gap-4 pt-6">
-                            <button 
-                                onClick={() => scrollToSection('services')}
-                                className="px-10 py-5 bg-white text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 hover:bg-taguig-gold transition-all shadow-2xl flex items-center group"
-                            >
-                                <span>Learn More</span>
-                                <ChevronRight size={16} className="ml-3 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                            <button 
-                                onClick={() => navigate('/login')}
-                                className="px-10 py-5 bg-transparent border-2 border-white/20 text-white rounded-[2rem] text-xs font-black uppercase tracking-widest hover:border-white transition-all flex items-center"
-                            >
-                                Dispatch Portal Login
-                            </button>
+                                <p className="text-xl text-white/60 font-medium leading-relaxed max-w-xl">
+                                    {slide.description}
+                                </p>
+
+                                <div className="flex flex-wrap gap-4 pt-6">
+                                    <button 
+                                        onClick={() => scrollToSection('services')}
+                                        className="px-10 py-5 bg-white text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 hover:bg-taguig-gold transition-all shadow-2xl flex items-center group"
+                                    >
+                                        <span>Learn More</span>
+                                        <ChevronRight size={16} className="ml-3 group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                    <button 
+                                        onClick={() => navigate('/login')}
+                                        className="px-10 py-5 bg-transparent border-2 border-white/20 text-white rounded-[2rem] text-xs font-black uppercase tracking-widest hover:border-white transition-all flex items-center"
+                                    >
+                                        Dispatch Portal Login
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                ))}
+
+                {/* Hero Pagination Indicators */}
+                <div className="absolute bottom-16 right-6 lg:right-24 z-30 flex flex-col items-end space-y-6">
+                    {HERO_SLIDES.map((_, index) => (
+                        <button 
+                            key={index}
+                            onClick={() => setHeroIndex(index)}
+                            className="flex items-center group"
+                        >
+                            <span className={`text-[10px] font-black uppercase mr-4 transition-all ${index === heroIndex ? 'text-taguig-gold opacity-100 translate-x-0' : 'text-white opacity-0 translate-x-4'}`}>
+                                Slide 0{index + 1}
+                            </span>
+                            <div className={`h-1 transition-all duration-500 rounded-full ${index === heroIndex ? 'w-16 bg-taguig-gold' : 'w-8 bg-white/20'}`}></div>
+                        </button>
+                    ))}
                 </div>
 
                 {/* Scroll Indicator */}
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 animate-bounce opacity-40">
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 animate-bounce opacity-40 z-30">
                     <div className="w-px h-12 bg-gradient-to-b from-white to-transparent"></div>
                 </div>
             </section>
 
-            {/* Services & Directory Grid */}
+            {/* Services Carousel */}
             <section id="services" className="py-32 px-6 relative bg-slate-50 dark:bg-slate-900/50">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-10">
@@ -178,44 +262,50 @@ const LandingPage: React.FC = () => {
                             <h3 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic leading-none">Security Network</h3>
                             <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl">Comprehensive tracking and tactical response services for the community.</p>
                         </div>
+                        
+                        {/* Services Navigation Controls */}
+                        <div className="flex space-x-4">
+                            <button 
+                                onClick={() => setServicesIndex((prev) => (prev - 1 + SERVICES.length) % SERVICES.length)}
+                                className="p-5 bg-white dark:bg-slate-800 rounded-full shadow-premium hover:bg-taguig-blue hover:text-white transition-all border border-slate-100 dark:border-white/5 active:scale-90"
+                            >
+                                <ChevronLeft size={24} />
+                            </button>
+                            <button 
+                                onClick={() => setServicesIndex((prev) => (prev + 1) % SERVICES.length)}
+                                className="p-5 bg-white dark:bg-slate-800 rounded-full shadow-premium hover:bg-taguig-blue hover:text-white transition-all border border-slate-100 dark:border-white/5 active:scale-90"
+                            >
+                                <ChevronRight size={24} />
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <DirectoryCard 
-                            icon={Navigation}
-                            title="Dispatch Guidelines"
-                            desc="Institutional protocols for rapid personnel deployment and incident response hierarchy."
-                            onClick={() => setModalData({
-                                title: "Dispatch Protocols",
-                                icon: Navigation,
-                                content: "Our dispatch system follows the SOP-7 security framework. Every incident report triggers a tiered response: Tier 1 (Immediate Patrol Dispatch), Tier 2 (Tactical Command Support), and Tier 3 (Inter-agency Coordination)."
-                            })}
-                        />
-                        <DirectoryCard 
-                            icon={Smartphone}
-                            title="Resource Tracking"
-                            desc="Real-time asset management and field operator geolocation for maximized coverage."
-                            onClick={() => setModalData({
-                                title: "Resource Management",
-                                icon: Smartphone,
-                                content: "Bantay Bayan utilizes encrypted GPS telemetry to track all active patrol vehicles and personnel. This ensures that the nearest unit is always the first on the scene, minimizing response windows."
-                            })}
-                        />
-                        <DirectoryCard 
-                            icon={AlertTriangle}
-                            title="Incident Logging"
-                            desc="Digital vault for documenting operational activities and security observations."
-                            onClick={() => setModalData({
-                                title: "Incident Records",
-                                icon: AlertTriangle,
-                                content: "All operational logs are stored in a secure, immutable ledger. This data provides the core analytics for safety heatmaps and strategic deployment planning within the BGC North sectors."
-                            })}
-                        />
+                    <div className="relative overflow-hidden py-10">
+                        <div 
+                            className="flex transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
+                            style={{ transform: `translateX(-${servicesIndex * (100 / (window.innerWidth >= 1024 ? 3 : 1))}%)` }}
+                        >
+                            {SERVICES.map((s, idx) => (
+                                <div key={idx} className="w-full lg:w-1/3 flex-shrink-0 px-4">
+                                    <DirectoryCard 
+                                        icon={s.icon}
+                                        title={s.title}
+                                        desc={s.desc}
+                                        onClick={() => setModalData({
+                                            title: s.title,
+                                            icon: s.icon,
+                                            content: s.content
+                                        })}
+                                        active={idx === servicesIndex}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* Organizational Architecture */}
+            {/* Hierarchy Carousel */}
             <section id="team" className="py-32 bg-white dark:bg-slate-950 px-6 border-y border-slate-100 dark:border-white/5 transition-colors duration-500">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center space-y-4 mb-24 flex flex-col items-center group">
@@ -226,29 +316,60 @@ const LandingPage: React.FC = () => {
                         <p className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto">Strategic command and operational leadership for Post Proper Northside Security.</p>
                     </div>
 
-                    <div className="flex flex-col items-center space-y-16">
-                        {/* Executive Level */}
-                        <div className="w-full flex justify-center">
-                            <MemberNode 
-                                role="Punong Barangay" 
-                                name="HON. RICHARD C. PASADILLA" 
-                                desc="Executive Command"
-                                primary
-                            />
+                    <div className="relative">
+                        {/* Executive Level Carousel */}
+                        <div className="overflow-hidden">
+                            <div 
+                                className="flex transition-all duration-700 ease-in-out"
+                                style={{ transform: `translateX(-${hierarchyIndex * 100}%)` }}
+                            >
+                                {/* Slide 1: Executive Command */}
+                                <div className="w-full flex-shrink-0 flex flex-col items-center space-y-16">
+                                    <div className="w-full flex justify-center px-4">
+                                        <MemberNode 
+                                            role="Punong Barangay" 
+                                            name="HON. RICHARD C. PASADILLA" 
+                                            desc="Executive Command"
+                                            primary
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
+                                        <MemberNode role="Barangay Secretary" name="HON. [SECRETARY NAME]" desc="Administration" />
+                                        <MemberNode role="Barangay Treasurer" name="HON. [TREASURER NAME]" desc="Fiscal Oversight" />
+                                    </div>
+                                </div>
+
+                                {/* Slide 2: Legislative Council */}
+                                <div className="w-full flex-shrink-0 flex flex-col items-center">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl px-4">
+                                        <MemberNode role="Kagawad" name="HON. [NAME 1]" desc="Peace & Order" compact />
+                                        <MemberNode role="Kagawad" name="HON. [NAME 2]" desc="Infrastructure" compact />
+                                        <MemberNode role="Kagawad" name="HON. [NAME 3]" desc="Health & Safety" compact />
+                                        <MemberNode role="Kagawad" name="HON. [NAME 4]" desc="Social Services" compact />
+                                        <MemberNode role="Kagawad" name="HON. [NAME 5]" desc="Education" compact />
+                                        <MemberNode role="Kagawad" name="HON. [NAME 6]" desc="Environment" compact />
+                                        <MemberNode role="Kagawad" name="HON. [NAME 7]" desc="Livelihood" compact />
+                                        <MemberNode role="SK Chairman" name="HON. [SK NAME]" desc="Youth Development" compact />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Operational Level */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-                            <MemberNode role="Barangay Secretary" name="HON. [SECRETARY NAME]" desc="Administration" />
-                            <MemberNode role="Barangay Treasurer" name="HON. [TREASURER NAME]" desc="Fiscal Oversight" />
-                        </div>
-
-                        {/* Legislative/Kagawad Level */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
-                            <MemberNode role="Kagawad" name="HON. [NAME 1]" desc="Peace & Order" compact />
-                            <MemberNode role="Kagawad" name="HON. [NAME 2]" desc="Infrastructure" compact />
-                            <MemberNode role="Kagawad" name="HON. [NAME 3]" desc="Health & Safety" compact />
-                            <MemberNode role="Kagawad" name="HON. [NAME 4]" desc="Social Services" compact />
+                        {/* Hierarchy Navigation */}
+                        <div className="flex justify-center items-center space-x-10 mt-20">
+                            <button 
+                                onClick={() => setHierarchyIndex(0)}
+                                className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all ${hierarchyIndex === 0 ? 'text-taguig-blue dark:text-taguig-gold' : 'text-slate-300 dark:text-slate-700'}`}
+                            >
+                                Executive Level
+                            </button>
+                            <div className="h-px w-20 bg-slate-100 dark:bg-white/10"></div>
+                            <button 
+                                onClick={() => setHierarchyIndex(1)}
+                                className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all ${hierarchyIndex === 1 ? 'text-taguig-blue dark:text-taguig-gold' : 'text-slate-300 dark:text-slate-700'}`}
+                            >
+                                Legislative Council
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -345,10 +466,10 @@ const LandingPage: React.FC = () => {
     );
 };
 
-const DirectoryCard: React.FC<{ icon: any, title: string, desc: string, onClick: () => void }> = ({ icon: Icon, title, desc, onClick }) => (
+const DirectoryCard: React.FC<{ icon: any, title: string, desc: string, onClick: () => void, active?: boolean }> = ({ icon: Icon, title, desc, onClick, active }) => (
     <div 
         onClick={onClick}
-        className="group relative bg-white dark:bg-slate-800 p-10 rounded-[3rem] border border-slate-200 dark:border-white/5 shadow-premium hover:shadow-2xl hover:scale-[1.03] transition-all cursor-pointer overflow-hidden"
+        className={`group relative bg-white dark:bg-slate-800 p-10 rounded-[3rem] border shadow-premium hover:shadow-2xl transition-all cursor-pointer overflow-hidden ${active ? 'border-taguig-blue dark:border-taguig-gold' : 'border-slate-200 dark:border-white/5 opacity-40 hover:opacity-100'}`}
     >
         <div className="absolute -right-4 -top-4 w-32 h-32 bg-taguig-blue/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
         <div className="relative z-10 space-y-6">
