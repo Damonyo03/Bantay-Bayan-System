@@ -33,7 +33,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, check?: (user: UserP
     }
 
     if (!user) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/" replace />;
     }
 
     if (check && !check(user)) {
