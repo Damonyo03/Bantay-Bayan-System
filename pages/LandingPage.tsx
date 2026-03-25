@@ -108,19 +108,19 @@ const LandingPage: React.FC = () => {
     };
 
     return (
-        <div className="h-screen w-screen bg-slate-950 font-sans selection:bg-taguig-blue/20 selection:text-taguig-blue transition-colors duration-500 overflow-hidden flex flex-col">
+        <div className="min-h-screen w-screen bg-slate-950 font-sans selection:bg-taguig-blue/20 selection:text-taguig-blue transition-colors duration-500 overflow-x-hidden flex flex-col">
             
             {/* Main Navigation (Fixed) */}
             <nav className="sticky top-0 left-0 right-0 z-[90] bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-shrink-0">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center space-x-4 group cursor-pointer" onClick={() => setMainIndex(0)}>
                         <div className="flex items-center space-x-2">
-                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-10 w-auto drop-shadow-md group-hover:rotate-12 transition-transform" />
-                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-10 w-auto drop-shadow-md" />
+                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-8 md:h-10 w-auto drop-shadow-md group-hover:rotate-12 transition-transform" />
+                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-8 md:h-10 w-auto drop-shadow-md" />
                         </div>
                         <div className="hidden sm:block border-l border-white/10 pl-4">
-                            <h1 className="text-base font-black text-white uppercase italic leading-none tracking-tight">Post Proper Northside</h1>
-                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Peace & Security Operations</p>
+                            <h1 className="text-sm md:text-base font-black text-white uppercase italic leading-none tracking-tight">Post Proper Northside</h1>
+                            <p className="text-[7px] md:text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Peace & Security Operations</p>
                         </div>
                     </div>
                     
@@ -179,7 +179,7 @@ const LandingPage: React.FC = () => {
             <div className="flex-1 relative overflow-hidden">
                 <div 
                     className="h-full flex transition-transform duration-1000 ease-[cubic-bezier(0.87,0,0.13,1)]"
-                    style={{ transform: `translateX(-${mainIndex * 100}%)` }}
+                    style={{ transform: `translateX(-${mainIndex * 100}%)`, minHeight: 'calc(100vh - 80px)' }}
                 >
                     
                     {/* Slide 0: Introduction (Hero Sub-Carousel) */}
@@ -229,7 +229,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 1: Operations (Services Sub-Carousel) */}
-                    <div className="w-full h-full flex-shrink-0 bg-slate-900/50 flex flex-col justify-center px-6">
+                    <div className="w-full h-full flex-shrink-0 bg-slate-900/50 flex flex-col justify-center px-6 overflow-y-auto py-20">
                         <div className="max-w-7xl mx-auto w-full">
                                 <div className="space-y-3 text-center md:text-left">
                                     <div className="flex items-center justify-center md:justify-start space-x-3 text-taguig-gold uppercase tracking-widest text-[10px] font-black">
@@ -252,7 +252,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 2: Leadership (Hierarchy Sub-Carousel) */}
-                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 overflow-hidden">
+                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 overflow-y-auto py-20">
                         <div className="max-w-7xl mx-auto w-full">
                             <div className="text-center space-y-3 mb-12 flex flex-col items-center group">
                                 <div className="p-3 bg-taguig-gold/5 rounded-2xl text-taguig-gold group-hover:scale-110 transition-transform"><Users size={28} /></div>
@@ -277,7 +277,7 @@ const LandingPage: React.FC = () => {
                                                 <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" />
                                             </div>
                                         </div>
-                                        <div className="w-full flex-shrink-0 flex flex-col items-center overflow-y-auto max-h-[55vh] transition-scrollbar py-4">
+                                        <div className="w-full flex-shrink-0 flex flex-col items-center py-4">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl px-4 pb-20">
                                                 <MemberNode role="Kagawad" name="HON. EDNA M. BACCAY" desc="Education & Culture" compact />
                                                 <MemberNode role="Kagawad" name="HON. CHRISTINE JAGONIO" desc="Finance & Social Services" compact />
@@ -313,7 +313,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 3: Emergency & Footer Summary */}
-                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 text-white relative">
+                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 text-white relative overflow-y-auto py-20">
                         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                             <div className="space-y-10">
                                 <div className="flex items-center space-x-4">
@@ -423,9 +423,9 @@ const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?:
     return (
         <div className={`
             group relative flex flex-col items-center transition-all duration-500
-            ${compact ? 'p-6 rounded-3xl w-full' : 'p-10 rounded-[3rem] w-full max-w-sm'}
+            ${compact ? 'p-4 md:p-6 rounded-3xl w-full' : 'p-6 md:p-10 rounded-[3rem] w-full max-w-sm'}
             ${primary 
-                ? 'bg-taguig-blue text-white shadow-[0_20px_50px_rgba(0,56,168,0.4)] border border-white/20 scale-110 z-10' 
+                ? 'bg-taguig-blue text-white shadow-[0_20px_50px_rgba(0,56,168,0.4)] border border-white/20 scale-100 md:scale-110 z-10' 
                 : 'bg-slate-900/40 backdrop-blur-2xl text-white border border-white/10 shadow-2xl hover:border-taguig-gold/50'}
             hover:scale-[1.05] active:scale-[0.98]
         `}>
