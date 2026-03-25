@@ -60,9 +60,9 @@ public class MainActivity extends BridgeActivity {
             }
         });
 
-        // Inject helper script for Blob handling
-        webView.getSettings().setJavaScriptEnabled(true);
-        injectBlobScript(webView);
+        // Inject helper script for Blob handling (DISABLED to prevent dual-handling conflicts)
+        // webView.getSettings().setJavaScriptEnabled(true);
+        // injectBlobScript(webView);
     }
 
     private void injectBlobScript(WebView webView) {
@@ -132,6 +132,9 @@ public class MainActivity extends BridgeActivity {
             } catch (IOException e) {
                 e.printStackTrace();
                 runOnUiThread(() -> Toast.makeText(context, "Error saving PDF", Toast.LENGTH_SHORT).show());
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(context, "Download Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         }
 
@@ -162,49 +165,51 @@ public class MainActivity extends BridgeActivity {
                 runOnUiThread(() -> Toast.makeText(context, "Preparing print: " + finalJobName, Toast.LENGTH_SHORT).show());
 
                 PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
-                PrintDocumentAdapter pda = new PrintDocumentAdapter() {
-                    @Override
-                    public void onWrite(PageRange[] pages, android.os.ParcelFileDescriptor destination, android.os.CancellationSignal cancellationSignal, WriteResultCallback callback) {
-                        java.io.InputStream input = null;
-                        java.io.OutputStream output = null;
-                        try {
-                            input = new java.io.FileInputStream(file);
-                            output = new java.io.FileOutputStream(destination.getFileDescriptor());
-                            byte[] buf = new byte[1024];
-                            int bytesRead;
-                            while ((bytesRead = input.read(buf)) > 0) {
-                                output.write(buf, 0, bytesRead);
+                runOnUiThread(() -> {
+                    PrintDocumentAdapter pda = new PrintDocumentAdapter() {
+                        @Override
+                        public void onWrite(PageRange[] pages, android.os.ParcelFileDescriptor destination, android.os.CancellationSignal cancellationSignal, WriteResultCallback callback) {
+                            java.io.InputStream input = null;
+                            java.io.OutputStream output = null;
+                            try {
+                                input = new java.io.FileInputStream(file);
+                                output = new java.io.FileOutputStream(destination.getFileDescriptor());
+                                byte[] buf = new byte[1024];
+                                int bytesRead;
+                                while ((bytesRead = input.read(buf)) > 0) {
+                                    output.write(buf, 0, bytesRead);
+                                }
+                                callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
+                            } catch (Exception e) {
+                                callback.onWriteFailed(e.toString());
+                            } finally {
+                                try { if (input != null) input.close(); } catch (IOException e) {}
+                                try { if (output != null) output.close(); } catch (IOException e) {}
                             }
-                            callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
-                        } catch (Exception e) {
-                            callback.onWriteFailed(e.toString());
-                        } finally {
-                            try { if (input != null) input.close(); } catch (IOException e) {}
-                            try { if (output != null) output.close(); } catch (IOException e) {}
                         }
-                    }
 
-                    @Override
-                    public void onLayout(PrintAttributes oldAttributes, PrintAttributes newAttributes, android.os.CancellationSignal cancellationSignal, LayoutResultCallback callback, Bundle extras) {
-                        if (cancellationSignal.isCanceled()) {
-                            callback.onLayoutCancelled();
-                            return;
+                        @Override
+                        public void onLayout(PrintAttributes oldAttributes, PrintAttributes newAttributes, android.os.CancellationSignal cancellationSignal, LayoutResultCallback callback, Bundle extras) {
+                            if (cancellationSignal.isCanceled()) {
+                                callback.onLayoutCancelled();
+                                return;
+                            }
+                            PrintDocumentInfo pdi = new PrintDocumentInfo.Builder(finalJobName + ".pdf")
+                                    .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
+                                    .build();
+                            callback.onLayoutFinished(pdi, true);
                         }
-                        PrintDocumentInfo pdi = new PrintDocumentInfo.Builder(finalJobName + ".pdf")
-                                .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
-                                .build();
-                        callback.onLayoutFinished(pdi, true);
-                    }
 
-                    @Override
-                    public void onFinish() {
-                        super.onFinish();
-                        // Optional: Clean up cache file after printing
-                        // if (file.exists()) file.delete();
-                    }
-                };
-                
-                printManager.print(finalJobName, pda, new PrintAttributes.Builder().build());
+                        @Override
+                        public void onFinish() {
+                            super.onFinish();
+                            // Optional: Clean up cache file after printing
+                            // if (file.exists()) file.delete();
+                        }
+                    };
+                    
+                    printManager.print(finalJobName, pda, new PrintAttributes.Builder().build());
+                });
 
             } catch (Exception e) {
                 e.printStackTrace();
