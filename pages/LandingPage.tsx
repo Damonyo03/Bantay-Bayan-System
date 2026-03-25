@@ -25,7 +25,6 @@ import {
     ChevronUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
 
 const HERO_SLIDES = [
     {
@@ -83,7 +82,6 @@ const SECTIONS = [
 ];
 
 const LandingPage: React.FC = () => {
-    const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [modalData, setModalData] = useState<{ title: string, content: string, icon?: any } | null>(null);
@@ -110,58 +108,36 @@ const LandingPage: React.FC = () => {
     };
 
     return (
-        <div className="h-screen w-screen bg-white dark:bg-slate-950 font-sans selection:bg-taguig-blue/20 selection:text-taguig-blue transition-colors duration-500 overflow-hidden flex flex-col">
+        <div className="h-screen w-screen bg-slate-950 font-sans selection:bg-taguig-blue/20 selection:text-taguig-blue transition-colors duration-500 overflow-hidden flex flex-col">
             
-            {/* Utility Top-Bar (Fixed) */}
-            <div className="bg-slate-900 border-b border-white/5 py-2 px-6 relative z-[100] flex-shrink-0">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-white/70 text-[10px] font-black uppercase tracking-[0.2em]">
-                    <div className="flex items-center space-x-6">
-                        <a href="mailto:barangayostpropernorthside@gmail.com" className="flex items-center hover:text-taguig-gold transition-colors">
-                            <Mail size={12} className="mr-2 text-taguig-gold" />
-                            barangayostpropernorthside@gmail.com
-                        </a>
-                        <a href="tel:87106711" className="flex items-center hover:text-taguig-gold transition-colors">
-                            <Phone size={12} className="mr-2 text-taguig-gold" />
-                            8710-6711 / 8788-1764
-                        </a>
-                    </div>
-                    <div className="hidden md:flex items-center space-x-4">
-                        <span className="flex items-center">
-                            <MapPin size={12} className="mr-2 text-taguig-gold" />
-                            Bonifacio Global City, Taguig
-                        </span>
-                    </div>
-                </div>
-            </div>
-
             {/* Main Navigation (Fixed) */}
-            <nav className="sticky top-0 left-0 right-0 z-[90] bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-6 py-4 flex-shrink-0">
+            <nav className="sticky top-0 left-0 right-0 z-[90] bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-shrink-0">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center space-x-4 group cursor-pointer" onClick={() => setMainIndex(0)}>
                         <div className="flex items-center space-x-2">
                             <img src="/taguig_seal.png" alt="Taguig Seal" className="h-10 w-auto drop-shadow-md group-hover:rotate-12 transition-transform" />
                             <img src="/brgy_seal.png" alt="Barangay Seal" className="h-10 w-auto drop-shadow-md" />
                         </div>
-                        <div className="hidden sm:block border-l border-slate-200 dark:border-white/10 pl-4">
-                            <h1 className="text-base font-black text-taguig-blue dark:text-white uppercase italic leading-none tracking-tight">Post Proper Northside</h1>
-                            <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mt-1">Peace & Security Operations</p>
+                        <div className="hidden sm:block border-l border-white/10 pl-4">
+                            <h1 className="text-base font-black text-white uppercase italic leading-none tracking-tight">Post Proper Northside</h1>
+                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Peace & Security Operations</p>
                         </div>
                     </div>
                     
                     {/* Desktop Menu */}
-                    <div className="hidden lg:flex items-center space-x-10 text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
+                    <div className="hidden lg:flex items-center space-x-10 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
                         {SECTIONS.map((sec, idx) => (
                             <button 
                                 key={sec.id}
                                 onClick={() => navigateToSection(idx)} 
-                                className={`transition-colors ${mainIndex === idx ? 'text-taguig-blue dark:text-taguig-gold' : 'hover:text-taguig-blue dark:hover:text-taguig-gold'}`}
+                                className={`transition-colors ${mainIndex === idx ? 'text-taguig-gold' : 'hover:text-taguig-gold'}`}
                             >
                                 {sec.label}
                             </button>
                         ))}
                         <button 
                             onClick={() => navigate('/login')}
-                            className="px-6 py-2.5 bg-slate-900 dark:bg-taguig-blue text-white rounded-full hover:bg-taguig-navy transition-all shadow-xl shadow-taguig-blue/20 flex items-center group"
+                            className="px-6 py-2.5 bg-taguig-blue text-white rounded-full hover:bg-taguig-navy transition-all shadow-xl shadow-taguig-blue/20 flex items-center group"
                         >
                             <span>Portal Login</span>
                             <ArrowUpRight size={12} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -170,7 +146,7 @@ const LandingPage: React.FC = () => {
 
                     {/* Mobile Menu Toggle */}
                     <button 
-                        className="lg:hidden p-2 bg-slate-100 dark:bg-white/5 rounded-xl text-slate-600 dark:text-white hover:bg-taguig-blue hover:text-white transition-all"
+                        className="lg:hidden p-2 bg-white/5 rounded-xl text-white hover:bg-taguig-blue hover:text-white transition-all"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                         {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -179,12 +155,12 @@ const LandingPage: React.FC = () => {
 
                 {/* Mobile Dropdown */}
                 {isMenuOpen && (
-                    <div className="lg:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-white/10 p-6 space-y-2 animate-in slide-in-from-top-4 duration-300">
+                    <div className="lg:hidden absolute top-full left-0 right-0 bg-slate-900 border-b border-white/10 p-6 space-y-2 animate-in slide-in-from-top-4 duration-300">
                         {SECTIONS.map((sec, idx) => (
                             <button 
                                 key={sec.id}
                                 onClick={() => navigateToSection(idx)} 
-                                className={`block w-full text-left py-3 text-[10px] font-black uppercase tracking-widest border-b border-slate-50 dark:border-white/5 ${mainIndex === idx ? 'text-taguig-blue dark:text-taguig-gold' : 'text-slate-600 dark:text-slate-400'}`}
+                                className={`block w-full text-left py-3 text-[10px] font-black uppercase tracking-widest border-b border-white/5 ${mainIndex === idx ? 'text-taguig-gold' : 'text-slate-400'}`}
                             >
                                 {sec.label}
                             </button>
@@ -255,32 +231,23 @@ const LandingPage: React.FC = () => {
                                 </div>
                             </div>
                         ))}
-                        {/* Nested Pagination */}
-                        <div className="absolute bottom-12 right-6 lg:right-24 z-30 flex flex-col items-end space-y-4">
-                            {HERO_SLIDES.map((_, index) => (
-                                <button key={index} onClick={() => setHeroIndex(index)} className="flex items-center group">
-                                    <span className={`text-[10px] font-black uppercase mr-4 transition-all ${index === heroIndex ? 'text-taguig-gold opacity-100 translate-x-0' : 'text-white opacity-0 translate-x-4'}`}>0{index + 1}</span>
-                                    <div className={`h-1 transition-all duration-500 rounded-full ${index === heroIndex ? 'w-12 bg-taguig-gold' : 'w-6 bg-white/20'}`}></div>
-                                </button>
-                            ))}
-                        </div>
                     </div>
 
                     {/* Slide 1: Operations (Services Sub-Carousel) */}
-                    <div className="w-full h-full flex-shrink-0 bg-slate-50 dark:bg-slate-900/50 flex flex-col justify-center px-6">
+                    <div className="w-full h-full flex-shrink-0 bg-slate-900/50 flex flex-col justify-center px-6">
                         <div className="max-w-7xl mx-auto w-full">
                             <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
                                 <div className="space-y-3">
-                                    <div className="flex items-center space-x-3 text-taguig-blue dark:text-taguig-gold uppercase tracking-widest text-[10px] font-black">
+                                    <div className="flex items-center space-x-3 text-taguig-gold uppercase tracking-widest text-[10px] font-black">
                                         <Activity size={16} />
                                         <span>Operational Services</span>
                                     </div>
-                                    <h3 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic leading-none">Security Network</h3>
-                                    <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl text-sm">Comprehensive tracking and tactical response services.</p>
+                                    <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter italic leading-none">Security Network</h3>
+                                    <p className="text-slate-400 font-medium max-w-xl text-sm">Comprehensive tracking and tactical response services.</p>
                                 </div>
                                 <div className="flex space-x-3">
-                                    <button onClick={() => setServicesIndex((prev) => (prev - 1 + SERVICES.length) % SERVICES.length)} className="p-4 bg-white dark:bg-slate-800 rounded-full shadow-md hover:bg-taguig-blue hover:text-white transition-all border border-slate-100 dark:border-white/5"><ChevronLeft size={20} /></button>
-                                    <button onClick={() => setServicesIndex((prev) => (prev + 1) % SERVICES.length)} className="p-4 bg-white dark:bg-slate-800 rounded-full shadow-md hover:bg-taguig-blue hover:text-white transition-all border border-slate-100 dark:border-white/5"><ChevronRight size={20} /></button>
+                                    <button onClick={() => setServicesIndex((prev) => (prev - 1 + SERVICES.length) % SERVICES.length)} className="p-4 bg-slate-800 rounded-full shadow-md hover:bg-taguig-blue hover:text-white transition-all border border-white/5"><ChevronLeft size={20} /></button>
+                                    <button onClick={() => setServicesIndex((prev) => (prev + 1) % SERVICES.length)} className="p-4 bg-slate-800 rounded-full shadow-md hover:bg-taguig-blue hover:text-white transition-all border border-white/5"><ChevronRight size={20} /></button>
                                 </div>
                             </div>
                             <div className="relative overflow-hidden py-4">
@@ -296,12 +263,12 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 2: Leadership (Hierarchy Sub-Carousel) */}
-                    <div className="w-full h-full flex-shrink-0 bg-white dark:bg-slate-950 flex flex-col justify-center px-6 overflow-hidden">
+                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 overflow-hidden">
                         <div className="max-w-7xl mx-auto w-full">
                             <div className="text-center space-y-3 mb-12 flex flex-col items-center group">
-                                <div className="p-3 bg-taguig-blue/5 dark:bg-taguig-gold/5 rounded-2xl text-taguig-blue dark:text-taguig-gold group-hover:scale-110 transition-transform"><Users size={28} /></div>
-                                <h3 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic leading-none">Institutional Hierarchy</h3>
-                                <p className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto text-sm">Strategic command and operational leadership.</p>
+                                <div className="p-3 bg-taguig-gold/5 rounded-2xl text-taguig-gold group-hover:scale-110 transition-transform"><Users size={28} /></div>
+                                <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter italic leading-none">Institutional Hierarchy</h3>
+                                <p className="text-slate-400 font-medium max-w-2xl mx-auto text-sm">Strategic command and operational leadership.</p>
                             </div>
                             <div className="relative">
                                 <div className="overflow-hidden">
@@ -321,9 +288,9 @@ const LandingPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex justify-center items-center space-x-8 mt-12">
-                                    <button onClick={() => setHierarchyIndex(0)} className={`text-[9px] font-black uppercase tracking-[0.3em] transition-all ${hierarchyIndex === 0 ? 'text-taguig-blue dark:text-taguig-gold' : 'text-slate-300 dark:text-slate-700'}`}>Executive</button>
-                                    <div className="h-px w-10 bg-slate-100 dark:bg-white/10"></div>
-                                    <button onClick={() => setHierarchyIndex(1)} className={`text-[9px] font-black uppercase tracking-[0.3em] transition-all ${hierarchyIndex === 1 ? 'text-taguig-blue dark:text-taguig-gold' : 'text-slate-300 dark:text-slate-700'}`}>Legislative</button>
+                                    <button onClick={() => setHierarchyIndex(0)} className={`text-[9px] font-black uppercase tracking-[0.3em] transition-all ${hierarchyIndex === 0 ? 'text-taguig-gold' : 'text-slate-700'}`}>Executive</button>
+                                    <div className="h-px w-10 bg-white/10"></div>
+                                    <button onClick={() => setHierarchyIndex(1)} className={`text-[9px] font-black uppercase tracking-[0.3em] transition-all ${hierarchyIndex === 1 ? 'text-taguig-gold' : 'text-slate-700'}`}>Legislative</button>
                                 </div>
                             </div>
                         </div>
@@ -381,38 +348,16 @@ const LandingPage: React.FC = () => {
                             onClick={() => setMainIndex(idx)}
                             className="group relative flex items-center"
                         >
-                            <div className={`w-3 h-3 rounded-full transition-all duration-500 border-2 ${mainIndex === idx ? 'bg-taguig-blue dark:bg-taguig-gold border-transparent scale-125 shadow-lg shadow-taguig-blue/50' : 'border-slate-300 dark:border-white/20 hover:border-taguig-blue'}`}></div>
-                            <span className={`absolute left-8 text-[10px] font-black uppercase tracking-widest transition-all ${mainIndex === idx ? 'opacity-100 translate-x-0 text-taguig-blue dark:text-taguig-gold' : 'opacity-0 -translate-x-4 pointer-events-none'}`}>
+                            <div className={`w-3 h-3 rounded-full transition-all duration-500 border-2 ${mainIndex === idx ? 'bg-taguig-gold border-transparent scale-125 shadow-lg shadow-taguig-gold/50' : 'border-white/20 hover:border-taguig-gold'}`}></div>
+                            <span className={`absolute left-8 text-[10px] font-black uppercase tracking-widest transition-all ${mainIndex === idx ? 'opacity-100 translate-x-0 text-taguig-gold' : 'opacity-0 -translate-x-4 pointer-events-none'}`}>
                                 {sec.label}
                             </span>
                         </button>
                     ))}
                 </div>
 
-                {/* Vertical Navigation Arrows (Floating) */}
-                <div className="absolute bottom-8 right-8 z-[80] flex flex-col space-y-4">
-                    <button 
-                        onClick={() => setMainIndex((prev) => Math.max(0, prev - 1))}
-                        className={`p-4 bg-white/10 backdrop-blur-md rounded-2xl text-white hover:bg-taguig-blue transition-all border border-white/10 ${mainIndex === 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                    >
-                        <ChevronUp size={24} />
-                    </button>
-                    <button 
-                        onClick={() => setMainIndex((prev) => Math.min(SECTIONS.length - 1, prev + 1))}
-                        className={`p-4 bg-white/10 backdrop-blur-md rounded-2xl text-white hover:bg-taguig-blue transition-all border border-white/10 ${mainIndex === SECTIONS.length - 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                    >
-                        <ChevronDown size={24} />
-                    </button>
-                </div>
             </div>
 
-            {/* Floating Theme Toggle (Global) */}
-            <button 
-                onClick={toggleTheme}
-                className="fixed top-24 right-8 z-[100] p-4 bg-white/10 backdrop-blur-lg text-taguig-blue dark:text-taguig-gold rounded-full shadow-xl hover:scale-110 active:scale-95 transition-all border border-white/10"
-            >
-                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
 
             {/* Info Modal */}
             {modalData && (
@@ -422,22 +367,22 @@ const LandingPage: React.FC = () => {
                         <div className="p-10 sm:p-14 space-y-8">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-5">
-                                    <div className="p-4 bg-taguig-blue/5 dark:bg-taguig-gold/5 rounded-2xl text-taguig-blue dark:text-taguig-gold shadow-inner">
+                                    <div className="p-4 bg-taguig-gold/5 rounded-2xl text-taguig-gold shadow-inner">
                                         {modalData.icon && <modalData.icon size={28} />}
                                     </div>
-                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic leading-none">{modalData.title}</h3>
+                                    <h3 className="text-2xl font-black text-white uppercase tracking-tight italic leading-none">{modalData.title}</h3>
                                 </div>
-                                <button onClick={() => setModalData(null)} className="p-3 bg-slate-100 dark:bg-white/5 rounded-xl text-slate-400 hover:text-red-500 transition-colors">
+                                <button onClick={() => setModalData(null)} className="p-3 bg-white/5 rounded-xl text-slate-400 hover:text-red-500 transition-colors">
                                     <X size={20} />
                                 </button>
                             </div>
-                            <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                            <p className="text-lg text-slate-400 font-medium leading-relaxed">
                                 {modalData.content}
                             </p>
                             <div className="pt-8 flex justify-end">
                                 <button 
                                     onClick={() => setModalData(null)}
-                                    className="px-10 py-5 bg-slate-900 dark:bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                                    className="px-10 py-5 bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all"
                                 >
                                     Dismiss Documentation
                                 </button>
@@ -453,16 +398,17 @@ const LandingPage: React.FC = () => {
 const DirectoryCard: React.FC<{ icon: any, title: string, desc: string, onClick: () => void, active?: boolean }> = ({ icon: Icon, title, desc, onClick, active }) => (
     <div 
         onClick={onClick}
-        className={`group relative bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] border shadow-premium hover:shadow-2xl transition-all cursor-pointer overflow-hidden ${active ? 'border-taguig-blue dark:border-taguig-gold' : 'border-slate-200 dark:border-white/5 opacity-60 hover:opacity-100'}`}
+        className={`group relative bg-slate-900/40 backdrop-blur-xl p-8 rounded-[2.5rem] border shadow-2xl transition-all cursor-pointer overflow-hidden ${active ? 'border-taguig-gold ring-1 ring-taguig-gold/20' : 'border-white/5 opacity-60 hover:opacity-100 hover:border-white/20'}`}
     >
-        <div className="absolute -right-4 -top-4 w-32 h-32 bg-taguig-blue/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+        <div className="absolute -right-4 -top-4 w-32 h-32 bg-taguig-blue/10 rounded-full group-hover:scale-150 transition-transform duration-1000"></div>
+        <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-taguig-gold/5 rounded-full group-hover:scale-150 transition-transform duration-1000 delay-100"></div>
         <div className="relative z-10 space-y-4">
-            <div className="p-3 bg-taguig-blue/5 dark:bg-taguig-gold/5 text-taguig-blue dark:text-taguig-gold rounded-xl inline-block group-hover:bg-taguig-blue group-hover:text-white transition-colors duration-500">
+            <div className="p-4 bg-taguig-gold/10 text-taguig-gold rounded-2xl inline-block group-hover:bg-taguig-gold group-hover:text-slate-950 transition-all duration-500 shadow-lg">
                 <Icon size={24} />
             </div>
-            <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">{title}</h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">{desc}</p>
-            <div className="flex items-center text-[9px] font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-widest pt-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+            <h4 className="text-xl font-black text-white uppercase tracking-tight italic group-hover:text-taguig-gold transition-colors">{title}</h4>
+            <p className="text-xs text-slate-400 font-medium leading-relaxed line-clamp-2">{desc}</p>
+            <div className="flex items-center text-[9px] font-black text-taguig-gold uppercase tracking-widest pt-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
                 <span>Access Details</span>
                 <ChevronRight size={12} className="ml-1" />
             </div>
@@ -472,15 +418,16 @@ const DirectoryCard: React.FC<{ icon: any, title: string, desc: string, onClick:
 
 const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?: boolean, compact?: boolean }> = ({ role, name, desc, primary, compact }) => (
     <div className={`
-        ${primary ? 'bg-taguig-blue text-white shadow-2xl scale-110 z-10' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-100 dark:border-white/5 shadow-premium'}
+        ${primary ? 'bg-taguig-blue text-white shadow-2xl scale-110 z-10 border border-white/20' : 'bg-slate-900/60 backdrop-blur-lg text-white border border-white/5 shadow-2xl'}
         ${compact ? 'p-4 rounded-2xl' : 'p-8 rounded-[2.5rem] w-full'}
-        text-center flex flex-col items-center space-y-2 transition-all hover:scale-[1.05] relative group
+        text-center flex flex-col items-center space-y-2 transition-all hover:scale-[1.05] hover:border-taguig-gold/30 hover:shadow-taguig-gold/5 relative group
     `}>
-        <div className={`p-1.5 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] mb-1 ${primary ? 'bg-white/10 text-taguig-gold' : 'bg-taguig-blue/5 text-taguig-blue dark:text-taguig-gold'}`}>
+        <div className={`p-1.5 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] mb-1 ${primary ? 'bg-white/10 text-taguig-gold' : 'bg-taguig-gold/10 text-taguig-gold'}`}>
             {role}
         </div>
-        <h4 className={`${compact ? 'text-sm' : 'text-xl'} font-black uppercase tracking-tight italic leading-none`}>{name}</h4>
+        <h4 className={`${compact ? 'text-sm' : 'text-xl'} font-black uppercase tracking-tight italic leading-none group-hover:text-taguig-gold transition-colors`}>{name}</h4>
         <p className={`text-[10px] font-bold tracking-widest opacity-60`}>{desc}</p>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[2.5rem]"></div>
     </div>
 );
 
