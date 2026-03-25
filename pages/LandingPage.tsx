@@ -252,29 +252,30 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 2: Leadership (Hierarchy Sub-Carousel) */}
-                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-4 md:px-6 overflow-hidden py-2 md:py-4 lg:py-6">
+                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-4 md:px-6 overflow-hidden py-1 md:py-2">
                         <div className="max-w-7xl mx-auto w-full">
-                            <div className="text-center space-y-0.5 mb-2 md:mb-4 flex flex-col items-center group">
-                                <div className="p-1.5 bg-taguig-gold/5 rounded-lg text-taguig-gold hidden sm:block"><Users size={16} /></div>
-                                <h3 className="text-xl md:text-3xl lg:text-4xl font-black text-white uppercase tracking-tighter italic leading-none">Institutional Hierarchy</h3>
-                                <p className="text-slate-400 font-medium max-w-2xl mx-auto text-[8px] md:text-xs">Strategic command and operational leadership.</p>
+                            <div className="text-center space-y-0.5 mb-1 md:mb-2 flex flex-col items-center group">
+                                <h3 className="text-lg md:text-2xl lg:text-3xl font-black text-white uppercase tracking-tighter italic leading-none">Institutional Hierarchy</h3>
+                                <p className="text-slate-400 font-medium max-w-2xl mx-auto text-[7px] md:text-[10px]">Strategic command and operational leadership.</p>
                             </div>
                             <div className="relative">
                                 {/* Sliding Titles */}
-                                <div className="flex justify-center mb-4 h-6 overflow-hidden">
-                                    <div className="flex flex-col items-center transition-transform duration-700 ease-in-out" style={{ transform: `translateY(-${hierarchyIndex * 100}%)` }}>
+                                <div className="flex justify-center mb-2 md:mb-4 h-6 overflow-hidden relative">
+                                    <div className={`transition-all duration-700 ${hierarchyIndex === 0 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 absolute'}`}>
                                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-6 flex items-center">The Executive Command</span>
+                                    </div>
+                                    <div className={`transition-all duration-700 ${hierarchyIndex === 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 absolute'}`}>
                                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-6 flex items-center">The Legislative Assembly</span>
                                     </div>
                                 </div>
 
                                 <div className="overflow-hidden flex-1">
                                     <div className="flex transition-all duration-700 ease-in-out h-full" style={{ transform: `translateX(-${hierarchyIndex * 100}%)` }}>
-                                        <div className="w-full flex-shrink-0 flex flex-col justify-center items-center space-y-2 md:space-y-4">
-                                            <div className="w-full flex justify-center"><MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" primary /></div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-full max-w-2xl px-4">
-                                                <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" />
-                                                <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" />
+                                        <div className="w-full flex-shrink-0 flex items-center justify-center">
+                                            <div className="flex flex-wrap md:flex-nowrap justify-center items-center gap-2 md:gap-4 w-full max-w-6xl px-4">
+                                                <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" compact />
+                                                <MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" primary />
+                                                <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" compact />
                                             </div>
                                         </div>
                                         <div className="w-full flex-shrink-0 flex flex-col justify-center items-center">
@@ -291,7 +292,7 @@ const LandingPage: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex justify-center items-center space-x-6 md:space-x-12 mt-2 md:mt-4">
+                                <div className="flex justify-center items-center space-x-6 md:space-x-12 mt-1 md:mt-2">
                                     <button 
                                         onClick={() => setHierarchyIndex(0)} 
                                         className={`group relative flex flex-col items-center space-y-1 transition-all ${hierarchyIndex === 0 ? 'text-taguig-gold' : 'text-slate-600 hover:text-slate-400'}`}
@@ -422,10 +423,10 @@ const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?:
     
     return (
         <div className={`
-            group relative flex flex-col items-center transition-all duration-500
+            group relative flex flex-col items-center transition-all duration-500 max-h-[22vh] min-h-0
             ${compact 
-                ? 'p-2 md:p-3 rounded-xl md:rounded-2xl w-full' 
-                : 'p-3 md:p-5 rounded-[1.5rem] md:rounded-[2.5rem] w-full max-w-[180px] md:max-w-[240px]'}
+                ? 'p-1.5 md:p-2.5 rounded-xl md:rounded-2xl w-full' 
+                : 'p-2 md:p-4 rounded-[1.5rem] md:rounded-[2rem] w-full max-w-[160px] md:max-w-[220px]'}
             ${primary 
                 ? 'bg-taguig-blue text-white shadow-xl border border-white/20 z-10' 
                 : 'bg-slate-900/40 backdrop-blur-2xl text-white border border-white/10 shadow-lg hover:border-taguig-gold/50'}
