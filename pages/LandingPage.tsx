@@ -272,14 +272,14 @@ const LandingPage: React.FC = () => {
                                 <div className="overflow-hidden flex-1">
                                     <div className="flex transition-all duration-700 ease-in-out h-full" style={{ transform: `translateX(-${hierarchyIndex * 100}%)` }}>
                                         <div className="w-full flex-shrink-0 flex items-center justify-center">
-                                            <div className="flex flex-wrap md:flex-nowrap justify-center items-center gap-2 md:gap-4 w-full max-w-6xl px-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 w-full max-w-5xl px-4 items-stretch">
                                                 <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" compact />
                                                 <MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" primary />
                                                 <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" compact />
                                             </div>
                                         </div>
-                                        <div className="w-full flex-shrink-0 flex flex-col justify-center items-center">
-                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-2 w-full max-w-6xl px-2">
+                                        <div className="w-full flex-shrink-0 flex items-center justify-center">
+                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-2 w-full max-w-5xl px-2 items-stretch">
                                                 <MemberNode role="Kagawad" name="HON. EDNA M. BACCAY" desc="Education & Culture" compact />
                                                 <MemberNode role="Kagawad" name="HON. CHRISTINE JAGONIO" desc="Finance & Social Services" compact />
                                                 <MemberNode role="Kagawad" name="HON. NILDA B. CAYABYAB" desc="Health & Sanitation" compact />
@@ -423,10 +423,10 @@ const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?:
     
     return (
         <div className={`
-            group relative flex flex-col items-center transition-all duration-500 max-h-[22vh] min-h-0
+            group relative flex flex-col items-center transition-all duration-500 max-h-[22vh] min-h-0 h-full
             ${compact 
                 ? 'p-1.5 md:p-2.5 rounded-xl md:rounded-2xl w-full' 
-                : 'p-2 md:p-4 rounded-[1.5rem] md:rounded-[2rem] w-full max-w-[160px] md:max-w-[220px]'}
+                : 'p-2 md:p-4 rounded-[1.5rem] md:rounded-[2rem] w-full'}
             ${primary 
                 ? 'bg-taguig-blue text-white shadow-xl border border-white/20 z-10' 
                 : 'bg-slate-900/40 backdrop-blur-2xl text-white border border-white/10 shadow-lg hover:border-taguig-gold/50'}
