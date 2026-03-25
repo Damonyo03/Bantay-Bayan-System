@@ -260,17 +260,25 @@ const LandingPage: React.FC = () => {
                                 <p className="text-slate-400 font-medium max-w-2xl mx-auto text-sm">Strategic command and operational leadership.</p>
                             </div>
                             <div className="relative">
+                                {/* Sliding Titles */}
+                                <div className="flex justify-center mb-8 h-8 overflow-hidden">
+                                    <div className="flex flex-col items-center transition-transform duration-700 ease-in-out" style={{ transform: `translateY(-${hierarchyIndex * 100}%)` }}>
+                                        <span className="text-xs font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-8 flex items-center">The Executive Command</span>
+                                        <span className="text-xs font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-8 flex items-center">The Legislative Assembly</span>
+                                    </div>
+                                </div>
+
                                 <div className="overflow-hidden">
                                     <div className="flex transition-all duration-700 ease-in-out" style={{ transform: `translateX(-${hierarchyIndex * 100}%)` }}>
-                                        <div className="w-full flex-shrink-0 flex flex-col items-center space-y-10">
+                                        <div className="w-full flex-shrink-0 flex flex-col items-center space-y-12 py-4">
                                             <div className="w-full flex justify-center"><MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" primary /></div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
                                                 <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" />
                                                 <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" />
                                             </div>
                                         </div>
-                                        <div className="w-full flex-shrink-0 flex flex-col items-center overflow-y-auto max-h-[50vh] transition-scrollbar">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-6xl px-2 pb-12">
+                                        <div className="w-full flex-shrink-0 flex flex-col items-center overflow-y-auto max-h-[55vh] transition-scrollbar py-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl px-4 pb-20">
                                                 <MemberNode role="Kagawad" name="HON. EDNA M. BACCAY" desc="Education & Culture" compact />
                                                 <MemberNode role="Kagawad" name="HON. CHRISTINE JAGONIO" desc="Finance & Social Services" compact />
                                                 <MemberNode role="Kagawad" name="HON. NILDA B. CAYABYAB" desc="Health & Sanitation" compact />
@@ -283,10 +291,22 @@ const LandingPage: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex justify-center items-center space-x-8 mt-12">
-                                    <button onClick={() => setHierarchyIndex(0)} className={`text-[9px] font-black uppercase tracking-[0.3em] transition-all ${hierarchyIndex === 0 ? 'text-taguig-gold' : 'text-slate-700'}`}>Executive</button>
-                                    <div className="h-px w-10 bg-white/10"></div>
-                                    <button onClick={() => setHierarchyIndex(1)} className={`text-[9px] font-black uppercase tracking-[0.3em] transition-all ${hierarchyIndex === 1 ? 'text-taguig-gold' : 'text-slate-700'}`}>Legislative</button>
+                                <div className="flex justify-center items-center space-x-12 mt-12 mb-8">
+                                    <button 
+                                        onClick={() => setHierarchyIndex(0)} 
+                                        className={`group relative flex flex-col items-center space-y-2 transition-all ${hierarchyIndex === 0 ? 'text-taguig-gold' : 'text-slate-600 hover:text-slate-400'}`}
+                                    >
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Executive</span>
+                                        <div className={`h-1 rounded-full transition-all duration-500 ${hierarchyIndex === 0 ? 'w-12 bg-taguig-gold' : 'w-0 bg-transparent group-hover:w-6 group-hover:bg-slate-700'}`}></div>
+                                    </button>
+                                    <div className="h-px w-16 bg-white/10 hidden md:block"></div>
+                                    <button 
+                                        onClick={() => setHierarchyIndex(1)} 
+                                        className={`group relative flex flex-col items-center space-y-2 transition-all ${hierarchyIndex === 1 ? 'text-taguig-gold' : 'text-slate-600 hover:text-slate-400'}`}
+                                    >
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Legislative</span>
+                                        <div className={`h-1 rounded-full transition-all duration-500 ${hierarchyIndex === 1 ? 'w-12 bg-taguig-gold' : 'w-0 bg-transparent group-hover:w-6 group-hover:bg-slate-700'}`}></div>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -397,19 +417,61 @@ const DirectoryCard: React.FC<{ icon: any, title: string, desc: string, onClick:
     </div>
 );
 
-const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?: boolean, compact?: boolean }> = ({ role, name, desc, primary, compact }) => (
-    <div className={`
-        ${primary ? 'bg-taguig-blue text-white shadow-2xl scale-110 z-10 border border-white/20' : 'bg-slate-900/60 backdrop-blur-lg text-white border border-white/5 shadow-2xl'}
-        ${compact ? 'p-4 rounded-2xl' : 'p-8 rounded-[2.5rem] w-full'}
-        text-center flex flex-col items-center space-y-2 transition-all hover:scale-[1.05] hover:border-taguig-gold/30 hover:shadow-taguig-gold/5 relative group
-    `}>
-        <div className={`p-1.5 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] mb-1 ${primary ? 'bg-white/10 text-taguig-gold' : 'bg-taguig-gold/10 text-taguig-gold'}`}>
-            {role}
+const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?: boolean, compact?: boolean }> = ({ role, name, desc, primary, compact }) => {
+    const initials = name.split(' ').filter(n => n !== 'HON.' && n !== 'JR.').map(n => n[0]).join('').slice(0, 2);
+    
+    return (
+        <div className={`
+            group relative flex flex-col items-center transition-all duration-500
+            ${compact ? 'p-6 rounded-3xl w-full' : 'p-10 rounded-[3rem] w-full max-w-sm'}
+            ${primary 
+                ? 'bg-taguig-blue text-white shadow-[0_20px_50px_rgba(0,56,168,0.4)] border border-white/20 scale-110 z-10' 
+                : 'bg-slate-900/40 backdrop-blur-2xl text-white border border-white/10 shadow-2xl hover:border-taguig-gold/50'}
+            hover:scale-[1.05] active:scale-[0.98]
+        `}>
+            {/* Glossy Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-inherit pointer-events-none"></div>
+            
+            {/* Avatar Section */}
+            <div className={`relative mb-6 ${compact ? 'w-16 h-16' : 'w-24 h-24'}`}>
+                <div className={`absolute inset-0 rounded-full blur-xl scale-110 transition-all duration-700 opacity-0 group-hover:opacity-50 ${primary ? 'bg-white' : 'bg-taguig-gold'}`}></div>
+                <div className={`
+                    relative w-full h-full rounded-full flex items-center justify-center border-2 overflow-hidden
+                    ${primary ? 'bg-white/10 border-white/30' : 'bg-slate-800 border-white/10 group-hover:border-taguig-gold/50'}
+                `}>
+                    <span className={`font-black uppercase tracking-tighter ${compact ? 'text-lg' : 'text-3xl'} ${primary ? 'text-white' : 'text-taguig-gold'}`}>
+                        {initials}
+                    </span>
+                    {/* Subtle Scanline Animation */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/5 to-transparent h-1/2 w-full -translate-y-full group-hover:translate-y-full transition-transform duration-[2s] ease-linear"></div>
+                </div>
+                {primary && (
+                    <div className="absolute -right-1 -bottom-1 bg-taguig-gold text-slate-950 p-1.5 rounded-full shadow-lg border-2 border-taguig-blue transform group-hover:rotate-12 transition-transform">
+                        <Shield size={12} fill="currentColor" />
+                    </div>
+                )}
+            </div>
+
+            {/* Content Section */}
+            <div className="text-center space-y-2 relative z-10">
+                <div className={`
+                    inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] mb-2
+                    ${primary ? 'bg-white/10 text-white border border-white/10' : 'bg-taguig-gold/10 text-taguig-gold border border-taguig-gold/20'}
+                `}>
+                    {role}
+                </div>
+                <h4 className={`${compact ? 'text-base' : 'text-2xl'} font-black uppercase tracking-tight italic leading-tight group-hover:text-taguig-gold transition-colors duration-300`}>
+                    {name}
+                </h4>
+                <p className={`text-[10px] font-bold tracking-[0.25em] uppercase transition-all duration-300 ${primary ? 'text-white/60' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                    {desc}
+                </p>
+            </div>
+
+            {/* Hover Glow Background */}
+            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-2/3 h-1/2 bg-taguig-gold/20 blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
         </div>
-        <h4 className={`${compact ? 'text-sm' : 'text-xl'} font-black uppercase tracking-tight italic leading-none group-hover:text-taguig-gold transition-colors`}>{name}</h4>
-        <p className={`text-[10px] font-bold tracking-widest opacity-60`}>{desc}</p>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[2.5rem]"></div>
-    </div>
-);
+    );
+};
 
 export default LandingPage;
