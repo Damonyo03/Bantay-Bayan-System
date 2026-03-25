@@ -252,33 +252,33 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 2: Leadership (Hierarchy Sub-Carousel) */}
-                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-4 md:px-6 overflow-hidden py-4 md:py-8 lg:py-12">
+                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-4 md:px-6 overflow-hidden py-2 md:py-4 lg:py-6">
                         <div className="max-w-7xl mx-auto w-full">
-                            <div className="text-center space-y-1 mb-4 md:mb-8 flex flex-col items-center group">
-                                <div className="p-2 bg-taguig-gold/5 rounded-xl text-taguig-gold hidden sm:block"><Users size={20} /></div>
-                                <h3 className="text-2xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter italic leading-none">Institutional Hierarchy</h3>
-                                <p className="text-slate-400 font-medium max-w-2xl mx-auto text-[10px] md:text-sm">Strategic command and operational leadership.</p>
+                            <div className="text-center space-y-0.5 mb-2 md:mb-4 flex flex-col items-center group">
+                                <div className="p-1.5 bg-taguig-gold/5 rounded-lg text-taguig-gold hidden sm:block"><Users size={16} /></div>
+                                <h3 className="text-xl md:text-3xl lg:text-4xl font-black text-white uppercase tracking-tighter italic leading-none">Institutional Hierarchy</h3>
+                                <p className="text-slate-400 font-medium max-w-2xl mx-auto text-[8px] md:text-xs">Strategic command and operational leadership.</p>
                             </div>
                             <div className="relative">
                                 {/* Sliding Titles */}
-                                <div className="flex justify-center mb-8 h-8 overflow-hidden">
+                                <div className="flex justify-center mb-4 h-6 overflow-hidden">
                                     <div className="flex flex-col items-center transition-transform duration-700 ease-in-out" style={{ transform: `translateY(-${hierarchyIndex * 100}%)` }}>
-                                        <span className="text-xs font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-8 flex items-center">The Executive Command</span>
-                                        <span className="text-xs font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-8 flex items-center">The Legislative Assembly</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-6 flex items-center">The Executive Command</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-6 flex items-center">The Legislative Assembly</span>
                                     </div>
                                 </div>
 
                                 <div className="overflow-hidden flex-1">
                                     <div className="flex transition-all duration-700 ease-in-out h-full" style={{ transform: `translateX(-${hierarchyIndex * 100}%)` }}>
-                                        <div className="w-full flex-shrink-0 flex flex-col justify-center items-center space-y-4 md:space-y-8">
+                                        <div className="w-full flex-shrink-0 flex flex-col justify-center items-center space-y-2 md:space-y-4">
                                             <div className="w-full flex justify-center"><MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" primary /></div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full max-w-3xl px-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-full max-w-2xl px-4">
                                                 <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" />
                                                 <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" />
                                             </div>
                                         </div>
                                         <div className="w-full flex-shrink-0 flex flex-col justify-center items-center">
-                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 w-full max-w-7xl px-2">
+                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-2 w-full max-w-6xl px-2">
                                                 <MemberNode role="Kagawad" name="HON. EDNA M. BACCAY" desc="Education & Culture" compact />
                                                 <MemberNode role="Kagawad" name="HON. CHRISTINE JAGONIO" desc="Finance & Social Services" compact />
                                                 <MemberNode role="Kagawad" name="HON. NILDA B. CAYABYAB" desc="Health & Sanitation" compact />
@@ -291,7 +291,7 @@ const LandingPage: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex justify-center items-center space-x-6 md:space-x-12 mt-4 md:mt-8">
+                                <div className="flex justify-center items-center space-x-6 md:space-x-12 mt-2 md:mt-4">
                                     <button 
                                         onClick={() => setHierarchyIndex(0)} 
                                         className={`group relative flex flex-col items-center space-y-1 transition-all ${hierarchyIndex === 0 ? 'text-taguig-gold' : 'text-slate-600 hover:text-slate-400'}`}
@@ -424,48 +424,48 @@ const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?:
         <div className={`
             group relative flex flex-col items-center transition-all duration-500
             ${compact 
-                ? 'p-2 md:p-4 lg:p-6 rounded-2xl md:rounded-3xl w-full' 
-                : 'p-4 md:p-6 lg:p-8 rounded-[2rem] md:rounded-[3rem] w-full max-w-[200px] md:max-w-xs'}
+                ? 'p-2 md:p-3 rounded-xl md:rounded-2xl w-full' 
+                : 'p-3 md:p-5 rounded-[1.5rem] md:rounded-[2.5rem] w-full max-w-[180px] md:max-w-[240px]'}
             ${primary 
-                ? 'bg-taguig-blue text-white shadow-[0_10px_30px_rgba(0,56,168,0.3)] border border-white/20 scale-100 md:scale-110 lg:scale-125 z-10' 
-                : 'bg-slate-900/40 backdrop-blur-2xl text-white border border-white/10 shadow-2xl hover:border-taguig-gold/50'}
-            hover:scale-[1.05] active:scale-[0.98]
+                ? 'bg-taguig-blue text-white shadow-xl border border-white/20 z-10' 
+                : 'bg-slate-900/40 backdrop-blur-2xl text-white border border-white/10 shadow-lg hover:border-taguig-gold/50'}
+            hover:scale-[1.03] active:scale-[0.98]
         `}>
             {/* Glossy Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-inherit pointer-events-none"></div>
             
             {/* Avatar Section */}
-            <div className={`relative mb-2 md:mb-4 lg:mb-6 ${compact ? 'w-8 h-8 md:w-12 md:h-12' : 'w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20'}`}>
-                <div className={`absolute inset-0 rounded-full blur-lg scale-110 transition-all duration-700 opacity-0 group-hover:opacity-50 ${primary ? 'bg-white' : 'bg-taguig-gold'}`}></div>
+            <div className={`relative mb-1 md:mb-2 ${compact ? 'w-6 h-6 md:w-10 md:h-10' : 'w-10 h-10 md:w-14 md:h-14 lg:w-16 lg:h-16'}`}>
+                <div className={`absolute inset-0 rounded-full blur-md scale-110 transition-all duration-700 opacity-0 group-hover:opacity-40 ${primary ? 'bg-white' : 'bg-taguig-gold'}`}></div>
                 <div className={`
                     relative w-full h-full rounded-full flex items-center justify-center border md:border-2 overflow-hidden
                     ${primary ? 'bg-white/10 border-white/30' : 'bg-slate-800 border-white/10 group-hover:border-taguig-gold/50'}
                 `}>
-                    <span className={`font-black uppercase tracking-tighter ${compact ? 'text-[8px] md:text-sm' : 'text-sm md:text-xl lg:text-2xl'} ${primary ? 'text-white' : 'text-taguig-gold'}`}>
+                    <span className={`font-black uppercase tracking-tighter ${compact ? 'text-[6px] md:text-[10px]' : 'text-[10px] md:text-sm lg:text-base'} ${primary ? 'text-white' : 'text-taguig-gold'}`}>
                         {initials}
                     </span>
                     {/* Subtle Scanline Animation */}
                     <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/5 to-transparent h-1/2 w-full -translate-y-full group-hover:translate-y-full transition-transform duration-[2s] ease-linear"></div>
                 </div>
                 {primary && (
-                    <div className="absolute -right-1 -bottom-1 bg-taguig-gold text-slate-950 p-1 rounded-full shadow-lg border border-taguig-blue transform group-hover:rotate-12 transition-transform">
-                        <Shield size={8} fill="currentColor" />
+                    <div className="absolute -right-0.5 -bottom-0.5 bg-taguig-gold text-slate-950 p-0.5 md:p-1 rounded-full shadow-lg border border-taguig-blue transform group-hover:rotate-12 transition-transform">
+                        <Shield size={compact ? 6 : 8} fill="currentColor" />
                     </div>
                 )}
             </div>
 
             {/* Content Section */}
-            <div className="text-center space-y-1 relative z-10">
+            <div className="text-center space-y-0.5 relative z-10">
                 <div className={`
-                    inline-block px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-[0.1em] mb-1
+                    inline-block px-1.5 py-0 rounded-full text-[6px] md:text-[8px] font-black uppercase tracking-[0.1em] mb-0.5
                     ${primary ? 'bg-white/10 text-white border border-white/10' : 'bg-taguig-gold/10 text-taguig-gold border border-taguig-gold/20'}
                 `}>
                     {role}
                 </div>
-                <h4 className={`${compact ? 'text-[10px] md:text-xs lg:text-sm' : 'text-xs md:text-lg lg:text-xl'} font-black uppercase tracking-tight italic leading-tight group-hover:text-taguig-gold transition-colors duration-300`}>
+                <h4 className={`${compact ? 'text-[8px] md:text-[11px]' : 'text-[10px] md:text-base lg:text-lg'} font-black uppercase tracking-tight italic leading-tight group-hover:text-taguig-gold transition-colors duration-300`}>
                     {name}
                 </h4>
-                <p className={`text-[8px] md:text-[9px] font-bold tracking-[0.2em] uppercase transition-all duration-300 ${primary ? 'text-white/60' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                <p className={`text-[6px] md:text-[8px] font-bold tracking-[0.1em] uppercase transition-all duration-300 ${primary ? 'text-white/60' : 'text-slate-500 group-hover:text-slate-300'}`}>
                     {desc}
                 </p>
             </div>
