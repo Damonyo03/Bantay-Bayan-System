@@ -197,11 +197,6 @@ const LandingPage: React.FC = () => {
 
                                 <div className="max-w-7xl mx-auto h-full flex items-center w-full relative z-20 px-6">
                                     <div className={`max-w-3xl space-y-6 transition-all duration-1000 delay-300 ${index === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
-                                        <div className="inline-flex items-center px-4 py-2 bg-taguig-blue/20 border border-taguig-blue/30 rounded-full text-white text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-md">
-                                            <Shield size={14} className="mr-3 text-taguig-gold" />
-                                            {slide.badge}
-                                        </div>
-                                        
                                         <h2 className="text-6xl md:text-8xl lg:text-9xl font-black text-white uppercase tracking-tighter italic leading-[0.85]">
                                             {slide.title} <br />
                                             <span className="text-taguig-gold">{slide.highlight}</span> <br />
@@ -236,20 +231,14 @@ const LandingPage: React.FC = () => {
                     {/* Slide 1: Operations (Services Sub-Carousel) */}
                     <div className="w-full h-full flex-shrink-0 bg-slate-900/50 flex flex-col justify-center px-6">
                         <div className="max-w-7xl mx-auto w-full">
-                            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-                                <div className="space-y-3">
-                                    <div className="flex items-center space-x-3 text-taguig-gold uppercase tracking-widest text-[10px] font-black">
+                                <div className="space-y-3 text-center md:text-left">
+                                    <div className="flex items-center justify-center md:justify-start space-x-3 text-taguig-gold uppercase tracking-widest text-[10px] font-black">
                                         <Activity size={16} />
                                         <span>Operational Services</span>
                                     </div>
                                     <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter italic leading-none">Security Network</h3>
                                     <p className="text-slate-400 font-medium max-w-xl text-sm">Comprehensive tracking and tactical response services.</p>
                                 </div>
-                                <div className="flex space-x-3">
-                                    <button onClick={() => setServicesIndex((prev) => (prev - 1 + SERVICES.length) % SERVICES.length)} className="p-4 bg-slate-800 rounded-full shadow-md hover:bg-taguig-blue hover:text-white transition-all border border-white/5"><ChevronLeft size={20} /></button>
-                                    <button onClick={() => setServicesIndex((prev) => (prev + 1) % SERVICES.length)} className="p-4 bg-slate-800 rounded-full shadow-md hover:bg-taguig-blue hover:text-white transition-all border border-white/5"><ChevronRight size={20} /></button>
-                                </div>
-                            </div>
                             <div className="relative overflow-hidden py-4">
                                 <div className="flex transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]" style={{ transform: `translateX(-${servicesIndex * (100 / (window.innerWidth >= 1024 ? 3 : 1))}%)` }}>
                                     {SERVICES.map((s, idx) => (
@@ -340,21 +329,6 @@ const LandingPage: React.FC = () => {
 
                 </div>
 
-                {/* Global Pagination Controls */}
-                <div className="absolute left-6 top-1/2 -translate-y-1/2 z-[80] hidden xl:flex flex-col space-y-12">
-                    {SECTIONS.map((sec, idx) => (
-                        <button 
-                            key={sec.id} 
-                            onClick={() => setMainIndex(idx)}
-                            className="group relative flex items-center"
-                        >
-                            <div className={`w-3 h-3 rounded-full transition-all duration-500 border-2 ${mainIndex === idx ? 'bg-taguig-gold border-transparent scale-125 shadow-lg shadow-taguig-gold/50' : 'border-white/20 hover:border-taguig-gold'}`}></div>
-                            <span className={`absolute left-8 text-[10px] font-black uppercase tracking-widest transition-all ${mainIndex === idx ? 'opacity-100 translate-x-0 text-taguig-gold' : 'opacity-0 -translate-x-4 pointer-events-none'}`}>
-                                {sec.label}
-                            </span>
-                        </button>
-                    ))}
-                </div>
 
             </div>
 
