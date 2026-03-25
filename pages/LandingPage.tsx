@@ -264,14 +264,21 @@ const LandingPage: React.FC = () => {
                                     <div className="flex transition-all duration-700 ease-in-out" style={{ transform: `translateX(-${hierarchyIndex * 100}%)` }}>
                                         <div className="w-full flex-shrink-0 flex flex-col items-center space-y-10">
                                             <div className="w-full flex justify-center"><MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" primary /></div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl"><MemberNode role="Barangay Secretary" name="HON. [SECRETARY NAME]" desc="Administration" /> <MemberNode role="Barangay Treasurer" name="HON. [TREASURER NAME]" desc="Fiscal Oversight" /></div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+                                                <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" />
+                                                <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" />
+                                            </div>
                                         </div>
                                         <div className="w-full flex-shrink-0 flex flex-col items-center overflow-y-auto max-h-[50vh] transition-scrollbar">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-6xl px-2">
-                                                {['Peace & Order', 'Infrastructure', 'Health & Safety', 'Social Services', 'Education', 'Environment', 'Livelihood'].map((role, idx) => (
-                                                    <MemberNode key={idx} role="Kagawad" name={`HON. [NAME ${idx+1}]`} desc={role} compact />
-                                                ))}
-                                                <MemberNode role="SK Chairman" name="HON. [SK NAME]" desc="Youth Development" compact />
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-6xl px-2 pb-12">
+                                                <MemberNode role="Kagawad" name="HON. EDNA M. BACCAY" desc="Education & Culture" compact />
+                                                <MemberNode role="Kagawad" name="HON. CHRISTINE JAGONIO" desc="Finance & Social Services" compact />
+                                                <MemberNode role="Kagawad" name="HON. NILDA B. CAYABYAB" desc="Health & Sanitation" compact />
+                                                <MemberNode role="Kagawad" name="HON. ISAGANI M. DELGADO" desc="Livelihood" compact />
+                                                <MemberNode role="Kagawad" name="HON. IRENE GRACE G. REALOSA" desc="Infrastructure & DRRM" compact />
+                                                <MemberNode role="Kagawad" name="HON. ARNEL P. MATUTINO" desc="Peace & Order" compact />
+                                                <MemberNode role="Kagawad" name="HON. MYRNA P. MIGUEL" desc="Cleanliness & Beautification" compact />
+                                                <MemberNode role="SK Chairperson" name="HON. JOSHUA DANIEL C. ESPEJO" desc="Youth Development" compact />
                                             </div>
                                         </div>
                                     </div>
