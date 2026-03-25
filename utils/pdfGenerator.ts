@@ -55,35 +55,67 @@ const drawOfficialHeader = (doc: jsPDF) => {
     return 60; // Reduced return yPos as header is now more compact
 };
 
-const savePdf = async (doc: jsPDF, fileName: string) => {
+const savePdf = async (doc: jsPDF, fileName: string, mode: 'download' | 'print' = 'print') => {
     try {
         if (Capacitor.isNativePlatform()) {
+            try {
+                const permissions = await Filesystem.checkPermissions();
+                if (permissions.publicStorage !== 'granted') {
+                    console.log('Requesting storage permissions...');
+                    const request = await Filesystem.requestPermissions();
+                    if (request.publicStorage !== 'granted') {
+                        throw new Error("Storage permissions are required to download the PDF.");
+                    }
+                }
+            } catch (permError) {
+                console.warn('Storage permission check skipped or failed on this platform', permError);
+            }
+
             // Native platform (Android/iOS) logic
             const pdfOutput = doc.output('datauristring');
             const base64Data = pdfOutput.split(',')[1];
 
-            // Use our custom Native Print implementation if available
-            if ((window as any).AndroidBlobDownloader && (window as any).AndroidBlobDownloader.printBlob) {
+            // 1. Handle "Print" mode (using custom PrintManager implementation)
+            if (mode === 'print' && (window as any).AndroidBlobDownloader?.printBlob) {
                 console.log('Invoking native AndroidBlobDownloader.printBlob for:', fileName);
                 (window as any).AndroidBlobDownloader.printBlob(base64Data, fileName.replace('.pdf', ''));
                 return;
             }
 
-            // Fallback to FileOpener if printBlob isn't injected
-            const savedFile = await Filesystem.writeFile({
-                path: fileName,
-                data: base64Data,
-                directory: Directory.Cache,
-                recursive: true
-            });
+            // 2. Handle "Download" mode (saving to public Downloads folder)
+            if (mode === 'download' && (window as any).AndroidBlobDownloader?.downloadBlob) {
+                console.log('Invoking native AndroidBlobDownloader.downloadBlob for:', fileName);
+                (window as any).AndroidBlobDownloader.downloadBlob(base64Data, fileName);
+                return;
+            }
 
-            await FileOpener.open({
-                filePath: savedFile.uri,
-                contentType: 'application/pdf',
-                openWithDefault: true
-            });
+            // Fallback to FileOpener if custom bridge isn't available
+            console.log('Native bridge unavailable, falling back to Capacitor Filesystem & FileOpener');
+            try {
+                console.log('Attempting to write file to Cache directory with Filesystem API...');
+                const savedFile = await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64Data,
+                    directory: Directory.Cache,
+                    recursive: true
+                });
+
+                console.log('File successfully written to Cache:', savedFile.uri);
+
+                console.log('Opening file via FileOpener plugin...');
+                await FileOpener.open({
+                    filePath: savedFile.uri,
+                    contentType: 'application/pdf',
+                    openWithDefault: true
+                });
+                console.log('Opened successfully in native PDF viewer.');
+            } catch (fsError: any) {
+                console.error('Filesystem/FileOpener Error [Critical Fallback Failed]:', fsError);
+                throw new Error('Fallback Save Failed: ' + (fsError.message || JSON.stringify(fsError)));
+            }
         } else {
             // Web platform fallback
+            console.log('Downloading PDF via standard Web platform method');
             doc.save(fileName);
         }
     } catch (error: any) {
@@ -95,12 +127,17 @@ const savePdf = async (doc: jsPDF, fileName: string) => {
     }
 };
 
-export const generateOfficialReport = async (incident: IncidentWithDetails) => {
+export const generateOfficialReport = async (incident: IncidentWithDetails, mode: 'download' | 'print' = 'print') => {
     const doc = new jsPDF();
+    // ... logic remains same ...
     const pageWidth = doc.internal.pageSize.getWidth();
     const marginLeft = 20;
     const contentWidth = 170;
     let yPos = drawOfficialHeader(doc);
+
+    // [Omit middle logic for brevity in chunk but it must be preserved]
+    // ...
+    // Note: I will use a separate replacement for the calls at the end of each generator
 
     // --- FORM TITLE ---
     doc.setFont("times", "bold");
@@ -242,10 +279,10 @@ export const generateOfficialReport = async (incident: IncidentWithDetails) => {
     doc.setFont("times", "italic");
     doc.text("\"Patuloy na Pag-Unlad at Pagkakaisa Tungo sa Isang Matatag na Barangay\"", 105, 285, { align: "center" });
 
-    await savePdf(doc, `Blotter_${incident.case_number}.pdf`);
+    await savePdf(doc, `Blotter_${incident.case_number}.pdf`, mode);
 };
 
-export const generateBorrowingSlip = async (request: AssetRequest) => {
+export const generateBorrowingSlip = async (request: AssetRequest, mode: 'download' | 'print' = 'print') => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const marginLeft = 20;
@@ -377,10 +414,10 @@ export const generateBorrowingSlip = async (request: AssetRequest) => {
     doc.text("Signature over Printed Name", marginLeft + 10, yPos + 5);
     doc.text("Punong Barangay", rightSigX + 5, yPos + 5);
 
-    await savePdf(doc, `Borrowing_Slip_${request.borrower_name.replace(/\s/g, '_')}.pdf`);
+    await savePdf(doc, `Borrowing_Slip_${request.borrower_name.replace(/\s/g, '_')}.pdf`, mode);
 };
 
-export const generateCCTVForm = async (data: any) => {
+export const generateCCTVForm = async (data: any, mode: 'download' | 'print' = 'print') => {
     const doc = new jsPDF();
     const marginLeft = 20;
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -551,10 +588,10 @@ export const generateCCTVForm = async (data: any) => {
     doc.setFont("times", "normal");
     doc.text("Punong Barangay", rightSigX + 5, yPos + 4);
 
-    await savePdf(doc, `CCTV_Request_${data.lastName}.pdf`);
+    await savePdf(doc, `CCTV_Request_${data.lastName}.pdf`, mode);
 };
 
-export const reprintCCTVForm = async (data: CCTVRequest) => {
+export const reprintCCTVForm = async (data: CCTVRequest, mode: 'download' | 'print' = 'print') => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const marginLeft = 20;
@@ -613,10 +650,10 @@ export const reprintCCTVForm = async (data: CCTVRequest) => {
     doc.setFont("times", "normal");
     doc.text("Punong Barangay", rightSigX + 5, yPos + 4);
 
-    await savePdf(doc, `CCTV_Reprint_${data.request_number}.pdf`);
+    await savePdf(doc, `CCTV_Reprint_${data.request_number}.pdf`, mode);
 };
 
-export const generateVehicleLog = async (data: VehicleUsageData) => {
+export const generateVehicleLog = async (data: VehicleUsageData, mode: 'download' | 'print' = 'print') => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const marginLeft = 20;
@@ -664,10 +701,10 @@ export const generateVehicleLog = async (data: VehicleUsageData) => {
     doc.text("In-Charge Signature:", pageWidth - 80, yPos);
     doc.line(pageWidth - 80 + 35, yPos + 1, pageWidth - 20, yPos + 1);
 
-    await savePdf(doc, `Vehicle_Log_${new Date().getTime()}.pdf`);
+    await savePdf(doc, `Vehicle_Log_${new Date().getTime()}.pdf`, mode);
 };
 
-export const generateBlankBlotter = async () => {
+export const generateBlankBlotter = async (mode: 'download' | 'print' = 'download') => {
     const blankIncident = {
         case_number: "",
         created_at: new Date().toISOString(),
@@ -678,10 +715,10 @@ export const generateBlankBlotter = async () => {
         officer_name: "",
         is_restricted_entry: false
     };
-    await generateOfficialReport(blankIncident as any);
+    await generateOfficialReport(blankIncident as any, mode);
 };
 
-export const generateBlankBorrowingSlip = async () => {
+export const generateBlankBorrowingSlip = async (mode: 'download' | 'print' = 'download') => {
     const blankRequest = {
         borrower_name: "",
         items_requested: [],
@@ -692,10 +729,10 @@ export const generateBlankBorrowingSlip = async () => {
         address: "",
         status: 'pending'
     };
-    await generateBorrowingSlip(blankRequest as any);
+    await generateBorrowingSlip(blankRequest as any, mode);
 };
 
-export const generateBlankCCTVRequest = async () => {
+export const generateBlankCCTVRequest = async (mode: 'download' | 'print' = 'download') => {
     const blankData = {
         lastName: "",
         firstName: "",
@@ -712,10 +749,10 @@ export const generateBlankCCTVRequest = async () => {
         purpose: "",
         request_number: ""
     };
-    await generateCCTVForm(blankData);
+    await generateCCTVForm(blankData, mode);
 };
 
-export const generateBlankVehicleLog = async () => {
+export const generateBlankVehicleLog = async (mode: 'download' | 'print' = 'download') => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const marginLeft = 20;
@@ -755,5 +792,5 @@ export const generateBlankVehicleLog = async () => {
     doc.text("In-Charge Signature:", pageWidth - 80, yPos);
     doc.line(pageWidth - 80 + 35, yPos + 1, pageWidth - 20, yPos + 1);
 
-    await savePdf(doc, "Vehicle_Usage_Log_Blank.pdf");
+    await savePdf(doc, "Vehicle_Usage_Log_Blank.pdf", mode);
 };

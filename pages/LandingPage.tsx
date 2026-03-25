@@ -1,95 +1,57 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    Shield, 
-    Bell, 
-    Users, 
-    ChevronRight, 
-    ChevronLeft,
-    Building2,
-    Globe,
-    FileText,
-    Smartphone,
-    Info,
+import React, { useState, useEffect } from 'react';
+import {
+    Shield,
+    ChevronRight,
     ArrowUpRight,
-    Moon,
-    Sun,
-    Mail,
     X,
     Menu,
     Phone,
     MapPin,
     AlertTriangle,
-    Navigation,
-    Activity,
-    ChevronDown,
-    ChevronUp
+    Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const HERO_SLIDES = [
     {
-        title: "Peace.",
-        highlight: "Order.",
-        subtitle: "Security.",
-        description: "Establishing a framework of excellence for Barangay Post Proper Northside. The Fleetonix system ensures unified command and rapid response.",
+        title: "Welcome to",
+        highlight: "Post Proper",
+        subtitle: "Northside.",
+        description: "An 'Inner Fort' barangay committed to public excellence, vibrant community development, and steadfast peace and order in Taguig City.",
         image: "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&q=80",
-        badge: "Official BGC Security Operations"
+        badge: "Barangay Introduction"
     },
     {
-        title: "Tactical.",
-        highlight: "Rapid.",
-        subtitle: "Response.",
-        description: "Our dispatcher units are equipped with real-time telemetry for maximum efficiency. Every second counts in community safety.",
+        title: "History &",
+        highlight: "Heritage.",
+        subtitle: "Deeply Rooted.",
+        description: "Established in 1972, Post Proper Northside holds a pivotal history transitioning into a thriving progressive center within Taguig.",
         image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80",
-        badge: "24/7 Dispatch Control"
+        badge: "Our Heritage"
     },
     {
-        title: "Unified.",
-        highlight: "Smart.",
-        subtitle: "Governance.",
-        description: "Bantay Bayan integrates city-wide resources into a single point of command. Professional excellence in every operation.",
+        title: "Community",
+        highlight: "First.",
+        subtitle: "Always.",
+        description: "Driven by transparent governance, our leadership delivers social services, infrastructure, and an inclusive future for all residents.",
         image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80",
-        badge: "Smart City Infrastructure"
-    }
-];
-
-const SERVICES = [
-    {
-        icon: Navigation,
-        title: "Dispatch Guidelines",
-        desc: "Institutional protocols for rapid personnel deployment and incident response hierarchy.",
-        content: "Our dispatch system follows the SOP-7 security framework. Every incident report triggers a tiered response: Tier 1 (Immediate Patrol Dispatch), Tier 2 (Tactical Command Support), and Tier 3 (Inter-agency Coordination)."
-    },
-    {
-        icon: Smartphone,
-        title: "Resource Tracking",
-        desc: "Real-time asset management and field operator geolocation for maximized coverage.",
-        content: "Bantay Bayan utilizes encrypted GPS telemetry to track all active patrol vehicles and personnel. This ensures that the nearest unit is always the first on the scene, minimizing response windows."
-    },
-    {
-        icon: AlertTriangle,
-        title: "Incident Logging",
-        desc: "Digital vault for documenting operational activities and security observations.",
-        content: "All operational logs are stored in a secure, immutable ledger. This data provides the core analytics for safety heatmaps and strategic deployment planning within the BGC North sectors."
+        badge: "Public Service"
     }
 ];
 
 const SECTIONS = [
     { id: 'introduction', label: 'Introduction' },
-    { id: 'services', label: 'Operations' },
-    { id: 'team', label: 'Leadership' },
+    { id: 'leadership', label: 'Leadership' },
     { id: 'emergency', label: 'Emergency' }
 ];
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [modalData, setModalData] = useState<{ title: string, content: string, icon?: any } | null>(null);
-    
+
     // Carousel States
     const [mainIndex, setMainIndex] = useState(0);
     const [heroIndex, setHeroIndex] = useState(0);
-    const [servicesIndex, setServicesIndex] = useState(0);
     const [hierarchyIndex, setHierarchyIndex] = useState(0);
 
     // Auto-advance Hero Carousel (Nested)
@@ -109,7 +71,7 @@ const LandingPage: React.FC = () => {
 
     return (
         <div className="h-screen w-screen bg-slate-950 font-sans selection:bg-taguig-blue/20 selection:text-taguig-blue transition-colors duration-500 overflow-hidden flex flex-col">
-            
+
             {/* Main Navigation (Fixed) */}
             <nav className="sticky top-0 left-0 right-0 z-[90] bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-shrink-0">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -123,19 +85,19 @@ const LandingPage: React.FC = () => {
                             <p className="text-[7px] md:text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Peace & Security Operations</p>
                         </div>
                     </div>
-                    
+
                     {/* Desktop Menu */}
                     <div className="hidden lg:flex items-center space-x-10 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
                         {SECTIONS.map((sec, idx) => (
-                            <button 
+                            <button
                                 key={sec.id}
-                                onClick={() => navigateToSection(idx)} 
+                                onClick={() => navigateToSection(idx)}
                                 className={`transition-colors ${mainIndex === idx ? 'text-taguig-gold' : 'hover:text-taguig-gold'}`}
                             >
                                 {sec.label}
                             </button>
                         ))}
-                        <button 
+                        <button
                             onClick={() => navigate('/login')}
                             className="px-6 py-2.5 bg-taguig-blue text-white rounded-full hover:bg-taguig-navy transition-all shadow-xl shadow-taguig-blue/20 flex items-center group"
                         >
@@ -145,7 +107,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Mobile Menu Toggle */}
-                    <button 
+                    <button
                         className="lg:hidden p-2 bg-white/5 rounded-xl text-white hover:bg-taguig-blue hover:text-white transition-all"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
@@ -157,15 +119,15 @@ const LandingPage: React.FC = () => {
                 {isMenuOpen && (
                     <div className="lg:hidden absolute top-full left-0 right-0 bg-slate-900 border-b border-white/10 p-6 space-y-2 animate-in slide-in-from-top-4 duration-300">
                         {SECTIONS.map((sec, idx) => (
-                            <button 
+                            <button
                                 key={sec.id}
-                                onClick={() => navigateToSection(idx)} 
+                                onClick={() => navigateToSection(idx)}
                                 className={`block w-full text-left py-3 text-[10px] font-black uppercase tracking-widest border-b border-white/5 ${mainIndex === idx ? 'text-taguig-gold' : 'text-slate-400'}`}
                             >
                                 {sec.label}
                             </button>
                         ))}
-                        <button 
+                        <button
                             onClick={() => navigate('/login')}
                             className="w-full mt-4 py-4 bg-taguig-blue text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl"
                         >
@@ -177,15 +139,15 @@ const LandingPage: React.FC = () => {
 
             {/* Master Carousel Container */}
             <div className="flex-1 relative overflow-hidden">
-                <div 
+                <div
                     className="h-full flex transition-transform duration-1000 ease-[cubic-bezier(0.87,0,0.13,1)]"
                     style={{ transform: `translateX(-${mainIndex * 100}%)` }}
                 >
-                    
+
                     {/* Slide 0: Introduction (Hero Sub-Carousel) */}
                     <div className="w-full h-full flex-shrink-0 relative">
                         {HERO_SLIDES.map((slide, index) => (
-                            <div 
+                            <div
                                 key={index}
                                 className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === heroIndex ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-110 z-0'}`}
                             >
@@ -208,18 +170,18 @@ const LandingPage: React.FC = () => {
                                         </p>
 
                                         <div className="flex flex-wrap gap-4 pt-4">
-                                            <button 
+                                            <button
                                                 onClick={() => setMainIndex(1)}
                                                 className="px-10 py-5 bg-white text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 hover:bg-taguig-gold transition-all shadow-2xl flex items-center group"
                                             >
-                                                <span>Learn More</span>
+                                                <span>View Leadership</span>
                                                 <ChevronRight size={16} className="ml-3 group-hover:translate-x-1 transition-transform" />
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => navigate('/login')}
                                                 className="px-10 py-5 bg-transparent border-2 border-white/20 text-white rounded-[2rem] text-xs font-black uppercase tracking-widest hover:border-white transition-all flex items-center"
                                             >
-                                                Dispatch Portal
+                                                Portal Login
                                             </button>
                                         </div>
                                     </div>
@@ -228,30 +190,7 @@ const LandingPage: React.FC = () => {
                         ))}
                     </div>
 
-                    {/* Slide 1: Operations (Services Sub-Carousel) */}
-                    <div className="w-full h-full flex-shrink-0 bg-slate-900/50 flex flex-col justify-center px-6 overflow-hidden">
-                        <div className="max-w-7xl mx-auto w-full">
-                                <div className="space-y-1 text-center md:text-left">
-                                    <div className="flex items-center justify-center md:justify-start space-x-2 text-taguig-gold uppercase tracking-widest text-[8px] md:text-[10px] font-black">
-                                        <Activity size={14} />
-                                        <span>Operational Services</span>
-                                    </div>
-                                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter italic leading-none">Security Network</h3>
-                                    <p className="text-slate-400 font-medium max-w-xl text-[10px] md:text-sm">Comprehensive tracking and tactical response services.</p>
-                                </div>
-                            <div className="relative overflow-hidden py-4">
-                                <div className="flex transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]" style={{ transform: `translateX(-${servicesIndex * (100 / (window.innerWidth >= 1024 ? 3 : 1))}%)` }}>
-                                    {SERVICES.map((s, idx) => (
-                                        <div key={idx} className="w-full lg:w-1/3 flex-shrink-0 px-3">
-                                            <DirectoryCard icon={s.icon} title={s.title} desc={s.desc} onClick={() => setModalData({ title: s.title, icon: s.icon, content: s.content })} active={idx === servicesIndex} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Slide 2: Leadership (Hierarchy Sub-Carousel) */}
+                    {/* Slide 1: Leadership (Hierarchy Sub-Carousel) */}
                     <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-4 md:px-6 overflow-hidden py-1 md:py-2">
                         <div className="max-w-7xl mx-auto w-full">
                             <div className="text-center space-y-0.5 mb-1 md:mb-2 flex flex-col items-center group">
@@ -293,16 +232,16 @@ const LandingPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex justify-center items-center space-x-6 md:space-x-12 mt-1 md:mt-2">
-                                    <button 
-                                        onClick={() => setHierarchyIndex(0)} 
+                                    <button
+                                        onClick={() => setHierarchyIndex(0)}
                                         className={`group relative flex flex-col items-center space-y-1 transition-all ${hierarchyIndex === 0 ? 'text-taguig-gold' : 'text-slate-600 hover:text-slate-400'}`}
                                     >
                                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">Executive</span>
                                         <div className={`h-0.5 rounded-full transition-all duration-500 ${hierarchyIndex === 0 ? 'w-8 bg-taguig-gold' : 'w-0 bg-transparent group-hover:w-4 group-hover:bg-slate-700'}`}></div>
                                     </button>
                                     <div className="h-px w-8 bg-white/10 hidden md:block"></div>
-                                    <button 
-                                        onClick={() => setHierarchyIndex(1)} 
+                                    <button
+                                        onClick={() => setHierarchyIndex(1)}
                                         className={`group relative flex flex-col items-center space-y-1 transition-all ${hierarchyIndex === 1 ? 'text-taguig-gold' : 'text-slate-600 hover:text-slate-400'}`}
                                     >
                                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">Legislative</span>
@@ -313,7 +252,7 @@ const LandingPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Slide 3: Emergency & Footer Summary */}
+                    {/* Slide 2: Emergency & Footer Summary */}
                     <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 text-white relative overflow-y-auto py-20">
                         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                             <div className="space-y-10">
@@ -327,25 +266,30 @@ const LandingPage: React.FC = () => {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 border-t border-white/5 pt-10">
                                     <div className="space-y-4">
-                                        <h5 className="text-[10px] font-black text-taguig-gold uppercase tracking-widest">24/7 Hotlines</h5>
+                                        <h5 className="text-[10px] font-black text-taguig-gold uppercase tracking-widest">24/7 City Hotlines</h5>
                                         <div className="space-y-2 text-sm font-bold text-white/70">
-                                            <p className="flex justify-between"><span>Unit 1:</span> <span className="text-white">0917-810-6711</span></p>
-                                            <p className="flex justify-between"><span>Unit 2:</span> <span className="text-white">0917-811-6711</span></p>
+                                            <p className="flex justify-between"><span>National:</span> <span className="text-white">911</span></p>
+                                            <p className="flex justify-between"><span>Taguig Emergency:</span> <span className="text-white">165-7777</span></p>
+                                            <p className="flex justify-between"><span>Command Center:</span> <span className="text-white">(02) 8789-3200</span></p>
+                                            <p className="flex justify-between"><span>BFP Fire:</span> <span className="text-white">(02) 8837-0740</span></p>
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                        <h5 className="text-[10px] font-black text-taguig-gold uppercase tracking-widest">Portal Links</h5>
+                                        <h5 className="text-[10px] font-black text-taguig-gold uppercase tracking-widest">Barangay Contacts</h5>
                                         <div className="space-y-2 text-sm font-bold text-white/70 flex flex-col">
-                                            <button onClick={() => setMainIndex(1)} className="text-left hover:text-white transition-colors">Operational SOPs</button>
-                                            <button onClick={() => navigate('/login')} className="text-left hover:text-white transition-colors">Admin Portal Access</button>
+                                            <p className="flex justify-between"><span>Brgy. Hall:</span> <span className="text-white">(02) 8881 3898</span></p>
+                                            <p className="flex items-center mt-2 text-xs text-slate-400 italic gap-2">
+                                                <MapPin size={12}/> Lawton Ave, Taguig City
+                                            </p>
+                                            <button onClick={() => navigate('/login')} className="text-left hover:text-white transition-colors mt-4 bg-white/5 p-3 rounded-xl border border-white/10 text-xs">Admin Portal Access</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div className="hidden lg:block relative group">
                                 <div className="absolute inset-0 bg-taguig-blue/20 blur-[100px] rounded-full group-hover:bg-taguig-blue/30 transition-all"></div>
-                                <div className="relative aspect-square border border-white/10 rounded-full flex items-center justify-center animate-pulse">
-                                    <Shield size={120} className="text-taguig-gold/20" />
+                                <div className="relative aspect-square border border-white/10 rounded-full flex items-center justify-center animate-pulse group-hover:animate-none">
+                                    <Shield size={120} className="text-taguig-gold/20 group-hover:text-taguig-gold transition-colors duration-500" />
                                 </div>
                             </div>
                         </div>
@@ -356,85 +300,28 @@ const LandingPage: React.FC = () => {
                     </div>
 
                 </div>
-
-
             </div>
-
-
-            {/* Info Modal */}
-            {modalData && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
-                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onClick={() => setModalData(null)}></div>
-                    <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-[3rem] shadow-premium overflow-hidden border border-white dark:border-white/10 animate-in zoom-in-95 duration-300">
-                        <div className="p-10 sm:p-14 space-y-8">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-5">
-                                    <div className="p-4 bg-taguig-gold/5 rounded-2xl text-taguig-gold shadow-inner">
-                                        {modalData.icon && <modalData.icon size={28} />}
-                                    </div>
-                                    <h3 className="text-2xl font-black text-white uppercase tracking-tight italic leading-none">{modalData.title}</h3>
-                                </div>
-                                <button onClick={() => setModalData(null)} className="p-3 bg-white/5 rounded-xl text-slate-400 hover:text-red-500 transition-colors">
-                                    <X size={20} />
-                                </button>
-                            </div>
-                            <p className="text-lg text-slate-400 font-medium leading-relaxed">
-                                {modalData.content}
-                            </p>
-                            <div className="pt-8 flex justify-end">
-                                <button 
-                                    onClick={() => setModalData(null)}
-                                    className="px-10 py-5 bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all"
-                                >
-                                    Dismiss Documentation
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
 
-const DirectoryCard: React.FC<{ icon: any, title: string, desc: string, onClick: () => void, active?: boolean }> = ({ icon: Icon, title, desc, onClick, active }) => (
-    <div 
-        onClick={onClick}
-        className={`group relative bg-slate-900/40 backdrop-blur-xl p-4 md:p-6 lg:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border shadow-2xl transition-all cursor-pointer overflow-hidden ${active ? 'border-taguig-gold ring-1 ring-taguig-gold/20' : 'border-white/5 opacity-60 hover:opacity-100 hover:border-white/20'}`}
-    >
-        <div className="absolute -right-4 -top-4 w-24 h-24 md:w-32 md:h-32 bg-taguig-blue/10 rounded-full group-hover:scale-150 transition-transform duration-1000"></div>
-        <div className="absolute -left-4 -bottom-4 w-16 h-16 md:w-24 md:h-24 bg-taguig-gold/5 rounded-full group-hover:scale-150 transition-transform duration-1000 delay-100"></div>
-        <div className="relative z-10 space-y-2 md:space-y-4">
-            <div className="p-2 md:p-4 bg-taguig-gold/10 text-taguig-gold rounded-xl md:rounded-2xl inline-block group-hover:bg-taguig-gold group-hover:text-slate-950 transition-all duration-500 shadow-lg">
-                <Icon size={20} className="md:w-6 md:h-6" />
-            </div>
-            <h4 className="text-base md:text-xl font-black text-white uppercase tracking-tight italic group-hover:text-taguig-gold transition-colors">{title}</h4>
-            <p className="text-[10px] md:text-xs text-slate-400 font-medium leading-relaxed line-clamp-2">{desc}</p>
-            <div className="flex items-center text-[8px] md:text-[9px] font-black text-taguig-gold uppercase tracking-widest pt-1 md:pt-2 opacity-0 md:opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                <span>Access Details</span>
-                <ChevronRight size={10} className="ml-1" />
-            </div>
-        </div>
-    </div>
-);
-
 const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?: boolean, compact?: boolean }> = ({ role, name, desc, primary, compact }) => {
     const initials = name.split(' ').filter(n => n !== 'HON.' && n !== 'JR.').map(n => n[0]).join('').slice(0, 2);
-    
+
     return (
         <div className={`
             group relative flex flex-col items-center transition-all duration-500 max-h-[22vh] min-h-0 h-full
-            ${compact 
-                ? 'p-1.5 md:p-2.5 rounded-xl md:rounded-2xl w-full' 
+            ${compact
+                ? 'p-1.5 md:p-2.5 rounded-xl md:rounded-2xl w-full'
                 : 'p-2 md:p-4 rounded-[1.5rem] md:rounded-[2rem] w-full'}
-            ${primary 
-                ? 'bg-taguig-blue text-white shadow-xl border border-white/20 z-10' 
+            ${primary
+                ? 'bg-taguig-blue text-white shadow-xl border border-white/20 z-10'
                 : 'bg-slate-900/40 backdrop-blur-2xl text-white border border-white/10 shadow-lg hover:border-taguig-gold/50'}
             hover:scale-[1.03] active:scale-[0.98]
         `}>
             {/* Glossy Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-inherit pointer-events-none"></div>
-            
+
             {/* Avatar Section */}
             <div className={`relative mb-1 md:mb-2 ${compact ? 'w-6 h-6 md:w-10 md:h-10' : 'w-10 h-10 md:w-14 md:h-14 lg:w-16 lg:h-16'}`}>
                 <div className={`absolute inset-0 rounded-full blur-md scale-110 transition-all duration-700 opacity-0 group-hover:opacity-40 ${primary ? 'bg-white' : 'bg-taguig-gold'}`}></div>
