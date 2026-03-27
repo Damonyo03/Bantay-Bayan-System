@@ -162,7 +162,7 @@ const AuditLogs: React.FC = () => {
           <p className="text-slate-500 font-medium animate-pulse">Retrieving system logs...</p>
         </div>
       ) : (
-        <div className="card-premium p-0 overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 animate-slide-up">
+        <div className="card-premium p-0 overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 animate-slide-up min-w-0">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>

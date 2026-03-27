@@ -55,9 +55,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             </div>
 
             {/* Main Content Area */}
-            <div className="md:pl-64 flex flex-col min-h-screen">
-                <main className="flex-1 p-4 md:p-8 lg:p-10 transition-all duration-300">
-                    <div className="max-w-[1600px] mx-auto">
+            <div className="md:pl-64 flex flex-col min-h-screen min-w-0">
+                <main className="flex-1 p-4 md:p-8 lg:p-10 transition-all duration-300 min-w-0 overflow-x-hidden">
+                    <div className="max-w-[1600px] mx-auto w-full">
                         {children}
                     </div>
                 </main>

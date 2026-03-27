@@ -90,7 +90,7 @@ const UserManagement: React.FC = () => {
 
     // 1. Set Initial Tab based on Role (Run once when user loads)
     useEffect(() => {
-        if (user?.role === 'supervisor') {
+        if (user?.role === 'supervisor' || user?.role === 'developer') {
             setActiveTab('personnel');
         } else {
             setActiveTab('roster');
@@ -256,8 +256,8 @@ const UserManagement: React.FC = () => {
     };
 
     const handleCellClick = (userId: string, dayOffset: number) => {
-        // ONLY SUPERVISORS CAN EDIT
-        if (user?.role !== 'supervisor') return;
+        // ONLY SUPERVISORS OR DEVELOPERS CAN EDIT
+        if (user?.role !== 'supervisor' && user?.role !== 'developer') return;
 
         const { start } = getWeekRange(currentDate);
         const cellDate = new Date(start);
@@ -307,7 +307,7 @@ const UserManagement: React.FC = () => {
     };
 
     const handleDuplicatePreviousWeek = async () => {
-        if (user?.role !== 'supervisor') return;
+        if (user?.role !== 'supervisor' && user?.role !== 'developer') return;
         if (!confirm("Copy all assignments from the previous week into this week? Existing assignments in this week will be overwritten (excluding locked dates).")) return;
 
         setRosterLoading(true);
@@ -377,8 +377,8 @@ const UserManagement: React.FC = () => {
 
     // --- BULK SCHEDULE LOGIC (ADMIN ONLY) ---
     const handleOpenBulk = (u: UserProfile) => {
-        // STRICT CHECK: Only supervisor can open this
-        if (user?.role !== 'supervisor') {
+        // STRICT CHECK: Only supervisor/developer can open this
+        if (user?.role !== 'supervisor' && user?.role !== 'developer') {
             showToast("Unauthorized: Access Restricted to Admin.", "error");
             return;
         }
@@ -399,7 +399,7 @@ const UserManagement: React.FC = () => {
     const handleBulkApply = async () => {
         if (!bulkUser) return;
         // Double check permission before saving
-        if (user?.role !== 'supervisor') return;
+        if (user?.role !== 'supervisor' && user?.role !== 'developer') return;
 
         setRosterLoading(true);
         try {
@@ -785,7 +785,7 @@ const UserManagement: React.FC = () => {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="card-premium p-0 overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 animate-fade-in relative z-10">
+                                <div className="card-premium p-0 overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 animate-fade-in relative z-10 min-w-0">
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse whitespace-nowrap">
                                             <thead>
@@ -848,7 +848,7 @@ const UserManagement: React.FC = () => {
                                                                 ) : (
                                                                     <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${rowUser.role.includes('barangay')
                                                                         ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800'
-                                                                        : rowUser.role === 'supervisor'
+                                                                        : (rowUser.role === 'supervisor' || rowUser.role === 'developer')
                                                                             ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
                                                                             : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800'
                                                                         }`}>
@@ -995,7 +995,7 @@ const UserManagement: React.FC = () => {
                                     Today
                                 </button>
 
-                                {user?.role === 'supervisor' && (
+                                {(user?.role === 'supervisor' || user?.role === 'developer') && (
                                     <button
                                         onClick={handleDuplicatePreviousWeek}
                                         disabled={rosterLoading}
@@ -1010,7 +1010,7 @@ const UserManagement: React.FC = () => {
                     </div>
 
                     {/* Main Roster Card */}
-                    <div className="card-premium p-0 overflow-hidden flex flex-col min-h-[600px] border border-slate-200 dark:border-white/10">
+                    <div className="card-premium p-0 overflow-hidden flex flex-col min-h-[600px] border border-slate-200 dark:border-white/10 min-w-0">
 
                         {rosterLoading ? (
                             <div className="flex flex-col items-center justify-center h-80 text-slate-400">
@@ -1082,7 +1082,7 @@ const UserManagement: React.FC = () => {
                                                         </div>
 
                                                         {/* Supervisor Bulk Action */}
-                                                        {user?.role === 'supervisor' && (
+                                                        {(user?.role === 'supervisor' || user?.role === 'developer') && (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handleOpenBulk(rowUser); }}
                                                                 className="absolute right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-white dark:bg-slate-600 text-slate-400 hover:text-blue-600 rounded-lg shadow-sm border border-slate-200 dark:border-slate-500 transition-all transform hover:scale-110"
@@ -1171,11 +1171,11 @@ const UserManagement: React.FC = () => {
                                                             key={i}
                                                             onClick={() => handleCellClick(rowUser.id, i)}
                                                             className={`p-2 border-r border-slate-50 dark:border-slate-800 transition-all relative
-                                                      ${user?.role === 'supervisor' && !isLocked ? 'cursor-pointer' : 'cursor-not-allowed'}
+                                                      ${(user?.role === 'supervisor' || user?.role === 'developer') && !isLocked ? 'cursor-pointer' : 'cursor-not-allowed'}
                                                       ${isToday ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''}
                                                   `}
                                                         >
-                                                            <div className={`transition-transform duration-200 ${user?.role === 'supervisor' && !isLocked ? 'active:scale-95' : ''}`}>
+                                                            <div className={`transition-transform duration-200 ${(user?.role === 'supervisor' || user?.role === 'developer') && !isLocked ? 'active:scale-95' : ''}`}>
                                                                 {isLocked && (
                                                                     <div className="absolute top-1 right-1 z-10 text-slate-300 dark:text-slate-600">
                                                                         <Lock size={10} />
