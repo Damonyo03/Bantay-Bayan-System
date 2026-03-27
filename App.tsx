@@ -284,10 +284,10 @@ const AppContent: React.FC = () => {
                             <Route path="/cctv-request" element={<ProtectedRoute check={u => u.role !== 'guest'}><CCTVRequestForm /></ProtectedRoute>} />
                             <Route path="/resources" element={<ProtectedRoute check={u => u.role !== 'guest' && u.role !== 'resident'}><ResourceTracking /></ProtectedRoute>} />
                             <Route path="/resources/new" element={<ProtectedRoute check={u => u.role !== 'guest' && u.role !== 'resident'}><ResourceForm /></ProtectedRoute>} />
-                            <Route path="/archives" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan'].includes(u.role)}><ResolvedCases /></ProtectedRoute>} />
+                            <Route path="/archives" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><ResolvedCases /></ProtectedRoute>} />
                             <Route path="/restricted" element={<RestrictedPersons />} />
-                            <Route path="/users" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident'].includes(u.role)}><UserManagement /></ProtectedRoute>} />
-                            <Route path="/audit-logs" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad'].includes(u.role)}><AuditLogs /></ProtectedRoute>} />
+                            <Route path="/users" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident', 'developer'].includes(u.role)}><UserManagement /></ProtectedRoute>} />
+                            <Route path="/audit-logs" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'developer'].includes(u.role)}><AuditLogs /></ProtectedRoute>} />
                             <Route path="/guidelines" element={<SystemGuidelines />} />
                             <Route path="/download-forms" element={<DownloadForms />} />
                             <Route path="/settings" element={<ProtectedRoute check={u => u.role !== 'guest'}><Settings /></ProtectedRoute>} />
