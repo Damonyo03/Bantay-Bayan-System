@@ -1060,7 +1060,7 @@ const UserManagement: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                                        {users.filter(u => u.status === 'active').map((rowUser) => (
+                                        {users.filter(u => u.status === 'active' && (u.role === 'bantay_bayan' || u.role === 'supervisor')).map((rowUser) => (
                                             <tr key={rowUser.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                                 {/* Sticky Name Cell */}
                                                 <td className="p-3 md:p-4 sticky left-0 z-20 bg-white dark:bg-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-700 border-r border-slate-200 dark:border-slate-700 transition-colors shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)]">
