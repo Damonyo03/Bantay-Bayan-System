@@ -31,10 +31,10 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, icon: Icon, ch
                     </div>
                 </div>
 
-                <div className="hidden md:flex flex-col md:flex-row items-center gap-6 w-full xl:w-auto">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-6 w-full xl:w-auto mt-4 md:mt-0">
                     {children && <div className="w-full xl:w-auto">{children}</div>}
 
-                    <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 px-6 py-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm w-full md:w-auto shrink-0 transition-all hover:shadow-md group">
+                    <div className="hidden md:flex items-center space-x-4 bg-white dark:bg-slate-900 px-6 py-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm w-full md:w-auto shrink-0 transition-all hover:shadow-md group">
                         <div className="w-12 h-12 rounded-full bg-taguig-navy text-white flex items-center justify-center font-black text-xl shadow-lg shadow-taguig-navy/20 overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
                             {user?.avatar_url ? (
                                 <img src={user.avatar_url} alt="Profile" className="w-full h-full object-cover" />
