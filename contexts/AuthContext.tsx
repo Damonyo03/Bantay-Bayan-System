@@ -119,20 +119,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // --- Permission Helpers ---
   const isSupremeAdmin = () => {
-    return user?.role === 'barangay_captain';
+    return user?.role === 'barangay_captain' || user?.role === 'developer';
   };
 
   const isHighLevelAdmin = () => {
-    return user?.role === 'barangay_captain' || user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad';
+    return user?.role === 'barangay_captain' || user?.role === 'developer' || user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad';
   };
 
   const canEditRole = (targetUserRole?: string) => {
     if (!user) return false;
-    if (user.role === 'barangay_captain') return true; // Supreme admin can edit anyone
+    if (user.role === 'barangay_captain' || user.role === 'developer') return true; // Supreme admin can edit anyone
     
-    // Secretary and Kagawad can edit roles, but NOT the captain
+    // Secretary and Kagawad can edit roles, but NOT the captain or developer
     if (user.role === 'barangay_secretary' || user.role === 'barangay_kagawad') {
-       if (targetUserRole === 'barangay_captain') return false;
+       if (targetUserRole === 'barangay_captain' || targetUserRole === 'developer') return false;
        return true;
     }
     

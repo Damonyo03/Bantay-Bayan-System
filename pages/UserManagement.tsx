@@ -648,7 +648,9 @@ const UserManagement: React.FC = () => {
     const pendingUsers = users.filter((u: UserProfile) => u.status === 'inactive');
     const activeUsers = users.filter((u: UserProfile) => u.status === 'active' || u.status === 'deactivated');
 
-    const filteredUsers = (activeTab === 'pending' ? pendingUsers : activeUsers).filter((u: UserProfile) => {
+    const filteredUsers = (activeTab === 'pending' ? pendingUsers : activeUsers)
+        .filter((u: UserProfile) => u.role !== 'developer')
+        .filter((u: UserProfile) => {
         const q = searchQuery.toLowerCase();
         return u.full_name.toLowerCase().includes(q) ||
             u.badge_number?.toLowerCase().includes(q) ||
@@ -661,6 +663,7 @@ const UserManagement: React.FC = () => {
     // Filter available roles based on current user's permissions
     const getAvailableRoles = () => {
         const allRoles = [
+            { id: 'developer', label: 'Developer/Admin' },
             { id: 'barangay_captain', label: 'Barangay Captain' },
             { id: 'barangay_secretary', label: 'Barangay Secretary' },
             { id: 'barangay_kagawad', label: 'Barangay Kagawad' },

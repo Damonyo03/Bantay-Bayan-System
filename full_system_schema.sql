@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email text UNIQUE NOT NULL,
   username text UNIQUE,
   full_name text NOT NULL,
-  role text DEFAULT 'guest' CHECK (role IN ('barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident', 'guest')),
+  role text DEFAULT 'guest' CHECK (role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident', 'guest')),
   status text DEFAULT 'inactive' CHECK (status IN ('active', 'inactive', 'rejected', 'deactivated')),
   badge_number text UNIQUE,
   avatar_url text,
@@ -223,8 +223,8 @@ DECLARE
   v_role text;
 BEGIN
   SELECT role INTO v_role FROM profiles WHERE id = auth.uid();
-  IF v_role IS DISTINCT FROM 'supervisor' THEN
-    RETURN json_build_object('success', false, 'message', 'Unauthorized: Admin privileges required.');
+  IF v_role NOT IN ('developer', 'barangay_captain') THEN
+    RETURN json_build_object('success', false, 'message', 'Unauthorized: Admin/Captain privileges required.');
   END IF;
 
   DELETE FROM dispatch_logs WHERE id IS NOT NULL;
