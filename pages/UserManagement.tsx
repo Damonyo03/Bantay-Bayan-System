@@ -694,7 +694,7 @@ const UserManagement: React.FC = () => {
                 title="Staff Directory"
                 subtitle="Member Management • Post Proper Northside"
             >
-                {(user?.role === 'barangay_captain' || user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad' || user?.role === 'supervisor') && (
+                {(user?.role === 'barangay_captain' || user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad' || user?.role === 'supervisor' || user?.role === 'developer') && (
                     <div className="flex bg-taguig-navy/5 dark:bg-white/5 p-2 rounded-[1.5rem] w-full xl:w-auto overflow-x-auto no-scrollbar border border-slate-200 dark:border-white/10 shadow-sm">
                         <button
                             onClick={() => setActiveTab('personnel')}
