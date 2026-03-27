@@ -393,7 +393,7 @@ const ResourceTracking: React.FC = () => {
             ) : (
                 <div className="animate-fade-in">
                     {filter === 'Vehicles' ? (
-                        <div className="card-premium p-0 overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 relative z-10">
+                        <div className="card-premium p-0 overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 relative z-10 min-w-0">
                             <div className="p-6 bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <h3 className="text-[10px] font-black text-slate-800 dark:text-taguig-gold uppercase tracking-[0.2em]">Dispatch Log Registry</h3>
                                 <button onClick={() => setIsVehicleModalOpen(true)} className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-taguig-navy text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-taguig-blue transition-all shadow-lg shadow-taguig-navy/20">
