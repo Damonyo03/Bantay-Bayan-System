@@ -672,8 +672,8 @@ const Settings: React.FC = () => {
 
                 </div>
 
-                {/* ADMIN DATA MANAGEMENT (Supervisor Only) */}
-                {user?.role === 'supervisor' && (
+                {/* ADMIN DATA MANAGEMENT (Developer / Captain Only) */}
+                {(user?.role === 'developer' || user?.role === 'barangay_captain') && (
                     <div className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-red/20 bg-taguig-red/[0.01] dark:bg-taguig-red/[0.03] relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
                         <h2 className="text-xl font-black text-taguig-red uppercase tracking-tight italic mb-2 flex items-center">
