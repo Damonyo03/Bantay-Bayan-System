@@ -262,14 +262,23 @@ const Login: React.FC = () => {
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
-                            <input
-                                type="password"
-                                required
-                                value={regForm.password}
-                                onChange={e => setRegForm({ ...regForm, password: e.target.value })}
-                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                placeholder="••••••••"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showRegPassword ? "text" : "password"}
+                                    required
+                                    value={regForm.password}
+                                    onChange={e => setRegForm({ ...regForm, password: e.target.value })}
+                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 pr-12 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowRegPassword(!showRegPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-taguig-blue transition-colors focus:outline-none"
+                                >
+                                    {showRegPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
@@ -280,11 +289,11 @@ const Login: React.FC = () => {
                                     value={regForm.role}
                                     onChange={e => setRegForm({ ...regForm, role: e.target.value as UserRole })}
                                 >
-                                    <option value="guest" className="dark:bg-slate-900">Guest / Observer</option>
-                                    <option value="resident" className="dark:bg-slate-900">Verified Resident</option>
-                                    <option value="bantay_bayan" className="dark:bg-slate-900">Bantay Bayan Personnel</option>
+                                    <option value="guest" className="dark:bg-slate-900">Guest / Temporary Visitor</option>
+                                    <option value="resident" className="dark:bg-slate-900">Regular Citizen (Verified Resident)</option>
+                                    <option value="bantay_bayan" className="dark:bg-slate-900">Bantay Bayan Officer (Security)</option>
                                     <option value="barangay_kagawad" className="dark:bg-slate-900">Barangay Kagawad</option>
-                                    <option value="barangay_secretary" className="dark:bg-slate-900">Barangay Secretary</option>
+                                    <option value="barangay_secretary" className="dark:bg-slate-900">Barangay Secretary (Admin)</option>
                                     <option value="supervisor" className="dark:bg-slate-900">System Supervisor</option>
                                     <option value="barangay_captain" className="dark:bg-slate-900">Barangay Captain</option>
                                 </select>
@@ -294,14 +303,23 @@ const Login: React.FC = () => {
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm Identity Key</label>
-                            <input
-                                type="password"
-                                required
-                                value={regForm.confirmPassword}
-                                onChange={e => setRegForm({ ...regForm, confirmPassword: e.target.value })}
-                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                placeholder="Re-enter security key"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    required
+                                    value={regForm.confirmPassword}
+                                    onChange={e => setRegForm({ ...regForm, confirmPassword: e.target.value })}
+                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 pr-12 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                    placeholder="Re-enter security key"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-taguig-blue transition-colors focus:outline-none"
+                                >
+                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
 
                         <button

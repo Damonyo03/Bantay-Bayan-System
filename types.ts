@@ -137,3 +137,17 @@ export interface VehicleUsageData {
   purpose: string;
   created_at?: string;
 }
+
+export interface PublicReport {
+  id: string;
+  reference_number: string;
+  type: IncidentType;
+  narrative: string;
+  location: string;
+  status: 'Pending Review' | 'Acknowledged' | 'Converted to Incident' | 'Rejected';
+  submitted_by: string;
+  submitter_name?: string; // Joined field
+  converted_incident_id?: string;
+  updated_at: string;
+  created_at: string;
+}

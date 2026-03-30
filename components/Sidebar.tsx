@@ -15,7 +15,8 @@ import {
   Moon, 
   Sun, 
   FileDown,
-  X
+  X,
+  MessageSquare
 } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -45,6 +46,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
 
   const navItems = [
     { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: !isGuest && !isResident },
+    { icon: MessageSquare, label: 'Submit Report', path: '/public-request', visible: true },
+    { icon: FileText, label: 'Reports Queue', path: '/public-reports', visible: isStaff },
     { icon: FileText, label: t.blotter, path: '/report', visible: !isGuest },
     { icon: Video, label: 'CCTV Request', path: '/cctv-request', visible: !isGuest },
     { icon: Package, label: t.resources, path: '/resources', visible: !isGuest },

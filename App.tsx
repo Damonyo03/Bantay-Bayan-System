@@ -16,6 +16,8 @@ import CCTVRequestForm from './pages/CCTVRequestForm';
 import SystemGuidelines from './pages/SystemGuidelines';
 import DownloadForms from './pages/DownloadForms';
 import LandingPage from './pages/LandingPage';
+import PublicServiceRequest from './pages/PublicServiceRequest';
+import PublicReportsQueue from './pages/PublicReportsQueue';
 import DashboardLayout from './components/DashboardLayout';
 import PublicLayout from './components/PublicLayout';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -280,6 +282,8 @@ const AppContent: React.FC = () => {
                     <DashboardLayout>
                         <Routes>
                             <Route path="/dashboard" element={<CommandCenter />} />
+                            <Route path="/public-request" element={<PublicServiceRequest />} />
+                            <Route path="/public-reports" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><PublicReportsQueue /></ProtectedRoute>} />
                             <Route path="/report" element={<ProtectedRoute check={u => u.role !== 'guest'}><IncidentForm /></ProtectedRoute>} />
                             <Route path="/cctv-request" element={<ProtectedRoute check={u => u.role !== 'guest'}><CCTVRequestForm /></ProtectedRoute>} />
                             <Route path="/resources" element={<ProtectedRoute check={u => u.role !== 'guest' && u.role !== 'resident'}><ResourceTracking /></ProtectedRoute>} />

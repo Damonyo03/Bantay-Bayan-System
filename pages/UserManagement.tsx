@@ -7,7 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera as CameraIcon, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, CalendarRange, CheckCircle, CalendarDays, ChevronDown, Check, Navigation, Copy, Trash2 } from 'lucide-react';
+import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera as CameraIcon, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, CalendarRange, CheckCircle, CalendarDays, ChevronDown, Check, Navigation, Copy, Trash2, Eye, EyeOff } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
@@ -70,9 +70,10 @@ const UserManagement: React.FC = () => {
         username: '',
         password: '',
         fullName: '',
-        role: 'field_operator',
+        role: 'bantay_bayan',
     });
     const [isCreating, setIsCreating] = useState(false);
+    const [showRegPassword, setShowRegPassword] = useState(false);
 
     // Edit User Modal State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -1502,10 +1503,10 @@ const UserManagement: React.FC = () => {
                                                 value={newUser.role}
                                                 onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                                             >
-                                                <option value="bantay_bayan" className="bg-white dark:bg-slate-800">Bantay Bayan</option>
-                                                <option value="resident" className="bg-white dark:bg-slate-800">Resident</option>
-                                                <option value="guest" className="bg-white dark:bg-slate-800">Guest</option>
-                                                <option value="supervisor" className="bg-white dark:bg-slate-800">Brgy. Official (Admin)</option>
+                                                <option value="bantay_bayan" className="bg-white dark:bg-slate-800">Bantay Bayan Officer (Security)</option>
+                                                <option value="resident" className="bg-white dark:bg-slate-800">Regular Citizen (Verified Resident)</option>
+                                                <option value="guest" className="bg-white dark:bg-slate-800">Guest / Temporary Visitor</option>
+                                                <option value="supervisor" className="bg-white dark:bg-slate-800">Barangay Official (Admin)</option>
                                             </select>
                                             <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover/role:text-taguig-blue transition-colors">
                                                 <ChevronDown size={18} />
@@ -1528,15 +1529,24 @@ const UserManagement: React.FC = () => {
                                     </div>
                                     <div>
                                         <label htmlFor="newPassword" className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Temporary Password</label>
-                                        <input
-                                            id="newPassword"
-                                            type="password"
-                                            required
-                                            className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold placeholder:text-slate-400"
-                                            value={newUser.password}
-                                            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                                            placeholder="Minimum 8 characters"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                id="newPassword"
+                                                type={showRegPassword ? "text" : "password"}
+                                                required
+                                                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 pr-12 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold placeholder:text-slate-400"
+                                                value={newUser.password}
+                                                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                                                placeholder="Minimum 8 characters"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowRegPassword(!showRegPassword)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-taguig-blue transition-colors focus:outline-none"
+                                            >
+                                                {showRegPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                            </button>
+                                        </div>
                                         <p className="text-[9px] text-slate-400 mt-2 ml-1 italic font-medium">Must include uppercase, number, and symbol.</p>
                                     </div>
                                 </div>

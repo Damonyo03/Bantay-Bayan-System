@@ -95,7 +95,22 @@ CREATE TABLE IF NOT EXISTS public.cctv_requests (
   created_at timestamptz DEFAULT now()
 );
 
--- 8. AUDIT LOGS
+-- 8. PUBLIC REPORTS (CITIZEN LOGS)
+-- Staging area for community reports before formal acknowledgment
+CREATE TABLE IF NOT EXISTS public.public_reports (
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  reference_number text UNIQUE NOT NULL,
+  type text NOT NULL CHECK (type IN ('Medical', 'Fire', 'Theft', 'Disturbance', 'Traffic', 'Logistics', 'Other')),
+  narrative text NOT NULL,
+  location text NOT NULL,
+  status text DEFAULT 'Pending Review' CHECK (status IN ('Pending Review', 'Acknowledged', 'Converted to Incident', 'Rejected')),
+  submitted_by uuid REFERENCES public.profiles(id),
+  converted_incident_id uuid REFERENCES public.incidents(id),
+  updated_at timestamptz DEFAULT now(),
+  created_at timestamptz DEFAULT now()
+);
+
+-- 9. AUDIT LOGS
 CREATE TABLE IF NOT EXISTS public.audit_logs (
   id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
   table_name text NOT NULL,
@@ -117,6 +132,7 @@ ALTER TABLE public.incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.incident_parties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.asset_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cctv_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.public_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- 1. PROFILES POLICIES
@@ -170,12 +186,25 @@ CREATE POLICY "Personnel can view all CCTV" ON public.cctv_requests FOR SELECT U
 DROP POLICY IF EXISTS "Personnel can create CCTV" ON public.cctv_requests;
 CREATE POLICY "Personnel can create CCTV" ON public.cctv_requests FOR INSERT TO authenticated WITH CHECK (true);
 
--- 6. AUDIT LOGS POLICIES
+-- 6. PUBLIC REPORTS POLICIES
+DROP POLICY IF EXISTS "Submitters can view their own public reports" ON public.public_reports;
+CREATE POLICY "Submitters can view their own public reports" ON public.public_reports FOR SELECT USING (auth.uid() = submitted_by);
+
+DROP POLICY IF EXISTS "Personnel can view all public reports" ON public.public_reports;
+CREATE POLICY "Personnel can view all public reports" ON public.public_reports FOR SELECT USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan')));
+
+DROP POLICY IF EXISTS "Citizens can create public reports" ON public.public_reports;
+CREATE POLICY "Citizens can create public reports" ON public.public_reports FOR INSERT TO authenticated WITH CHECK (auth.uid() = submitted_by);
+
+DROP POLICY IF EXISTS "Personnel can update public reports" ON public.public_reports;
+CREATE POLICY "Personnel can update public reports" ON public.public_reports FOR UPDATE USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan')));
+
+-- 7. AUDIT LOGS POLICIES
 DROP POLICY IF EXISTS "Supervisors can view audit logs" ON public.audit_logs;
 CREATE POLICY "Supervisors can view audit logs" ON public.audit_logs FOR SELECT 
 USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'supervisor'));
 
--- 7. STORAGE BUCKET: AVATARS
+-- 8. STORAGE BUCKET: AVATARS
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
 
 DROP POLICY IF EXISTS "Avatar Public Access" ON storage.objects;
@@ -203,7 +232,7 @@ BEGIN
     new.id,
     new.email,
     new.raw_user_meta_data ->> 'full_name',
-    COALESCE(new.raw_user_meta_data ->> 'role', 'field_operator'),
+    COALESCE(new.raw_user_meta_data ->> 'role', 'guest'),
     COALESCE(new.raw_user_meta_data ->> 'status', 'inactive'),
     new.raw_user_meta_data ->> 'username',
     new.raw_user_meta_data ->> 'badge_number'
@@ -232,6 +261,7 @@ BEGIN
   DELETE FROM incidents WHERE id IS NOT NULL;
   DELETE FROM asset_requests WHERE id IS NOT NULL;
   DELETE FROM cctv_requests WHERE id IS NOT NULL;
+  DELETE FROM public_reports WHERE id IS NOT NULL;
   
   -- NEW: Clear Personnel Schedules (Duty Roster)
   BEGIN
@@ -323,7 +353,11 @@ CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXEC
 DROP TRIGGER IF EXISTS incident_audit ON public.incidents;
 CREATE TRIGGER incident_audit BEFORE INSERT OR UPDATE OR DELETE ON public.incidents FOR EACH ROW EXECUTE PROCEDURE public.audit_trigger_func();
 
--- 3. Grants
+-- 3. Public Reports Audit Trigger
+DROP TRIGGER IF EXISTS public_reports_audit ON public.public_reports;
+CREATE TRIGGER public_reports_audit BEFORE INSERT OR UPDATE OR DELETE ON public.public_reports FOR EACH ROW EXECUTE PROCEDURE public.audit_trigger_func();
+
+-- 4. Grants
 GRANT EXECUTE ON FUNCTION public.admin_reset_system_data() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.resolve_watchlist_incident(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_user_by_id(UUID) TO authenticated;
