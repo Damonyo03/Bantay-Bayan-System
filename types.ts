@@ -31,6 +31,7 @@ export interface UserProfile {
   preferred_shift?: ShiftType;
   preferred_day_off?: string; // "Monday", "Tuesday", etc.
   last_active_at: string;
+  created_at: string;
 }
 
 export interface Incident {

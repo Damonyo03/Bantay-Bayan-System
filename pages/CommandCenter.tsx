@@ -13,8 +13,8 @@ import { Clock, MapPin, Car, AlertCircle, Users, Edit2, X, Check, FileText, Pack
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { generateOfficialReport } from '../utils/pdfGenerator';
+import { exportToExcel } from '../utils/excelExport';
 import PageHeader from '../components/PageHeader';
-
 // Local interface for vehicle logs on dashboard
 interface LogWithIncident extends DispatchLog {
     incidents?: {
@@ -236,6 +236,20 @@ const CommandCenter: React.FC = () => {
         document.getElementById('blotter-section')?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    const handleExportExcel = () => {
+        const exportData = allActiveIncidents.map(inc => ({
+            'Case Number': inc.case_number,
+            'Type': inc.type,
+            'Status': inc.status,
+            'Officer': inc.officer_name,
+            'Location': inc.location,
+            'Narrative': inc.narrative,
+            'Restricted': inc.is_restricted_entry ? 'Yes' : 'No',
+            'Date Recorded': new Date(inc.created_at).toLocaleString()
+        }));
+        exportToExcel(exportData, 'Blotter_Active_Cases');
+    };
+
     const openNarrativeEditor = (incident: IncidentWithDetails) => {
         setEditingNarrative(incident);
         setTempNarrative(incident.narrative || '');
@@ -370,6 +384,13 @@ const CommandCenter: React.FC = () => {
                     <div className="xl:col-span-2 space-y-6" id="blotter-section">
                         <h2 className="heading-primary text-xl flex items-center justify-between mb-4">
                             {t.recentEntries}
+                            <button
+                                onClick={handleExportExcel}
+                                className="flex text-xs items-center space-x-1 py-1.5 px-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-lg font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+                            >
+                                <FileText size={14} />
+                                <span className="hidden sm:inline">Export Excel</span>
+                            </button>
                         </h2>
 
                         <div className="grid gap-6 animate-fade-in">

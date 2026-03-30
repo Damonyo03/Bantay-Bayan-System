@@ -18,6 +18,7 @@ import DownloadForms from './pages/DownloadForms';
 import LandingPage from './pages/LandingPage';
 import PublicServiceRequest from './pages/PublicServiceRequest';
 import PublicReportsQueue from './pages/PublicReportsQueue';
+import ResidentDirectory from './pages/ResidentDirectory';
 import DashboardLayout from './components/DashboardLayout';
 import PublicLayout from './components/PublicLayout';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -291,6 +292,7 @@ const AppContent: React.FC = () => {
                             <Route path="/archives" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><ResolvedCases /></ProtectedRoute>} />
                             <Route path="/restricted" element={<RestrictedPersons />} />
                             <Route path="/users" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident', 'developer'].includes(u.role)}><UserManagement /></ProtectedRoute>} />
+                            <Route path="/residents" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><ResidentDirectory /></ProtectedRoute>} />
                             <Route path="/audit-logs" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'developer'].includes(u.role)}><AuditLogs /></ProtectedRoute>} />
                             <Route path="/guidelines" element={<SystemGuidelines />} />
                             <Route path="/download-forms" element={<DownloadForms />} />

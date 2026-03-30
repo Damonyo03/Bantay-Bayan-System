@@ -137,7 +137,9 @@ const UserManagement: React.FC = () => {
     const fetchUsers = async () => {
         try {
             const data = await userService.getUsers();
-            setUsers(data);
+            // Filter out non-staff roles for the Personnel Directory
+            const staffData = data.filter(u => !['guest', 'resident'].includes(u.role));
+            setUsers(staffData);
         } catch (error) {
             console.error("Failed to fetch users", error);
         } finally {
@@ -1504,8 +1506,6 @@ const UserManagement: React.FC = () => {
                                                 onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                                             >
                                                 <option value="bantay_bayan" className="bg-white dark:bg-slate-800">Bantay Bayan Officer (Security)</option>
-                                                <option value="resident" className="bg-white dark:bg-slate-800">Regular Citizen (Verified Resident)</option>
-                                                <option value="guest" className="bg-white dark:bg-slate-800">Guest / Temporary Visitor</option>
                                                 <option value="supervisor" className="bg-white dark:bg-slate-800">Barangay Official (Admin)</option>
                                             </select>
                                             <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover/role:text-taguig-blue transition-colors">

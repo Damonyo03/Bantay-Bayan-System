@@ -4,8 +4,9 @@ import { useToast } from '../contexts/ToastContext';
 import { publicReportService } from '../services/publicReportService';
 import { PublicReport } from '../types';
 import PageHeader from '../components/PageHeader';
-import { RefreshCw, Search, Shield, CheckCircle, Clock, XCircle, ChevronRight, MessageSquare, MapPin, User, FileText, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Search, Shield, CheckCircle, Clock, XCircle, ChevronRight, MessageSquare, MapPin, User, FileText, AlertTriangle, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { exportToExcel } from '../utils/excelExport';
 
 const PublicReportsQueue: React.FC = () => {
     const { user, isSupremeAdmin } = useAuth();
@@ -79,6 +80,19 @@ const PublicReportsQueue: React.FC = () => {
         return matchesSearch && matchesFilter;
     });
 
+    const handleExportExcel = () => {
+        const exportData = filteredReports.map(r => ({
+            'Ref Number': r.reference_number,
+            'Type': r.type,
+            'Status': r.status,
+            'Location': r.location,
+            'Narrative': r.narrative,
+            'Submitter Name': r.submitter_name || 'Anonymous',
+            'Submitted At': new Date(r.created_at).toLocaleString()
+        }));
+        exportToExcel(exportData, 'Public_Reports');
+    };
+
     const StatusBadge = ({ status }: { status: string }) => {
         switch (status) {
             case 'Pending Review':
@@ -137,6 +151,13 @@ const PublicReportsQueue: React.FC = () => {
                         className="p-3 bg-white dark:bg-slate-800 text-slate-400 rounded-xl hover:text-taguig-blue border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center shrink-0"
                     >
                         <RefreshCw size={20} />
+                    </button>
+                    <button
+                        onClick={handleExportExcel}
+                        className="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/50 transition-all flex items-center justify-center shrink-0"
+                        title="Export to Excel"
+                    >
+                        <Download size={20} />
                     </button>
                 </div>
             </div>

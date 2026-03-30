@@ -10,6 +10,8 @@ import { Archive, MapPin, Clock, Printer, RotateCcw, FileCheck, Video, Search, F
 import { generateOfficialReport, reprintCCTVForm } from '../utils/pdfGenerator';
 import { supabase } from '../lib/supabaseClient';
 import PageHeader from '../components/PageHeader';
+import { exportToExcel } from '../utils/excelExport';
+import { Download } from 'lucide-react';
 
 type TabType = 'incidents' | 'cctv';
 type SortOption = 'date_desc' | 'date_asc' | 'case_asc' | 'case_desc';
@@ -124,6 +126,36 @@ const ResolvedCases: React.FC = () => {
 
     const getIncidentOptions = () => ['Medical', 'Fire', 'Theft', 'Disturbance', 'Traffic', 'Other'];
 
+    const handleExportExcel = () => {
+        const data = getFilteredData();
+        if (activeTab === 'incidents') {
+            const exportData = (data as IncidentWithDetails[]).map(inc => ({
+                'Case Number': inc.case_number,
+                'Type': inc.type,
+                'Status': inc.status,
+                'Officer': inc.officer_name,
+                'Location': inc.location,
+                'Narrative': inc.narrative,
+                'Restricted': inc.is_restricted_entry ? 'Yes' : 'No',
+                'Date Recorded': new Date(inc.created_at).toLocaleString()
+            }));
+            exportToExcel(exportData, 'Blotter_Resolved_Cases');
+        } else {
+            const exportData = (data as CCTVRequest[]).map(c => ({
+                'Request Number': c.request_number,
+                'Requester': c.requester_name,
+                'Contact': c.contact_info,
+                'Incident Type': c.incident_type,
+                'Location': c.location,
+                'Date': c.incident_date,
+                'Time': c.incident_time,
+                'Purpose': c.purpose,
+                'Created At': new Date(c.created_at).toLocaleString()
+            }));
+            exportToExcel(exportData, 'CCTV_Requests_Log');
+        }
+    };
+
     return (
         <div className="space-y-8 pb-20 animate-fade-in">
             <PageHeader
@@ -205,6 +237,15 @@ const ResolvedCases: React.FC = () => {
                         </select>
                     </div>
                 </div>
+
+                {/* Export Button */}
+                <button
+                    onClick={handleExportExcel}
+                    className="flex shrink-0 items-center justify-center space-x-2 py-2.5 px-6 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors w-full lg:w-auto"
+                >
+                    <Download size={16} />
+                    <span>Export Excel</span>
+                </button>
             </div>
 
             {isLoading ? (
