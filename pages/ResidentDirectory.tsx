@@ -25,7 +25,9 @@ const ResidentDirectory: React.FC = () => {
         setLoading(true);
         try {
             const data = await userService.getUsers();
-            const citizenData = data.filter(u => ['guest', 'resident'].includes(u.role));
+            // Show only active residents in the directory. 
+            // New applications (inactive) are now managed in the Staff Directory's "Applications" tab.
+            const citizenData = data.filter(u => ['guest', 'resident'].includes(u.role) && u.status !== 'inactive');
             setResidents(citizenData);
         } catch (error) {
             showToast("Failed to fetch resident list.", "error");

@@ -137,9 +137,9 @@ const UserManagement: React.FC = () => {
     const fetchUsers = async () => {
         try {
             const data = await userService.getUsers();
-            // Filter out non-staff roles for the Personnel Directory
-            const staffData = data.filter(u => !['guest', 'resident'].includes(u.role));
-            setUsers(staffData);
+            // We store ALL users in the state, then filter them in the render logic 
+            // so we can see Staff and Residents in the right places.
+            setUsers(data);
         } catch (error) {
             console.error("Failed to fetch users", error);
         } finally {
@@ -648,10 +648,14 @@ const UserManagement: React.FC = () => {
     }
 
     const currentWeekRange = getWeekRange(currentDate);
+    
+    // APPLICATIONS TAB: Show ALL roles (staff and residents) that are pending
     const pendingUsers = users.filter((u: UserProfile) => u.status === 'inactive');
-    const activeUsers = users.filter((u: UserProfile) => u.status === 'active' || u.status === 'deactivated');
+    
+    // DIRECTORY TAB: Only show staff roles (non-citizens) that are active
+    const activeStaff = users.filter((u: UserProfile) => u.status !== 'inactive' && !['resident', 'guest'].includes(u.role));
 
-    const filteredUsers = (activeTab === 'pending' ? pendingUsers : activeUsers)
+    const filteredUsers = (activeTab === 'pending' ? pendingUsers : activeStaff)
         .filter((u: UserProfile) => u.role !== 'developer')
         .filter((u: UserProfile) => {
         const q = searchQuery.toLowerCase();
