@@ -76,7 +76,7 @@ NOTIFY pgrst, 'reload schema';
 -- 4. FIX PROFILES ROLE CONSTRAINT
 -- The existing database instance likely has a check constraint preventing 'resident' from being inserted.
 -- We must drop the old constraint and explicitly add the new one.
-DO c:\Users\user\Downloads\Projects\Bantay-Bayan-System 
+DO $$
 DECLARE
   constraint_name text;
 BEGIN
@@ -93,4 +93,5 @@ BEGIN
 
   -- Add the correct constraint
   EXECUTE 'ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check CHECK (role IN (''developer'', ''barangay_captain'', ''barangay_secretary'', ''barangay_kagawad'', ''supervisor'', ''bantay_bayan'', ''resident'', ''guest''))';
-END c:\Users\user\Downloads\Projects\Bantay-Bayan-System;
+END $$;
+
