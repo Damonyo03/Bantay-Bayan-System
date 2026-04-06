@@ -80,9 +80,9 @@ const LandingPage: React.FC = () => {
                             <img src="/taguig_seal.png" alt="Taguig Seal" className="h-10 md:h-14 w-auto drop-shadow-md group-hover:rotate-12 transition-transform" />
                             <img src="/brgy_seal.png" alt="Barangay Seal" className="h-10 md:h-14 w-auto drop-shadow-md" />
                         </div>
-                        <div className="hidden sm:block border-l-2 border-white/10 pl-6">
-                            <h1 className="text-base md:text-xl lg:text-2xl font-black text-white uppercase italic leading-none tracking-tight">Post Proper Northside</h1>
-                            <p className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] leading-none mt-1.5">Peace & Security Operations</p>
+                        <div className="hidden sm:flex flex-col border-l-2 border-white/10 pl-6 h-full justify-center">
+                            <h1 className="text-base md:text-xl lg:text-2xl font-black text-white uppercase italic tracking-tight leading-none">Post Proper Northside</h1>
+                            <p className="text-[9px] md:text-xs font-black text-taguig-gold/70 uppercase tracking-[0.2em] leading-tight mt-1.5">Peace & Security Operations</p>
                         </div>
                     </div>
 
@@ -227,8 +227,8 @@ const LandingPage: React.FC = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="w-full flex-shrink-0 flex items-center justify-center">
-                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-2 w-full max-w-5xl px-2 items-stretch">
+                                        <div className="w-full flex-shrink-0 flex items-center justify-center py-6">
+                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 lg:gap-10 w-full max-w-7xl px-4 items-stretch">
                                                 <MemberNode role="Kagawad" name="HON. EDNA M. BACCAY" desc="Education & Culture" compact />
                                                 <MemberNode role="Kagawad" name="HON. CHRISTINE JAGONIO" desc="Finance & Social Services" compact />
                                                 <MemberNode role="Kagawad" name="HON. NILDA B. CAYABYAB" desc="Health & Sanitation" compact />
@@ -320,13 +320,13 @@ const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?:
 
     return (
         <div className={`
-            group relative flex flex-col items-center transition-all duration-500 max-h-[22vh] min-h-0 h-full
+            group relative flex flex-col items-center transition-all duration-500 py-6 md:py-8 px-4
             ${compact
-                ? 'p-1.5 md:p-2.5 rounded-xl md:rounded-2xl w-full'
-                : 'p-2 md:p-4 rounded-[1.5rem] md:rounded-[2rem] w-full'}
+                ? 'rounded-xl md:rounded-2xl w-full'
+                : 'rounded-[1.5rem] md:rounded-[2rem] w-full'}
             ${primary
                 ? 'bg-taguig-blue text-white shadow-xl border border-white/20 z-10'
-                : 'bg-slate-900/40 backdrop-blur-2xl text-white border border-white/10 shadow-lg hover:border-taguig-gold/50'}
+                : 'bg-slate-900/60 backdrop-blur-2xl text-white border border-white/10 shadow-lg hover:border-taguig-gold/50'}
             hover:scale-[1.03] active:scale-[0.98]
         `}>
             {/* Glossy Overlay */}
@@ -360,10 +360,10 @@ const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?:
                 `}>
                     {role}
                 </div>
-                <h4 className={`${compact ? 'text-sm md:text-xl' : 'text-base md:text-2xl'} font-black uppercase tracking-tight italic leading-tight group-hover:text-taguig-gold transition-colors duration-300`}>
+                <h4 className={`${compact ? 'text-sm md:text-xl' : 'text-base md:text-2xl'} font-extrabold text-white uppercase tracking-tight italic leading-tight group-hover:text-taguig-gold transition-colors duration-300`}>
                     {name}
                 </h4>
-                <p className={`text-[9px] md:text-sm font-bold tracking-[0.1em] uppercase transition-all duration-300 mt-1 ${primary ? 'text-white/60' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                <p className={`text-[10px] md:text-sm font-bold tracking-[0.1em] uppercase transition-all duration-300 mt-2 ${primary ? 'text-white/80' : 'text-slate-300 group-hover:text-white'}`}>
                     {desc}
                 </p>
             </div>
