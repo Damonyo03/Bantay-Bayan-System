@@ -227,16 +227,30 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role, status, username, badge_number)
+  INSERT INTO public.profiles (
+    id, 
+    email, 
+    full_name, 
+    role, 
+    status, 
+    username, 
+    badge_number
+  )
   VALUES (
     new.id,
     new.email,
-    new.raw_user_meta_data ->> 'full_name',
+    COALESCE(new.raw_user_meta_data ->> 'full_name', 'Unnamed User'),
     COALESCE(new.raw_user_meta_data ->> 'role', 'guest'),
     COALESCE(new.raw_user_meta_data ->> 'status', 'inactive'),
-    new.raw_user_meta_data ->> 'username',
-    new.raw_user_meta_data ->> 'badge_number'
-  );
+    COALESCE(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1)),
+    NULLIF(new.raw_user_meta_data ->> 'badge_number', '')
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = EXCLUDED.full_name,
+    role = EXCLUDED.role,
+    username = EXCLUDED.username,
+    badge_number = EXCLUDED.badge_number;
   RETURN new;
 END;
 $$;

@@ -48,18 +48,7 @@ export const userService = {
         });
 
         if (error) throw error;
-
-        if (data.user) {
-            const { error: insertError } = await supabase.from('profiles').insert({
-                id: data.user.id,
-                email: email,
-                username: username,
-                full_name: fullName,
-                role: role,
-                status: 'inactive'
-            });
-            if (insertError && !insertError.message.includes('duplicate key')) console.warn(insertError.message);
-        }
+        return data.user;
     },
 
     registerUser: async (email: string, username: string, password: string, fullName: string, role: string) => {

@@ -136,23 +136,26 @@ const ResolvedCases: React.FC = () => {
                 'Officer': inc.officer_name,
                 'Location': inc.location,
                 'Narrative': inc.narrative,
-                'Restricted': inc.is_restricted_entry ? 'Yes' : 'No',
-                'Date Recorded': new Date(inc.created_at).toLocaleString()
+                'Involved Parties': inc.parties?.map(p => `${p.name} (${p.role})`).join('; ') || 'None',
+                'Dispatch History': inc.dispatch_logs?.map(l => `${l.unit_name}: ${l.status}`).join(' | ') || 'None',
+                'Restricted Entry': inc.is_restricted_entry ? 'YES' : 'NO',
+                'Date Recorded': new Date(inc.created_at).toLocaleString('en-PH'),
+                'Last Updated': new Date(inc.created_at).toLocaleString('en-PH')
             }));
-            exportToExcel(exportData, 'Blotter_Resolved_Cases');
+            exportToExcel(exportData, `Bantay_Bayan_Blotter_Archive_${new Date().toISOString().split('T')[0]}`);
         } else {
             const exportData = (data as CCTVRequest[]).map(c => ({
                 'Request Number': c.request_number,
-                'Requester': c.requester_name,
-                'Contact': c.contact_info,
+                'Requester Name': c.requester_name,
+                'Contact Information': c.contact_info || 'N/A',
                 'Incident Type': c.incident_type,
+                'Incident Date': c.incident_date,
+                'Incident Time': c.incident_time,
                 'Location': c.location,
-                'Date': c.incident_date,
-                'Time': c.incident_time,
                 'Purpose': c.purpose,
-                'Created At': new Date(c.created_at).toLocaleString()
+                'Submission Date': new Date(c.created_at).toLocaleString('en-PH')
             }));
-            exportToExcel(exportData, 'CCTV_Requests_Log');
+            exportToExcel(exportData, `CCTV_Request_Archive_${new Date().toISOString().split('T')[0]}`);
         }
     };
 

@@ -16,29 +16,29 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       min-height: 100vh;
+      font-size: 18px; /* Increased base size */
+      line-height: 1.6;
       transition: background 0.5s ease, color 0.5s ease;
       -webkit-tap-highlight-color: transparent;
     }
 
-    h1,
-    h2,
-    h3,
-    .font-display {
+    h1, h2, h3, h4, .font-display {
       font-family: 'Outfit', sans-serif;
+      font-weight: 700;
     }
 
     /* LIGHT MODE - PREMIER SLATE */
     body {
-      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      background: #f8fafc;
       color: #0f172a;
     }
 
     /* DARK MODE - TAGUIG NAVY */
     html.dark body {
-      background: radial-gradient(circle at top right, #001A4D 0%, #020617 100%);
-      color: #f8fafc;
+      background: #020617;
+      color: #f1f5f9;
     }
 
     /* Custom Scrollbar */
@@ -153,27 +153,16 @@
     }
 
     /* Mobile Responsive Scaling */
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
       body {
-        font-size: 14px;
-      }
-
-      .mobile-text-sm {
-        font-size: 12px;
-      }
-
-      .mobile-text-xs {
-        font-size: 10px;
+        font-size: 16px; /* Standards-compliant mobile size */
       }
     }
 
-    /* Touch Targets */
-    input,
-    button,
-    a,
-    .touch-target {
-      min-height: 44px;
-      touch-action: manipulation;
+    /* Enhanced Touch Targets */
+    input, button, a, select, [role="button"] {
+      min-height: 48px; /* Standard touch target size */
+      padding: 12px 16px;
     }
 
     /* Mobile safe area */

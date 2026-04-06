@@ -3,17 +3,65 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    @apply text-[16px] md:text-[18px];
+    letter-spacing: -0.011em;
+  }
+  
   body {
-    @apply antialiased text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950;
+    @apply antialiased text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-950 font-sans;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-black tracking-tight text-slate-900 dark:text-white uppercase italic leading-tight;
+  }
+
+  h1 { @apply text-4xl md:text-5xl lg:text-6xl mb-6; }
+  h2 { @apply text-3xl md:text-4xl lg:text-5xl mb-5; }
+  h3 { @apply text-2xl md:text-3xl lg:text-4xl mb-4; }
+  h4 { @apply text-xl md:text-2xl lg:text-3xl mb-3; }
+  
+  p {
+    @apply mb-4 last:mb-0;
+  }
+
+  /* Standard Font Sizes for common UI elements */
+  label {
+    @apply text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-2 block;
+  }
+
+  input, select, textarea {
+    @apply text-base md:text-lg;
   }
 }
 
 @layer components {
   .card-premium {
-    @apply bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-white/5 p-6 sm:p-8 transition-all hover:shadow-md;
+    @apply bg-white dark:bg-slate-900 rounded-[2rem] shadow-premium border border-slate-200 dark:border-white/5 p-8 transition-all hover:shadow-2xl hover:-translate-y-1 duration-500;
   }
   
   .heading-primary {
-    @apply text-slate-800 dark:text-white font-black tracking-tight uppercase italic;
+    @apply text-slate-900 dark:text-white font-black tracking-tight uppercase italic text-3xl md:text-4xl mb-2;
   }
+
+  .text-standard {
+    @apply text-base md:text-lg text-slate-600 dark:text-slate-400 leading-relaxed;
+  }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-white/10 rounded-full;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-300 dark:bg-white/20;
 }

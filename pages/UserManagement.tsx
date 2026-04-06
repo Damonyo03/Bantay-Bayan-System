@@ -34,7 +34,7 @@ const UserManagement: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     // Tab State
-    const [activeTab, setActiveTab] = useState<'personnel' | 'pending' | 'roster'>('roster');
+    const [activeTab, setActiveTab] = useState<'personnel' | 'roster'>('roster');
     const [searchQuery, setSearchQuery] = useState('');
 
     // Roster State - Initialize to start of today (midnight)
@@ -635,7 +635,7 @@ const UserManagement: React.FC = () => {
             showToast("Account created successfully. User is Pending approval.", "success");
             setIsModalOpen(false);
             setNewUser({ email: '', username: '', password: '', fullName: '', role: 'bantay_bayan' });
-            setActiveTab('pending');
+            setActiveTab('personnel');
             // Update list immediately
             fetchUsers();
 
@@ -649,13 +649,10 @@ const UserManagement: React.FC = () => {
 
     const currentWeekRange = getWeekRange(currentDate);
     
-    // APPLICATIONS TAB: Show ALL roles (staff and residents) that are pending
-    const pendingUsers = users.filter((u: UserProfile) => u.status === 'inactive');
-    
     // DIRECTORY TAB: Only show staff roles (non-citizens) that are active
     const activeStaff = users.filter((u: UserProfile) => u.status !== 'inactive' && !['resident', 'guest'].includes(u.role));
 
-    const filteredUsers = (activeTab === 'pending' ? pendingUsers : activeStaff)
+    const filteredUsers = activeStaff
         .filter((u: UserProfile) => u.role !== 'developer')
         .filter((u: UserProfile) => {
         const q = searchQuery.toLowerCase();
@@ -714,18 +711,6 @@ const UserManagement: React.FC = () => {
                             Directory
                         </button>
                         <button
-                            onClick={() => setActiveTab('pending')}
-                            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center whitespace-nowrap ${activeTab === 'pending'
-                                ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-sm border border-slate-200 dark:border-white/10'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-taguig-red dark:hover:text-white'
-                                }`}
-                        >
-                            <span>Applications</span>
-                            {pendingUsers.length > 0 && (
-                                <span className="ml-2 px-2 py-0.5 bg-taguig-red text-white text-[9px] rounded-full shadow-sm">{pendingUsers.length}</span>
-                            )}
-                        </button>
-                        <button
                             onClick={() => setActiveTab('roster')}
                             className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center whitespace-nowrap ${activeTab === 'roster'
                                 ? 'bg-white dark:bg-slate-800 text-taguig-navy shadow-sm border border-slate-200 dark:border-white/10'
@@ -741,8 +726,8 @@ const UserManagement: React.FC = () => {
 
             {/* RENDER CONTENT BASED ON TAB */}
 
-            {activeTab === 'personnel' || activeTab === 'pending' ? (
-                /* --- PERSONNEL DIRECTORY / PENDING TAB --- */
+            {activeTab === 'personnel' ? (
+                /* --- PERSONNEL DIRECTORY --- */
                 <div className="space-y-6">
                     {activeTab === 'personnel' && (
                         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -788,7 +773,7 @@ const UserManagement: React.FC = () => {
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200">No Personnel Found</h3>
                                     <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">
-                                        {activeTab === 'pending' ? "No pending registrations at the moment." : "Try adjusting your search criteria or add a new account."}
+                                        {activeTab === 'personnel' ? "No personnel found." : "Try adjusting your search criteria or add a new account."}
                                     </p>
                                 </div>
                             ) : (

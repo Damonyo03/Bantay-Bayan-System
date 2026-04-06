@@ -65,6 +65,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
       path: '/residents',
       visible: isStaff
     },
+    {
+      icon: Shield,
+      label: 'Applications',
+      path: '/applications',
+      visible: isHighLevelAdmin() || isSupervisor
+    },
     { icon: FileDown, label: 'Printable Forms', path: '/download-forms', visible: true },
     { icon: FileClock, label: t.auditLogs, path: '/audit-logs', visible: isHighLevelAdmin() },
     { icon: Settings, label: 'Settings', path: '/settings', visible: !isGuest },
