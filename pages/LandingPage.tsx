@@ -70,7 +70,7 @@ const LandingPage: React.FC = () => {
     };
 
     return (
-        <div className="h-screen w-screen bg-slate-950 font-sans selection:bg-taguig-blue/20 selection:text-taguig-blue transition-colors duration-500 overflow-hidden flex flex-col">
+        <div className="min-h-screen w-screen bg-slate-950 font-sans selection:bg-taguig-blue/20 selection:text-taguig-blue transition-colors duration-500 overflow-x-hidden overflow-y-auto flex flex-col">
 
             {/* Main Navigation (Fixed) */}
             <nav className="sticky top-0 left-0 right-0 z-[90] bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-shrink-0">
@@ -138,14 +138,14 @@ const LandingPage: React.FC = () => {
             </nav>
 
             {/* Master Carousel Container */}
-            <div className="flex-1 relative overflow-hidden">
+            <div className="flex-1 relative overflow-x-hidden overflow-y-auto custom-scrollbar">
                 <div
-                    className="h-full flex transition-transform duration-1000 ease-[cubic-bezier(0.87,0,0.13,1)]"
+                    className="flex transition-transform duration-1000 ease-[cubic-bezier(0.87,0,0.13,1)] h-fit min-h-full"
                     style={{ transform: `translateX(-${mainIndex * 100}%)` }}
                 >
 
                     {/* Slide 0: Introduction (Hero Sub-Carousel) */}
-                    <div className="w-full h-full flex-shrink-0 relative">
+                    <div className="w-full min-h-full flex-shrink-0 relative">
                         {HERO_SLIDES.map((slide, index) => (
                             <div
                                 key={index}
@@ -165,7 +165,7 @@ const LandingPage: React.FC = () => {
                                             {slide.subtitle}
                                         </h2>
 
-                                        <p className="text-sm md:text-base lg:text-lg text-white/60 font-medium leading-relaxed max-w-xl">
+                                        <p className="text-base md:text-xl lg:text-2xl text-white/70 font-medium leading-[1.6] max-w-2xl">
                                             {slide.description}
                                         </p>
 
@@ -191,20 +191,20 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 1: Leadership (Hierarchy Sub-Carousel) */}
-                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-4 md:px-6 overflow-hidden py-1 md:py-2">
+                    <div className="w-full min-h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-4 md:px-6 overflow-hidden py-10 md:py-20">
                         <div className="max-w-7xl mx-auto w-full">
-                            <div className="text-center space-y-0.5 mb-1 md:mb-2 flex flex-col items-center group">
-                                <h3 className="text-lg md:text-2xl lg:text-3xl font-black text-white uppercase tracking-tighter italic leading-none">Institutional Hierarchy</h3>
-                                <p className="text-slate-400 font-medium max-w-2xl mx-auto text-[7px] md:text-[10px]">Strategic command and operational leadership.</p>
+                            <div className="text-center space-y-2 mb-6 md:mb-10 flex flex-col items-center group">
+                                <h3 className="text-2xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter italic leading-none">Institutional Hierarchy</h3>
+                                <p className="text-slate-400 font-bold max-w-2xl mx-auto text-xs md:text-lg tracking-wide uppercase opacity-60">Strategic command and operational leadership.</p>
                             </div>
                             <div className="relative">
                                 {/* Sliding Titles */}
-                                <div className="flex justify-center mb-2 md:mb-4 h-6 overflow-hidden relative">
+                                <div className="flex justify-center mb-6 md:mb-10 h-10 overflow-hidden relative">
                                     <div className={`transition-all duration-700 ${hierarchyIndex === 0 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 absolute'}`}>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-6 flex items-center">The Executive Command</span>
+                                        <span className="text-xs md:text-sm font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-10 flex items-center">The Executive Command</span>
                                     </div>
                                     <div className={`transition-all duration-700 ${hierarchyIndex === 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 absolute'}`}>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-6 flex items-center">The Legislative Assembly</span>
+                                        <span className="text-xs md:text-sm font-black uppercase tracking-[0.4em] text-taguig-gold/60 h-10 flex items-center">The Legislative Assembly</span>
                                     </div>
                                 </div>
 
@@ -246,16 +246,16 @@ const LandingPage: React.FC = () => {
                                         onClick={() => setHierarchyIndex(0)}
                                         className={`group relative flex flex-col items-center space-y-1 transition-all ${hierarchyIndex === 0 ? 'text-taguig-gold' : 'text-slate-600 hover:text-slate-400'}`}
                                     >
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Executive</span>
-                                        <div className={`h-0.5 rounded-full transition-all duration-500 ${hierarchyIndex === 0 ? 'w-8 bg-taguig-gold' : 'w-0 bg-transparent group-hover:w-4 group-hover:bg-slate-700'}`}></div>
+                                        <span className="text-xs md:text-sm font-black uppercase tracking-[0.3em]">Executive</span>
+                                        <div className={`h-0.5 rounded-full transition-all duration-500 ${hierarchyIndex === 0 ? 'w-10 bg-taguig-gold' : 'w-0 bg-transparent group-hover:w-6 group-hover:bg-slate-700'}`}></div>
                                     </button>
-                                    <div className="h-px w-8 bg-white/10 hidden md:block"></div>
+                                    <div className="h-px w-12 bg-white/10 hidden md:block"></div>
                                     <button
                                         onClick={() => setHierarchyIndex(1)}
-                                        className={`group relative flex flex-col items-center space-y-1 transition-all ${hierarchyIndex === 1 ? 'text-taguig-gold' : 'text-slate-600 hover:text-slate-400'}`}
+                                        className={`group relative flex flex-col items-center space-y-2 transition-all ${hierarchyIndex === 1 ? 'text-taguig-gold' : 'text-slate-600 hover:text-slate-400'}`}
                                     >
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Legislative</span>
-                                        <div className={`h-0.5 rounded-full transition-all duration-500 ${hierarchyIndex === 1 ? 'w-8 bg-taguig-gold' : 'w-0 bg-transparent group-hover:w-4 group-hover:bg-slate-700'}`}></div>
+                                        <span className="text-xs md:text-sm font-black uppercase tracking-[0.3em]">Legislative</span>
+                                        <div className={`h-0.5 rounded-full transition-all duration-500 ${hierarchyIndex === 1 ? 'w-10 bg-taguig-gold' : 'w-0 bg-transparent group-hover:w-6 group-hover:bg-slate-700'}`}></div>
                                     </button>
                                 </div>
                             </div>
@@ -263,7 +263,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 2: Emergency & Footer Summary */}
-                    <div className="w-full h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 text-white relative overflow-y-auto py-20">
+                    <div className="w-full min-h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 text-white relative py-20 md:py-32">
                         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                             <div className="space-y-10">
                                 <div className="flex items-center space-x-4">
@@ -276,8 +276,8 @@ const LandingPage: React.FC = () => {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 border-t border-white/5 pt-10">
                                     <div className="space-y-4">
-                                        <h5 className="text-[10px] font-black text-taguig-gold uppercase tracking-widest">24/7 City Hotlines</h5>
-                                        <div className="space-y-2 text-sm font-bold text-white/70">
+                                        <h5 className="text-xs md:text-sm font-black text-taguig-gold uppercase tracking-[0.2em] mb-4">24/7 City Hotlines</h5>
+                                        <div className="space-y-3 text-sm md:text-lg font-bold text-white/70">
                                             <p className="flex justify-between"><span>National:</span> <span className="text-white">911</span></p>
                                             <p className="flex justify-between"><span>Taguig Emergency:</span> <span className="text-white">165-7777</span></p>
                                             <p className="flex justify-between"><span>Command Center:</span> <span className="text-white">(02) 8789-3200</span></p>
@@ -285,13 +285,13 @@ const LandingPage: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                        <h5 className="text-[10px] font-black text-taguig-gold uppercase tracking-widest">Barangay Contacts</h5>
-                                        <div className="space-y-2 text-sm font-bold text-white/70 flex flex-col">
+                                        <h5 className="text-xs md:text-sm font-black text-taguig-gold uppercase tracking-[0.2em] mb-4">Barangay Contacts</h5>
+                                        <div className="space-y-3 text-sm md:text-lg font-bold text-white/70 flex flex-col">
                                             <p className="flex justify-between"><span>Brgy. Hall:</span> <span className="text-white">(02) 8881 3898</span></p>
-                                            <p className="flex items-center mt-2 text-xs text-slate-400 italic gap-2">
-                                                <MapPin size={12}/> Lawton Ave, Taguig City
+                                            <p className="flex items-center mt-4 text-xs md:text-sm text-slate-400 italic gap-3">
+                                                <MapPin size={16}/> Lawton Ave, Taguig City
                                             </p>
-                                            <button onClick={() => navigate('/login')} className="text-left hover:text-white transition-colors mt-4 bg-white/5 p-3 rounded-xl border border-white/10 text-xs">Admin Portal Access</button>
+                                            <button onClick={() => navigate('/login')} className="text-left hover:text-white transition-colors mt-6 bg-white/5 px-6 py-4 rounded-2xl border border-white/10 text-xs md:text-sm uppercase font-black tracking-widest ">Admin Portal Access</button>
                                         </div>
                                     </div>
                                 </div>
@@ -333,37 +333,37 @@ const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?:
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-inherit pointer-events-none"></div>
 
             {/* Avatar Section */}
-            <div className={`relative mb-1 md:mb-2 ${compact ? 'w-6 h-6 md:w-10 md:h-10' : 'w-10 h-10 md:w-14 md:h-14 lg:w-16 lg:h-16'}`}>
+            <div className={`relative mb-2 md:mb-4 ${compact ? 'w-10 h-10 md:w-16 md:h-16' : 'w-14 h-14 md:w-24 md:h-24'}`}>
                 <div className={`absolute inset-0 rounded-full blur-md scale-110 transition-all duration-700 opacity-0 group-hover:opacity-40 ${primary ? 'bg-white' : 'bg-taguig-gold'}`}></div>
                 <div className={`
-                    relative w-full h-full rounded-full flex items-center justify-center border md:border-2 overflow-hidden
+                    relative w-full h-full rounded-full flex items-center justify-center border-2 md:border-4 overflow-hidden
                     ${primary ? 'bg-white/10 border-white/30' : 'bg-slate-800 border-white/10 group-hover:border-taguig-gold/50'}
                 `}>
-                    <span className={`font-black uppercase tracking-tighter ${compact ? 'text-[6px] md:text-[10px]' : 'text-[10px] md:text-sm lg:text-base'} ${primary ? 'text-white' : 'text-taguig-gold'}`}>
+                    <span className={`font-black uppercase tracking-tighter ${compact ? 'text-xs md:text-xl' : 'text-lg md:text-3xl'} ${primary ? 'text-white' : 'text-taguig-gold'}`}>
                         {initials}
                     </span>
                     {/* Subtle Scanline Animation */}
                     <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/5 to-transparent h-1/2 w-full -translate-y-full group-hover:translate-y-full transition-transform duration-[2s] ease-linear"></div>
                 </div>
                 {primary && (
-                    <div className="absolute -right-0.5 -bottom-0.5 bg-taguig-gold text-slate-950 p-0.5 md:p-1 rounded-full shadow-lg border border-taguig-blue transform group-hover:rotate-12 transition-transform">
-                        <Shield size={compact ? 6 : 8} fill="currentColor" />
+                    <div className="absolute -right-1 -bottom-1 bg-taguig-gold text-slate-950 p-1 md:p-2 rounded-full shadow-lg border-2 border-taguig-blue transform group-hover:rotate-12 transition-transform">
+                        <Shield size={compact ? 10 : 16} fill="currentColor" />
                     </div>
                 )}
             </div>
 
             {/* Content Section */}
-            <div className="text-center space-y-0.5 relative z-10">
+            <div className="text-center space-y-1 relative z-10 w-full px-2">
                 <div className={`
-                    inline-block px-1.5 py-0 rounded-full text-[6px] md:text-[8px] font-black uppercase tracking-[0.1em] mb-0.5
+                    inline-block px-3 py-0.5 rounded-full text-[8px] md:text-xs font-black uppercase tracking-[0.2em] mb-1
                     ${primary ? 'bg-white/10 text-white border border-white/10' : 'bg-taguig-gold/10 text-taguig-gold border border-taguig-gold/20'}
                 `}>
                     {role}
                 </div>
-                <h4 className={`${compact ? 'text-[8px] md:text-[11px]' : 'text-[10px] md:text-base lg:text-lg'} font-black uppercase tracking-tight italic leading-tight group-hover:text-taguig-gold transition-colors duration-300`}>
+                <h4 className={`${compact ? 'text-sm md:text-xl' : 'text-base md:text-2xl'} font-black uppercase tracking-tight italic leading-tight group-hover:text-taguig-gold transition-colors duration-300`}>
                     {name}
                 </h4>
-                <p className={`text-[6px] md:text-[8px] font-bold tracking-[0.1em] uppercase transition-all duration-300 ${primary ? 'text-white/60' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                <p className={`text-[9px] md:text-sm font-bold tracking-[0.1em] uppercase transition-all duration-300 mt-1 ${primary ? 'text-white/60' : 'text-slate-500 group-hover:text-slate-300'}`}>
                     {desc}
                 </p>
             </div>
