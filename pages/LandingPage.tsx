@@ -45,6 +45,12 @@ const SECTIONS = [
     { id: 'emergency', label: 'Emergency' }
 ];
 
+const SEALS = [
+    { src: '/brgy_seal.png', alt: 'Barangay Seal' },
+    { src: '/taguig_seal.png', alt: 'Taguig Seal' },
+    { src: '/logo.png', alt: 'BMS Logo' }
+];
+
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -75,14 +81,10 @@ const LandingPage: React.FC = () => {
             {/* Main Navigation (Fixed) */}
             <nav className="sticky top-0 left-0 right-0 z-[90] bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-shrink-0">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center space-x-6 group cursor-pointer" onClick={() => setMainIndex(0)}>
-                        <div className="flex items-center space-x-3">
-                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-10 md:h-14 w-auto drop-shadow-md group-hover:rotate-12 transition-transform" />
-                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-10 md:h-14 w-auto drop-shadow-md" />
-                        </div>
-                        <div className="hidden sm:flex flex-col border-l-2 border-white/10 pl-6 h-full justify-center">
-                            <h1 className="text-base md:text-xl lg:text-2xl font-black text-white uppercase italic tracking-tight leading-none">Post Proper Northside</h1>
-                            <p className="text-[9px] md:text-xs font-black text-taguig-gold/70 uppercase tracking-[0.2em] leading-tight mt-1.5">Peace & Security Operations</p>
+                    <div className="flex items-center group cursor-pointer" onClick={() => setMainIndex(0)}>
+                        <div className="flex flex-col h-full justify-center">
+                            <h1 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tight leading-none group-hover:text-taguig-gold transition-colors">Post Proper Northside</h1>
+                            <p className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1.5 opacity-60">Peace & Security Operations</p>
                         </div>
                     </div>
 
@@ -159,13 +161,13 @@ const LandingPage: React.FC = () => {
 
                                 <div className="max-w-7xl mx-auto h-full flex items-center w-full relative z-20 px-6">
                                     <div className={`max-w-3xl space-y-6 transition-all duration-1000 delay-300 ${index === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
-                                        <h2 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white uppercase tracking-tighter italic leading-[0.85]">
+                                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter italic leading-[1.1]">
                                             {slide.title} <br />
                                             <span className="text-taguig-gold">{slide.highlight}</span> <br />
                                             {slide.subtitle}
                                         </h2>
 
-                                        <p className="text-base md:text-xl lg:text-2xl text-white/70 font-medium leading-[1.6] max-w-2xl">
+                                        <p className="text-lg text-white/70 font-medium leading-relaxed max-w-2xl">
                                             {slide.description}
                                         </p>
 
@@ -266,13 +268,9 @@ const LandingPage: React.FC = () => {
                     <div className="w-full min-h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 text-white relative py-20 md:py-32">
                         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                             <div className="space-y-10">
-                                <div className="flex items-center space-x-4">
-                                    <img src="/taguig_seal.png" alt="Taguig Seal" className="h-16 w-auto" />
-                                    <img src="/brgy_seal.png" alt="Barangay Seal" className="h-16 w-auto opacity-80" />
-                                </div>
-                                <div className="space-y-6">
-                                    <h3 className="text-5xl font-black uppercase italic leading-none tracking-tighter">Emergency <br /><span className="text-taguig-gold">Response Hub</span></h3>
-                                    <p className="text-white/40 font-medium max-w-md leading-relaxed">Official gateway for Unified Security operations within Post Proper Northside. Rapid. Tactical. Professional.</p>
+                                <div className="space-y-4">
+                                    <h3 className="text-4xl md:text-5xl font-black uppercase italic leading-tight tracking-tighter">Emergency <br /><span className="text-taguig-gold">Response Hub</span></h3>
+                                    <p className="text-lg text-white/40 font-medium max-w-md leading-relaxed">Official gateway for Unified Security operations within Post Proper Northside. Rapid. Tactical. Professional.</p>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 border-t border-white/5 pt-10">
                                     <div className="space-y-4">
@@ -309,6 +307,22 @@ const LandingPage: React.FC = () => {
                         </div>
                     </div>
 
+                </div>
+            </div>
+
+            {/* Logo Cloud Section at the Bottom */}
+            <div className="bg-slate-900/50 backdrop-blur-md border-t border-white/5 py-12 px-6">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-40 hover:opacity-100 transition-opacity duration-700">
+                        {SEALS.map((seal, idx) => (
+                            <img 
+                                key={idx} 
+                                src={seal.src} 
+                                alt={seal.alt} 
+                                className="h-12 md:h-20 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-500 hover:scale-110" 
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
