@@ -75,19 +75,19 @@ const LandingPage: React.FC = () => {
             {/* Main Navigation (Fixed) */}
             <nav className="sticky top-0 left-0 right-0 z-[90] bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-shrink-0">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center space-x-4 group cursor-pointer" onClick={() => setMainIndex(0)}>
-                        <div className="flex items-center space-x-2">
-                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-8 md:h-10 w-auto drop-shadow-md group-hover:rotate-12 transition-transform" />
-                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-8 md:h-10 w-auto drop-shadow-md" />
+                    <div className="flex items-center space-x-6 group cursor-pointer" onClick={() => setMainIndex(0)}>
+                        <div className="flex items-center space-x-3">
+                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-10 md:h-14 w-auto drop-shadow-md group-hover:rotate-12 transition-transform" />
+                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-10 md:h-14 w-auto drop-shadow-md" />
                         </div>
-                        <div className="hidden sm:block border-l border-white/10 pl-4">
-                            <h1 className="text-sm md:text-base font-black text-white uppercase italic leading-none tracking-tight">Post Proper Northside</h1>
-                            <p className="text-[7px] md:text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Peace & Security Operations</p>
+                        <div className="hidden sm:block border-l-2 border-white/10 pl-6">
+                            <h1 className="text-base md:text-xl lg:text-2xl font-black text-white uppercase italic leading-none tracking-tight">Post Proper Northside</h1>
+                            <p className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] leading-none mt-1.5">Peace & Security Operations</p>
                         </div>
                     </div>
 
                     {/* Desktop Menu */}
-                    <div className="hidden lg:flex items-center space-x-10 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <div className="hidden lg:flex items-center space-x-12 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                         {SECTIONS.map((sec, idx) => (
                             <button
                                 key={sec.id}
@@ -99,10 +99,10 @@ const LandingPage: React.FC = () => {
                         ))}
                         <button
                             onClick={() => navigate('/login')}
-                            className="px-6 py-2.5 bg-taguig-blue text-white rounded-full hover:bg-taguig-navy transition-all shadow-xl shadow-taguig-blue/20 flex items-center group"
+                            className="px-10 py-3.5 bg-taguig-blue text-white rounded-full hover:bg-taguig-navy transition-all shadow-xl shadow-taguig-blue/20 flex items-center group font-black text-xs uppercase"
                         >
                             <span>Portal Login</span>
-                            <ArrowUpRight size={12} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                            <ArrowUpRight size={14} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                         </button>
                     </div>
 
@@ -211,10 +211,20 @@ const LandingPage: React.FC = () => {
                                 <div className="overflow-hidden flex-1">
                                     <div className="flex transition-all duration-700 ease-in-out h-full" style={{ transform: `translateX(-${hierarchyIndex * 100}%)` }}>
                                         <div className="w-full flex-shrink-0 flex items-center justify-center">
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 w-full max-w-5xl px-4 items-stretch">
-                                                <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" compact />
-                                                <MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" primary />
-                                                <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" compact />
+                                            <div className="flex flex-col items-center w-full max-w-5xl gap-4 md:gap-8 px-4">
+                                                {/* Punong Barangay - Top Row */}
+                                                <div className="w-full max-w-xs md:max-w-md">
+                                                    <MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" primary />
+                                                </div>
+                                                
+                                                {/* Connecting Line (Visual Only) */}
+                                                <div className="hidden md:block h-8 w-px bg-gradient-to-b from-taguig-blue to-white/10"></div>
+
+                                                {/* Secretary & Treasurer - Second Row */}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
+                                                    <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" compact />
+                                                    <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" compact />
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="w-full flex-shrink-0 flex items-center justify-center">

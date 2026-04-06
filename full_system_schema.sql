@@ -226,7 +226,20 @@ RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
+DECLARE
+  base_username text;
+  final_username text;
+  user_role text;
 BEGIN
+  user_role := COALESCE(new.raw_user_meta_data ->> 'role', 'guest');
+  base_username := COALESCE(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1));
+  final_username := base_username;
+
+  -- Ensure username is unique (Internal fallback)
+  WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username) LOOP
+    final_username := base_username || '_' || substr(md5(random()::text), 1, 4);
+  END LOOP;
+
   INSERT INTO public.profiles (
     id, 
     email, 
@@ -240,18 +253,19 @@ BEGIN
     new.id,
     new.email,
     COALESCE(new.raw_user_meta_data ->> 'full_name', 'Unnamed User'),
-    COALESCE(new.raw_user_meta_data ->> 'role', 'guest'),
+    user_role,
     COALESCE(new.raw_user_meta_data ->> 'status', 'inactive'),
-    COALESCE(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1)),
-    NULLIF(new.raw_user_meta_data ->> 'badge_number', '')
+    final_username,
+    -- ONLY bantay_bayan get badge numbers during insertion if provided
+    CASE WHEN user_role = 'bantay_bayan' THEN NULLIF(new.raw_user_meta_data ->> 'badge_number', '') ELSE NULL END
   )
   ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
     full_name = EXCLUDED.full_name,
-    role = EXCLUDED.role,
     username = EXCLUDED.username,
-    badge_number = EXCLUDED.badge_number;
-  RETURN new;
+    role = EXCLUDED.role;
+  
+  RETURN NEW;
 END;
 $$;
 

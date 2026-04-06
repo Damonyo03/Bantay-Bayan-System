@@ -34,7 +34,7 @@ const UserManagement: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     // Tab State
-    const [activeTab, setActiveTab] = useState<'personnel' | 'roster'>('roster');
+    const [activeTab, setActiveTab] = useState<'personnel' | 'roster' | 'archived'>('roster');
     const [searchQuery, setSearchQuery] = useState('');
 
     // Roster State - Initialize to start of today (midnight)
@@ -650,9 +650,17 @@ const UserManagement: React.FC = () => {
     const currentWeekRange = getWeekRange(currentDate);
     
     // DIRECTORY TAB: Only show staff roles (non-citizens) that are active
-    const activeStaff = users.filter((u: UserProfile) => u.status !== 'inactive' && !['resident', 'guest'].includes(u.role));
+    const activeStaff = users.filter((u: UserProfile) => 
+        u.status === 'active' && 
+        !['resident', 'guest'].includes(u.role)
+    );
 
-    const filteredUsers = activeStaff
+    const archivedUsers = users.filter((u: UserProfile) => 
+        (u.status === 'rejected' || u.status === 'deactivated') &&
+        !['resident', 'guest'].includes(u.role)
+    );
+
+    const filteredUsers = (activeTab === 'archived' ? archivedUsers : activeStaff)
         .filter((u: UserProfile) => u.role !== 'developer')
         .filter((u: UserProfile) => {
         const q = searchQuery.toLowerCase();
@@ -702,13 +710,15 @@ const UserManagement: React.FC = () => {
                     <div className="flex bg-taguig-navy/5 dark:bg-white/5 p-2 rounded-[1.5rem] w-full xl:w-auto overflow-x-auto no-scrollbar border border-slate-200 dark:border-white/10 shadow-sm">
                         <button
                             onClick={() => setActiveTab('personnel')}
-                            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center whitespace-nowrap ${activeTab === 'personnel'
-                                ? 'bg-white dark:bg-slate-800 text-taguig-navy shadow-sm border border-slate-200 dark:border-white/10'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-taguig-navy dark:hover:text-white'
-                                }`}
+                            className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 ${activeTab === 'personnel' ? 'border-taguig-blue text-taguig-blue bg-taguig-blue/5' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                         >
-                            <Users size={16} className="mr-2" />
-                            Directory
+                            <Users size={14} /> Personnel Directory
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('archived')}
+                            className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 ${activeTab === 'archived' ? 'border-amber-500 text-amber-500 bg-amber-500/5' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                        >
+                            <UserX size={14} /> Archived Accounts
                         </button>
                         <button
                             onClick={() => setActiveTab('roster')}
@@ -724,9 +734,8 @@ const UserManagement: React.FC = () => {
                 )}
             </PageHeader>
 
-            {/* RENDER CONTENT BASED ON TAB */}
-
-            {activeTab === 'personnel' ? (
+            {/* DIRECTORY OR ARCHIVED CONTENT */}
+            {(activeTab === 'personnel' || activeTab === 'archived') ? (
                 /* --- PERSONNEL DIRECTORY --- */
                 <div className="space-y-6">
                     {activeTab === 'personnel' && (

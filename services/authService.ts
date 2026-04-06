@@ -147,6 +147,16 @@ export const authService = {
     },
 
     registerUser: async (email: string, username: string, password: string, fullName: string, role: string) => {
+        // 0. Check if username is already taken
+        const { data: existingUser } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('username', username)
+            .maybeSingle();
+
+        if (existingUser) {
+            throw new Error("Username is already taken. Please choose another.");
+        }
 
         // 1. Sign up with Supabase Auth
         const { data, error: signUpError } = await supabase.auth.signUp({
