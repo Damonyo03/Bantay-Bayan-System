@@ -81,10 +81,14 @@ const LandingPage: React.FC = () => {
             {/* Main Navigation (Fixed) */}
             <nav className="sticky top-0 left-0 right-0 z-[90] bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-shrink-0">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center group cursor-pointer" onClick={() => setMainIndex(0)}>
-                        <div className="flex flex-col h-full justify-center">
-                            <h1 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tight leading-none group-hover:text-taguig-gold transition-colors">Post Proper Northside</h1>
-                            <p className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1.5 opacity-60">Peace & Security Operations</p>
+                    <div className="flex items-center space-x-6 group cursor-pointer" onClick={() => setMainIndex(0)}>
+                        <div className="flex items-center space-x-3">
+                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-10 md:h-14 w-auto drop-shadow-md group-hover:rotate-12 transition-transform" />
+                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-10 md:h-14 w-auto drop-shadow-md" />
+                        </div>
+                        <div className="hidden sm:flex flex-col border-l-2 border-white/10 pl-6 h-full justify-center">
+                            <h1 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tight leading-tight group-hover:text-taguig-gold transition-colors">Post Proper Northside</h1>
+                            <p className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5 opacity-60">Peace & Security Operations</p>
                         </div>
                     </div>
 
@@ -159,7 +163,7 @@ const LandingPage: React.FC = () => {
                                     <div className="absolute inset-0 bg-taguig-blue/10 mix-blend-overlay"></div>
                                 </div>
 
-                                <div className="max-w-7xl mx-auto h-full flex items-center w-full relative z-20 px-6">
+                                <div className="max-w-7xl mx-auto h-full flex items-start w-full relative z-20 px-6 pt-24 md:pt-40 lg:pt-48">
                                     <div className={`max-w-3xl space-y-6 transition-all duration-1000 delay-300 ${index === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
                                         <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter italic leading-[1.1]">
                                             {slide.title} <br />
@@ -265,7 +269,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 2: Emergency & Footer Summary */}
-                    <div className="w-full min-h-full flex-shrink-0 bg-slate-950 flex flex-col justify-center px-6 text-white relative py-20 md:py-32">
+                    <div className="w-full min-h-full flex-shrink-0 bg-slate-950 flex flex-col justify-start px-6 text-white relative pt-16 md:pt-24 pb-20">
                         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                             <div className="space-y-10">
                                 <div className="space-y-4">
