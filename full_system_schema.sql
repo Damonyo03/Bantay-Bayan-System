@@ -8,6 +8,13 @@
 -- 1. ENUMS & EXTENSIONS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Define the custom status enum used by the system
+DO $$ BEGIN
+    CREATE TYPE user_status AS ENUM ('active', 'inactive', 'pending', 'rejected', 'deactivated');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
 -- 2. USER PROFILES TABLE
 -- Stores personnel data and roles
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -16,7 +23,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   username text UNIQUE,
   full_name text NOT NULL,
   role text DEFAULT 'guest' CHECK (role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident', 'guest')),
-  status text DEFAULT 'pending' CHECK (status IN ('active', 'inactive', 'pending', 'rejected', 'deactivated')),
+   status user_status DEFAULT 'pending',
   badge_number text UNIQUE,
   avatar_url text,
   preferred_shift text DEFAULT '1st',
@@ -254,7 +261,7 @@ BEGIN
     new.email,
     COALESCE(new.raw_user_meta_data ->> 'full_name', 'Unnamed User'),
     user_role,
-    COALESCE(new.raw_user_meta_data ->> 'status', 'pending'),
+    'pending'::user_status,
     final_username,
     -- ONLY bantay_bayan get badge numbers during insertion if provided
     CASE WHEN user_role = 'bantay_bayan' THEN NULLIF(new.raw_user_meta_data ->> 'badge_number', '') ELSE NULL END
