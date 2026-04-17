@@ -655,6 +655,11 @@ const UserManagement: React.FC = () => {
         !['resident', 'guest'].includes(u.role)
     );
 
+    const archivedUsers = users.filter((u: UserProfile) => 
+        (u.status === 'rejected' || u.status === 'deactivated') &&
+        !['resident', 'guest'].includes(u.role)
+    );
+
     const pendingUsers = users.filter((u: UserProfile) => 
         u.status === 'inactive' && 
         !['resident', 'guest'].includes(u.role)
