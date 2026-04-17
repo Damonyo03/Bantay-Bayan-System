@@ -11,7 +11,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
-        <div className="relative min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 font-sans antialiased selection:bg-taguig-navy/20 selection:text-taguig-navy">
+        <div className="relative min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 font-sans antialiased selection:bg-taguig-gold/30 selection:text-taguig-navy">
             
             {/* Mobile Top Navigation (Sticky) */}
             <div className="md:hidden sticky top-0 left-0 right-0 z-[70] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-4 h-[calc(4rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] flex items-center justify-between shadow-sm transform-gpu transition-all duration-300">
