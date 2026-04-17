@@ -57,7 +57,7 @@ const Login: React.FC = () => {
         email: '',
         password: '',
         confirmPassword: '',
-        role: 'guest' as UserRole
+        role: 'resident' as UserRole
     });
 
     const [showRegPassword, setShowRegPassword] = useState(false);
@@ -289,13 +289,8 @@ const Login: React.FC = () => {
                                     value={regForm.role}
                                     onChange={e => setRegForm({ ...regForm, role: e.target.value as UserRole })}
                                 >
-                                    <option value="guest" className="dark:bg-slate-900">Guest / Temporary Visitor</option>
                                     <option value="resident" className="dark:bg-slate-900">Regular Citizen (Verified Resident)</option>
                                     <option value="bantay_bayan" className="dark:bg-slate-900">Bantay Bayan Officer (Security)</option>
-                                    <option value="barangay_kagawad" className="dark:bg-slate-900">Barangay Kagawad</option>
-                                    <option value="barangay_secretary" className="dark:bg-slate-900">Barangay Secretary (Admin)</option>
-                                    <option value="supervisor" className="dark:bg-slate-900">System Supervisor</option>
-                                    <option value="barangay_captain" className="dark:bg-slate-900">Barangay Captain</option>
                                 </select>
                                 <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-focus-within:text-taguig-blue transition-colors" size={18} />
                             </div>
