@@ -236,15 +236,27 @@ AS $$
 DECLARE
   base_username text;
   final_username text;
-  user_role text;
+  requested_role text;
+  final_role text;
+  existing_profile_id uuid;
 BEGIN
-  -- 1. CLEANUP: Delete any STALE profiles using the same email or id
-  -- (This clears out failures from previous attempts or ghost records)
-  DELETE FROM public.profiles 
-  WHERE email = new.email 
-  OR id = new.id;
+  -- 1. Identify collision by email
+  SELECT id INTO existing_profile_id FROM public.profiles WHERE email = new.email LIMIT 1;
 
-  -- 2. Extract and Validate Role (Clamp unauthorized roles to 'resident' or 'bantay_bayan')
+  -- 2. If a profile exists with a DIFFERENT ID, RE-LINK instead of Delete
+  -- This prevents Foreign Key violations if the email has existing blotter history.
+  IF existing_profile_id IS NOT NULL AND existing_profile_id != new.id THEN
+    -- Transfer all history from the old ID to the new ID
+    UPDATE public.incidents SET officer_id = new.id WHERE officer_id = existing_profile_id;
+    UPDATE public.asset_requests SET logged_by = new.id WHERE logged_by = existing_profile_id;
+    UPDATE public.public_reports SET submitted_by = new.id WHERE submitted_by = existing_profile_id;
+    UPDATE public.audit_logs SET performed_by = new.id WHERE performed_by = existing_profile_id;
+    
+    -- Change the profile primary key to match the new Auth ID
+    UPDATE public.profiles SET id = new.id WHERE id = existing_profile_id;
+  END IF;
+
+  -- 3. Extract and Validate Role (Clamps to 'resident' or 'bantay_bayan')
   requested_role := COALESCE(new.raw_user_meta_data ->> 'role', 'resident');
   IF requested_role NOT IN ('resident', 'bantay_bayan') THEN
     final_role := 'resident';
@@ -252,22 +264,15 @@ BEGIN
     final_role := requested_role;
   END IF;
 
-  -- 3. Extract and Deduplicate Username
+  -- 4. Extract and Deduplicate Username
   base_username := COALESCE(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1));
   final_username := base_username;
-  WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username) LOOP
+  WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username AND id != new.id) LOOP
     final_username := base_username || '_' || substr(md5(random()::text), 1, 4);
   END LOOP;
 
-  -- 4. Perform Bulletproof Insertion
-  INSERT INTO public.profiles (
-    id, 
-    email, 
-    full_name, 
-    role, 
-    status, 
-    username
-  )
+  -- 5. Final Upsert (Create or Update the record)
+  INSERT INTO public.profiles (id, email, full_name, role, status, username)
   VALUES (
     new.id,
     new.email,
@@ -275,7 +280,13 @@ BEGIN
     final_role,
     'pending'::user_status,
     final_username
-  );
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = EXCLUDED.full_name,
+    role = EXCLUDED.role,
+    status = EXCLUDED.status,
+    username = EXCLUDED.username;
   
   RETURN NEW;
 END;
