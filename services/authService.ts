@@ -187,7 +187,7 @@ export const authService = {
                     full_name: fullName,
                     username: username,
                     role: role,
-                    status: 'inactive'
+                    status: 'pending'
                 }
             }
         });

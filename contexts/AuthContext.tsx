@@ -33,6 +33,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const profile = await authService.getCurrentUserProfile();
         // Even on auto-login/refresh, check status
         if (profile && profile.status !== 'active') {
+          // If the profile exists but is not active (pending, inactive, etc), 
+          // clear the session to prevent unauthorized access.
           await authService.logout();
           setUser(null);
         } else {
@@ -81,9 +83,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { user, mfaRequired } = await authService.login(email, password);
 
+      if (user.status === 'pending') {
+        await authService.logout();
+        throw new Error("Your registration is pending manual admin approval. Please wait for an administrator to review your account.");
+      }
+
       if (user.status !== 'active') {
         await authService.logout();
-        throw new Error("Your account is pending approval or inactive. Contact the administrator.");
+        throw new Error("Your account is currently inactive or has been rejected. Contact the administrator.");
       }
 
       // We set the user temporarily so we can display their name during 2FA challenge
