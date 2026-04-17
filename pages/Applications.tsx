@@ -32,7 +32,8 @@ const Applications: React.FC = () => {
         setLoading(true);
         try {
             const data = await userService.getUsers();
-            setPendingUsers(data.filter(u => u.status === 'inactive'));
+            // Show both 'pending' (new system) and 'inactive' (old system) applications
+            setPendingUsers(data.filter(u => u.status === 'pending' || u.status === 'inactive'));
         } catch (error) {
             showToast("Failed to fetch applications", "error");
         } finally {

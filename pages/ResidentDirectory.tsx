@@ -27,7 +27,12 @@ const ResidentDirectory: React.FC = () => {
             const data = await userService.getUsers();
             // Show only active residents in the directory. 
             // New applications (inactive) are now managed in the Staff Directory's "Applications" tab.
-            const citizenData = data.filter(u => ['guest', 'resident'].includes(u.role) && u.status !== 'inactive');
+            // Show only fully active residents in the directory. 
+            // New applications (pending/inactive) are managed in the Registration Desk.
+            const citizenData = data.filter(u => 
+                ['guest', 'resident'].includes(u.role) && 
+                u.status === 'active'
+            );
             setResidents(citizenData);
         } catch (error) {
             showToast("Failed to fetch resident list.", "error");
@@ -79,12 +84,16 @@ const ResidentDirectory: React.FC = () => {
     const StatusBadge = ({ status }: { status: string }) => {
         switch (status) {
             case 'active':
-                return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-emerald-500 text-white">Active</span>;
+                return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-emerald-500 text-white shadow-sm shadow-emerald-500/20">Active</span>;
+            case 'pending':
+                return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-taguig-blue text-white shadow-sm shadow-taguig-blue/20">Pending</span>;
             case 'inactive':
                 return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-amber-500 text-white">Inactive</span>;
             case 'rejected':
             case 'deactivated':
                 return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-red-500 text-white">{status}</span>;
+            default:
+                return null;
             default:
                 return null;
         }

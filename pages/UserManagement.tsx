@@ -111,7 +111,7 @@ const UserManagement: React.FC = () => {
                 fetchUsers();
                 if (payload.eventType === 'INSERT') {
                     const newProfile = payload.new as UserProfile;
-                    if (newProfile.status === 'inactive') {
+                    if (newProfile.status === 'inactive' || newProfile.status === 'pending') {
                         showToast(`New registration: ${newProfile.full_name}`, "info");
                     }
                 }
@@ -661,7 +661,7 @@ const UserManagement: React.FC = () => {
     );
 
     const pendingUsers = users.filter((u: UserProfile) => 
-        u.status === 'inactive' && 
+        (u.status === 'inactive' || u.status === 'pending') && 
         !['resident', 'guest'].includes(u.role)
     );
 

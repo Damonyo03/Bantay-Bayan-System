@@ -18,7 +18,7 @@ export const userService = {
         return data as UserProfile[];
     },
 
-    updateUserStatus: async (id: string, status: 'active' | 'inactive' | 'rejected' | 'deactivated') => {
+    updateUserStatus: async (id: string, status: 'active' | 'inactive' | 'pending' | 'rejected' | 'deactivated') => {
         const { error } = await supabase.from('profiles').update({ status }).eq('id', id);
         if (error) throw error;
     },
@@ -43,7 +43,7 @@ export const userService = {
             email,
             password,
             options: {
-                data: { full_name: fullName, username: username, role: role, status: 'inactive' }
+                data: { full_name: fullName, username: username, role: role, status: 'pending' }
             }
         });
 
@@ -56,7 +56,7 @@ export const userService = {
             email,
             password,
             options: {
-                data: { full_name: fullName, username: username, role: role, status: 'inactive' }
+                data: { full_name: fullName, username: username, role: role, status: 'pending' }
             }
         });
         if (error) throw error;
