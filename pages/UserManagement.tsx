@@ -28,7 +28,7 @@ const MONTHS = [
 const UserManagement: React.FC = () => {
     const { t } = useLanguage();
     const { showToast } = useToast();
-    const { user, isSupremeAdmin, canEditRole } = useAuth(); // Current logged-in user
+    const { user, isSupremeAdmin, canEditRole, canEditProfile } = useAuth(); // Current logged-in user
 
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
@@ -694,16 +694,16 @@ const UserManagement: React.FC = () => {
             { id: 'guest', label: 'Guest' }
         ];
 
-        if (isSupremeAdmin()) {
+        if (user?.role === 'developer') {
             return allRoles;
-        } else if (user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad') {
-            // High-Level Admins cannot assign 'Barangay Captain'
-            return allRoles.filter(role => role.id !== 'barangay_captain');
+        } else if (user?.role === 'barangay_captain') {
+            // "the captain cannot promote anyone above barangay captain and developer"
+            return allRoles.filter(role => role.id !== 'developer' && role.id !== 'barangay_captain');
         } else {
-            // Supervisors and others (though UI should hide it) can see minimal roles
-            return allRoles.filter(role => ['supervisor', 'bantay_bayan', 'resident', 'guest'].includes(role.id));
+            // "the default role of a new personnel added by the secretary should be just bantay bayan"
+            return allRoles.filter(role => role.id === 'bantay_bayan');
         }
-    };
+    }
 
     const formatRoleName = (roleStr: string) => {
         return roleStr.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -919,13 +919,15 @@ const UserManagement: React.FC = () => {
                                                             </td>
                                                             <td className="p-5 text-right">
                                                                 <div className="flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                                                                    <button
-                                                                        onClick={() => handleEditUser(rowUser)}
-                                                                        className="p-2 text-slate-500 hover:text-blue-600 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors shadow-sm"
-                                                                        title="Edit Profile"
-                                                                    >
-                                                                        <Edit size={16} />
-                                                                    </button>
+                                                                    {canEditProfile(rowUser.role) && (
+                                                                        <button
+                                                                            onClick={() => handleEditUser(rowUser)}
+                                                                            className="p-2 text-slate-500 hover:text-blue-600 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors shadow-sm"
+                                                                            title="Edit Profile"
+                                                                        >
+                                                                            <Edit size={16} />
+                                                                        </button>
+                                                                    )}
 
                                                                     <button
                                                                         onClick={() => handleToggleStatus(rowUser.id, rowUser.status)}
@@ -1522,12 +1524,16 @@ const UserManagement: React.FC = () => {
                                         <div className="relative">
                                             <select
                                                 id="newRole"
-                                                className="appearance-none w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 pr-12 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold font-display cursor-pointer"
+                                                className={`appearance-none w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 pr-12 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold font-display ${getAvailableRoles().length <= 1 ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
                                                 value={newUser.role}
                                                 onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                                                disabled={getAvailableRoles().length <= 1}
                                             >
-                                                <option value="bantay_bayan" className="bg-white dark:bg-slate-800">Bantay Bayan Officer (Security)</option>
-                                                <option value="supervisor" className="bg-white dark:bg-slate-800">Barangay Official (Admin)</option>
+                                                {getAvailableRoles().map(role => (
+                                                    <option key={role.id} value={role.id} className="bg-white dark:bg-slate-800">
+                                                        {role.label}
+                                                    </option>
+                                                ))}
                                             </select>
                                             <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover/role:text-taguig-blue transition-colors">
                                                 <ChevronDown size={18} />

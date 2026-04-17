@@ -16,6 +16,7 @@ interface AuthContextType {
   isSupremeAdmin: () => boolean;
   isHighLevelAdmin: () => boolean;
   canEditRole: (targetUserRole?: string) => boolean;
+  canEditProfile: (targetUserRole?: string) => boolean;
   canDeleteData: () => boolean;
 }
 
@@ -128,15 +129,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const canEditRole = (targetUserRole?: string) => {
     if (!user) return false;
-    if (user.role === 'barangay_captain' || user.role === 'developer') return true; // Supreme admin can edit anyone
-    
-    // Secretary and Kagawad can edit roles, but NOT the captain or developer
-    if (user.role === 'barangay_secretary' || user.role === 'barangay_kagawad') {
-       if (targetUserRole === 'barangay_captain' || targetUserRole === 'developer') return false;
-       return true;
+    // Only Developer and Captain can edit roles
+    if (user.role === 'developer') return true;
+    if (user.role === 'barangay_captain') {
+       // Captain can edit everyone except Developer
+       return targetUserRole !== 'developer';
     }
-    
-    return false; // Supervisors and below cannot edit roles
+    return false; // Other roles cannot edit roles
+  };
+
+  const canEditProfile = (targetUserRole?: string) => {
+    if (!user) return false;
+    if (user.role === 'developer') return true;
+    if (user.role === 'barangay_captain') {
+       // Captain can edit everyone except Developer
+       return targetUserRole !== 'developer';
+    }
+    // Secretary and Kagawad can edit common profiles but NOT supreme ones
+    if (user.role === 'barangay_secretary' || user.role === 'barangay_kagawad') {
+       return targetUserRole !== 'developer' && targetUserRole !== 'barangay_captain';
+    }
+    return false;
   };
 
   const canDeleteData = () => {
@@ -146,7 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ 
       user, login, verifyLoginMFA, logout, isLoading, refreshUser,
-      isSupremeAdmin, isHighLevelAdmin, canEditRole, canDeleteData
+      isSupremeAdmin, isHighLevelAdmin, canEditRole, canEditProfile, canDeleteData
     }}>
       {children}
     </AuthContext.Provider>
