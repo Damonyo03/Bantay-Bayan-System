@@ -94,8 +94,6 @@ const ResidentDirectory: React.FC = () => {
                 return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-red-500 text-white">{status}</span>;
             default:
                 return null;
-            default:
-                return null;
         }
     };
 
