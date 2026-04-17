@@ -238,39 +238,44 @@ DECLARE
   final_username text;
   user_role text;
 BEGIN
-  user_role := COALESCE(new.raw_user_meta_data ->> 'role', 'guest');
+  -- 1. CLEANUP: Delete any STALE profiles using the same email or id
+  -- (This clears out failures from previous attempts or ghost records)
+  DELETE FROM public.profiles 
+  WHERE email = new.email 
+  OR id = new.id;
+
+  -- 2. Extract and Validate Role (Clamp unauthorized roles to 'resident' or 'bantay_bayan')
+  requested_role := COALESCE(new.raw_user_meta_data ->> 'role', 'resident');
+  IF requested_role NOT IN ('resident', 'bantay_bayan') THEN
+    final_role := 'resident';
+  ELSE
+    final_role := requested_role;
+  END IF;
+
+  -- 3. Extract and Deduplicate Username
   base_username := COALESCE(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1));
   final_username := base_username;
-
-  -- Ensure username is unique (Internal fallback)
   WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username) LOOP
     final_username := base_username || '_' || substr(md5(random()::text), 1, 4);
   END LOOP;
 
+  -- 4. Perform Bulletproof Insertion
   INSERT INTO public.profiles (
     id, 
     email, 
     full_name, 
     role, 
     status, 
-    username, 
-    badge_number
+    username
   )
   VALUES (
     new.id,
     new.email,
     COALESCE(new.raw_user_meta_data ->> 'full_name', 'Unnamed User'),
-    user_role,
+    final_role,
     'pending'::user_status,
-    final_username,
-    -- ONLY bantay_bayan get badge numbers during insertion if provided
-    CASE WHEN user_role = 'bantay_bayan' THEN NULLIF(new.raw_user_meta_data ->> 'badge_number', '') ELSE NULL END
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
-    full_name = EXCLUDED.full_name,
-    username = EXCLUDED.username,
-    role = EXCLUDED.role;
+    final_username
+  );
   
   RETURN NEW;
 END;
