@@ -28,7 +28,7 @@ const MONTHS = [
 const UserManagement: React.FC = () => {
     const { t } = useLanguage();
     const { showToast } = useToast();
-    const { user, isSupremeAdmin, canEditRole, canEditProfile } = useAuth(); // Current logged-in user
+    const { user, isSupremeAdmin, canEditRole, canEditProfile, isHighLevelAdmin } = useAuth(); // Current logged-in user
 
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
@@ -259,8 +259,8 @@ const UserManagement: React.FC = () => {
     };
 
     const handleCellClick = (userId: string, dayOffset: number) => {
-        // ONLY SUPERVISORS OR DEVELOPERS CAN EDIT
-        if (user?.role !== 'supervisor' && user?.role !== 'developer') return;
+        // ONLY AUTHORIZED ADMINS CAN EDIT (Kagawad, Secretary, Captain, Dev)
+        if (!isHighLevelAdmin()) return;
 
         const { start } = getWeekRange(currentDate);
         const cellDate = new Date(start);
@@ -310,7 +310,7 @@ const UserManagement: React.FC = () => {
     };
 
     const handleDuplicatePreviousWeek = async () => {
-        if (user?.role !== 'supervisor' && user?.role !== 'developer') return;
+        if (!isHighLevelAdmin()) return;
         if (!confirm("Copy all assignments from the previous week into this week? Existing assignments in this week will be overwritten (excluding locked dates).")) return;
 
         setRosterLoading(true);
@@ -380,8 +380,8 @@ const UserManagement: React.FC = () => {
 
     // --- BULK SCHEDULE LOGIC (ADMIN ONLY) ---
     const handleOpenBulk = (u: UserProfile) => {
-        // STRICT CHECK: Only supervisor/developer can open this
-        if (user?.role !== 'supervisor' && user?.role !== 'developer') {
+        // STRICT CHECK: Only authorized admins can open this
+        if (!isHighLevelAdmin()) {
             showToast("Unauthorized: Access Restricted to Admin.", "error");
             return;
         }
@@ -402,7 +402,7 @@ const UserManagement: React.FC = () => {
     const handleBulkApply = async () => {
         if (!bulkUser) return;
         // Double check permission before saving
-        if (user?.role !== 'supervisor' && user?.role !== 'developer') return;
+        if (!isHighLevelAdmin()) return;
 
         setRosterLoading(true);
         try {
@@ -1107,8 +1107,8 @@ const UserManagement: React.FC = () => {
                                                             <p className="text-[10px] text-slate-400 font-mono tracking-wide truncate">{rowUser.badge_number || 'N/A'}</p>
                                                         </div>
 
-                                                        {/* Supervisor Bulk Action */}
-                                                        {(user?.role === 'supervisor' || user?.role === 'developer') && (
+                                                        {/* Supervisor Bulk Action (Now restricted to High Level Admins) */}
+                                                        {isHighLevelAdmin() && (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handleOpenBulk(rowUser); }}
                                                                 className="absolute right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-white dark:bg-slate-600 text-slate-400 hover:text-blue-600 rounded-lg shadow-sm border border-slate-200 dark:border-slate-500 transition-all transform hover:scale-110"
@@ -1197,11 +1197,11 @@ const UserManagement: React.FC = () => {
                                                             key={i}
                                                             onClick={() => handleCellClick(rowUser.id, i)}
                                                             className={`p-2 border-r border-slate-50 dark:border-slate-800 transition-all relative
-                                                      ${(user?.role === 'supervisor' || user?.role === 'developer') && !isLocked ? 'cursor-pointer' : 'cursor-not-allowed'}
+                                                      ${isHighLevelAdmin() && !isLocked ? 'cursor-pointer' : 'cursor-not-allowed'}
                                                       ${isToday ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''}
                                                   `}
                                                         >
-                                                            <div className={`transition-transform duration-200 ${(user?.role === 'supervisor' || user?.role === 'developer') && !isLocked ? 'active:scale-95' : ''}`}>
+                                                            <div className={`transition-transform duration-200 ${isHighLevelAdmin() && !isLocked ? 'active:scale-95' : ''}`}>
                                                                 {isLocked && (
                                                                     <div className="absolute top-1 right-1 z-10 text-slate-300 dark:text-slate-600">
                                                                         <Lock size={10} />
