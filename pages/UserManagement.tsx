@@ -34,7 +34,7 @@ const UserManagement: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     // Tab State
-    const [activeTab, setActiveTab] = useState<'personnel' | 'roster' | 'archived'>('roster');
+    const [activeTab, setActiveTab] = useState<'personnel' | 'roster' | 'archived' | 'pending'>('roster');
     const [searchQuery, setSearchQuery] = useState('');
 
     // Roster State - Initialize to start of today (midnight)
@@ -655,12 +655,16 @@ const UserManagement: React.FC = () => {
         !['resident', 'guest'].includes(u.role)
     );
 
-    const archivedUsers = users.filter((u: UserProfile) => 
-        (u.status === 'rejected' || u.status === 'deactivated') &&
+    const pendingUsers = users.filter((u: UserProfile) => 
+        u.status === 'inactive' && 
         !['resident', 'guest'].includes(u.role)
     );
 
-    const filteredUsers = (activeTab === 'archived' ? archivedUsers : activeStaff)
+    const filteredUsers = (
+        activeTab === 'archived' ? archivedUsers : 
+        activeTab === 'pending' ? pendingUsers : 
+        activeStaff
+    )
         .filter((u: UserProfile) => u.role !== 'developer')
         .filter((u: UserProfile) => {
         const q = searchQuery.toLowerCase();
@@ -715,6 +719,17 @@ const UserManagement: React.FC = () => {
                             <Users size={14} /> Personnel Directory
                         </button>
                         <button
+                            onClick={() => setActiveTab('pending')}
+                            className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 ${activeTab === 'pending' ? 'border-orange-500 text-orange-500 bg-orange-500/5' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                        >
+                            <Clock size={14} /> Pending Review
+                            {pendingUsers.length > 0 && (
+                                <span className="ml-1 px-1.5 py-0.5 bg-orange-500 text-white text-[9px] rounded-full animate-pulse">
+                                    {pendingUsers.length}
+                                </span>
+                            )}
+                        </button>
+                        <button
                             onClick={() => setActiveTab('archived')}
                             className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 ${activeTab === 'archived' ? 'border-amber-500 text-amber-500 bg-amber-500/5' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                         >
@@ -735,7 +750,7 @@ const UserManagement: React.FC = () => {
             </PageHeader>
 
             {/* DIRECTORY OR ARCHIVED CONTENT */}
-            {(activeTab === 'personnel' || activeTab === 'archived') ? (
+            {(activeTab === 'personnel' || activeTab === 'archived' || activeTab === 'pending') ? (
                 /* --- PERSONNEL DIRECTORY --- */
                 <div className="space-y-6">
                     {activeTab === 'personnel' && (
@@ -781,8 +796,11 @@ const UserManagement: React.FC = () => {
                                         <Users size={32} className="text-gray-400" />
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200">No Personnel Found</h3>
-                                    <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">
-                                        {activeTab === 'personnel' ? "No personnel found." : "Try adjusting your search criteria or add a new account."}
+                                     <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">
+                                        {activeTab === 'personnel' ? "No active personnel found." : 
+                                         activeTab === 'pending' ? "No pending registrations at the moment." :
+                                         activeTab === 'archived' ? "No archived or rejected accounts found." :
+                                         "Try adjusting your search criteria."}
                                     </p>
                                 </div>
                             ) : (

@@ -144,7 +144,7 @@ CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING
 
 DROP POLICY IF EXISTS "Supervisors can update any profile" ON public.profiles;
 CREATE POLICY "Supervisors can update any profile" ON public.profiles FOR UPDATE 
-USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'supervisor'));
+USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor')));
 
 -- 2. INCIDENTS POLICIES
 DROP POLICY IF EXISTS "Personnel can view all records" ON public.incidents;
@@ -155,11 +155,11 @@ CREATE POLICY "Personnel can create incidents" ON public.incidents FOR INSERT TO
 
 DROP POLICY IF EXISTS "Only Supervisors can update incidents" ON public.incidents;
 CREATE POLICY "Only Supervisors can update incidents" ON public.incidents FOR UPDATE 
-USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'supervisor'));
+USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor')));
 
 DROP POLICY IF EXISTS "Only Supervisors can delete incidents" ON public.incidents;
 CREATE POLICY "Only Supervisors can delete incidents" ON public.incidents FOR DELETE 
-USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'supervisor'));
+USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor')));
 
 -- 3. INCIDENT PARTIES POLICIES
 DROP POLICY IF EXISTS "Personnel can view all parties" ON public.incident_parties;
@@ -177,7 +177,7 @@ CREATE POLICY "Personnel can create assets" ON public.asset_requests FOR INSERT 
 
 DROP POLICY IF EXISTS "Only Supervisors can manage assets" ON public.asset_requests;
 CREATE POLICY "Only Supervisors can manage assets" ON public.asset_requests FOR UPDATE 
-USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'supervisor'));
+USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor')));
 
 -- 5. CCTV REQUESTS POLICIES
 DROP POLICY IF EXISTS "Personnel can view all CCTV" ON public.cctv_requests;
@@ -202,7 +202,7 @@ CREATE POLICY "Personnel can update public reports" ON public.public_reports FOR
 -- 7. AUDIT LOGS POLICIES
 DROP POLICY IF EXISTS "Supervisors can view audit logs" ON public.audit_logs;
 CREATE POLICY "Supervisors can view audit logs" ON public.audit_logs FOR SELECT 
-USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'supervisor'));
+USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor')));
 
 -- 8. STORAGE BUCKET: AVATARS
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
@@ -348,8 +348,8 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'supervisor') THEN
-    RAISE EXCEPTION 'Unauthorized: Only supervisors can delete accounts.';
+  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor')) THEN
+    RAISE EXCEPTION 'Unauthorized: Administrative privileges required to delete accounts.';
   END IF;
   DELETE FROM auth.users WHERE id = user_uuid;
 END;
