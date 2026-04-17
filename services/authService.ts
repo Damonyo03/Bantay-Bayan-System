@@ -101,12 +101,29 @@ export const authService = {
 
     // MFA / 2FA
     enrollMFA: async () => {
+        if (!supabase.auth.mfa) {
+            throw new Error("MFA is not supported by this version of Supabase client.");
+        }
+
         const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
-        if (error) throw error;
+
+        if (error) {
+            // Check for common initialization errors
+            if (error.message.includes('MFA provider not enabled')) {
+                throw new Error("MFA Enrollment Failed: TOTP is not enabled in your Supabase project settings.");
+            }
+            throw error;
+        }
+
+        if (!data || !data.totp) {
+            throw new Error("MFA Enrollment Failed: No enrollment data returned from server.");
+        }
+
         return data;
     },
 
     verifyMFA: async (factorId: string, code: string) => {
+        if (!supabase.auth.mfa) throw new Error("MFA Service Unavailable");
         const { data, error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code });
         if (error) throw error;
         return data;
@@ -124,9 +141,12 @@ export const authService = {
     listMFAFactors: async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return [];
+
+        if (!supabase.auth.mfa) return [];
+
         const { data, error } = await supabase.auth.mfa.listFactors();
         if (error) throw error;
-        return data.totp;
+        return data.totp || [];
     },
 
     unenrollMFA: async (factorId: string) => {

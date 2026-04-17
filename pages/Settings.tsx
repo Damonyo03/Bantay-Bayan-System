@@ -88,8 +88,9 @@ const Settings: React.FC = () => {
         try {
             const factors = await authService.listMFAFactors();
             setMfaFactors(factors || []);
-        } catch (e) {
-            console.error("Failed to load MFA factors", e);
+        } catch (e: any) {
+            console.error("Failed to load MFA factors:", e);
+            // Don't toast on initial load to avoid annoyance, but log the specific error
         }
     };
 
@@ -258,24 +259,35 @@ const Settings: React.FC = () => {
         setMfaEnrolling(true);
         try {
             const data = await authService.enrollMFA();
-            setFactorId(data.id);
-            setQrCode(data.totp.qr_code);
+            if (data && data.totp && data.totp.qr_code) {
+                setFactorId(data.id);
+                setQrCode(data.totp.qr_code);
+            } else {
+                throw new Error("The enrollment response was incomplete (missing QR code).");
+            }
         } catch (error: any) {
-            showToast("Failed to start enrollment: " + error.message, 'error');
+            console.error("MFA Enrollment Error:", error);
+            showToast(error.message || "Failed to start enrollment. Please check your connection.", 'error');
             setMfaEnrolling(false);
         }
     };
 
     const verifyEnrollment = async () => {
+        if (!verifyCode || verifyCode.length < 6) {
+            showToast("Please enter the 6-digit code from your app.", "error");
+            return;
+        }
+
         try {
             await authService.verifyMFA(factorId, verifyCode);
-            showToast("2FA Enabled Successfully", "success");
+            showToast("2FA Enabled Successfully! Your account is now more secure.", "success");
             setMfaEnrolling(false);
             setQrCode('');
             setVerifyCode('');
             loadMFAFactors();
         } catch (error: any) {
-            showToast("Invalid code: " + error.message, "error");
+            console.error("MFA Verification Error:", error);
+            showToast("Invalid code: " + (error.message || "Please try again."), "error");
         }
     };
 
