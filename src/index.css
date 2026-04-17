@@ -6,6 +6,7 @@
   html {
     @apply text-[16px] md:text-[18px];
     letter-spacing: -0.011em;
+    overflow-x: hidden;
   }
   
   body {
@@ -13,6 +14,7 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
