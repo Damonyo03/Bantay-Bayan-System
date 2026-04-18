@@ -249,61 +249,54 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER SET search_path = public, auth, pg_catalog
+SECURITY DEFINER
 AS $$
 DECLARE
-  base_username text;
-  final_username text;
-  requested_role text;
-  final_role text;
-  existing_profile_id uuid;
+  v_base_username text;
+  v_final_username text;
+  v_requested_role text;
+  v_final_role text;
+  v_full_name text;
 BEGIN
-  -- 1. CHECK FOR EMAIL COLLISION (Resident Linking)
-  -- If a resident was already added to the blotter, we link them here.
-  SELECT id INTO existing_profile_id FROM public.profiles WHERE email = new.email LIMIT 1;
+  -- 2. PREP METADATA
+  v_requested_role := COALESCE(new.raw_user_meta_data ->> 'role', 'resident');
+  v_final_role := CASE WHEN v_requested_role IN ('resident', 'bantay_bayan') THEN v_requested_role ELSE 'resident' END;
+  v_full_name := COALESCE(new.raw_user_meta_data ->> 'full_name', 'Unnamed User');
 
-  IF existing_profile_id IS NOT NULL AND existing_profile_id != new.id THEN
-    -- Move the record to the new Auth ID
-    -- ON UPDATE CASCADE will handle foreign keys for incidents/asset requests
-    BEGIN
-      UPDATE public.profiles SET id = new.id WHERE id = existing_profile_id;
-    EXCEPTION WHEN OTHERS THEN
-      -- If re-linking fails for some reason, we delete the conflicting profile 
-      -- to allow the new registration to proceed (fresh start is better than crash)
-      DELETE FROM public.profiles WHERE email = new.email;
-    END;
-  END IF;
-
-  -- 2. PREPARE METADATA
-  requested_role := COALESCE(new.raw_user_meta_data ->> 'role', 'resident');
-  final_role := CASE WHEN requested_role IN ('resident', 'bantay_bayan') THEN requested_role ELSE 'resident' END;
-
-  base_username := COALESCE(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1));
-  final_username := base_username;
+  v_base_username := COALESCE(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1));
+  v_final_username := v_base_username;
   
   -- Deduplication Loop for Username
-  WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username AND id != new.id) LOOP
-    final_username := base_username || '_' || substr(md5(random()::text), 1, 4);
+  WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = v_final_username AND id != new.id) LOOP
+    v_final_username := v_base_username || '_' || substr(md5(random()::text), 1, 4);
   END LOOP;
 
-  -- 3. FINAL ATOMIC UPSERT
-  INSERT INTO public.profiles (id, email, full_name, role, status, username, last_active_at)
-  VALUES (
-    new.id,
-    new.email,
-    COALESCE(new.raw_user_meta_data ->> 'full_name', 'Unnamed User'),
-    final_role,
-    'pending'::user_status,
-    final_username,
-    now()
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
-    full_name = EXCLUDED.full_name,
-    role = EXCLUDED.role,
-    status = EXCLUDED.status,
-    username = EXCLUDED.username,
-    last_active_at = now();
+  -- 3. ATOMIC LINK-OR-INSERT
+  -- First try to update an existing record (Linking Resident history by Email)
+  UPDATE public.profiles 
+  SET id = new.id, 
+      email = new.email,
+      full_name = v_full_name,
+      role = v_final_role,
+      status = 'pending'::public.user_status,
+      username = v_final_username,
+      last_active_at = now()
+  WHERE email = new.email;
+
+  -- If no profile existed by email, insert a fresh one
+  IF NOT FOUND THEN
+    INSERT INTO public.profiles (id, email, full_name, role, status, username, last_active_at)
+    VALUES (
+      new.id,
+      new.email,
+      v_full_name,
+      v_final_role,
+      'pending'::public.user_status,
+      v_final_username,
+      now()
+    )
+    ON CONFLICT (id) DO NOTHING; -- Extra safety
+  END IF;
 
   RETURN NEW;
 END;
