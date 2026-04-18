@@ -223,9 +223,18 @@ USING (bucket_id = 'avatars' AND auth.role() = 'authenticated' AND (storage.fold
 WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated' AND (storage.foldername(name))[1] = auth.uid()::text);
 
 
--- ==============================================================================
--- DATABASE FUNCTIONS (SECURITY DEFINER)
--- ==============================================================================
+-- 0. TRIGGER FUNCTION: Audit Logging
+CREATE OR REPLACE FUNCTION public.audit_trigger_func()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.audit_logs (table_name, record_id, operation, old_data, new_data, performed_by)
+    VALUES (TG_TABLE_NAME, COALESCE(NEW.id, OLD.id), TG_OP, 
+            CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN to_jsonb(OLD) ELSE NULL END,
+            CASE WHEN TG_OP IN ('UPDATE', 'INSERT') THEN to_jsonb(NEW) ELSE NULL END,
+            auth.uid());
+    RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 1. AUTH: Handle New User Signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -387,7 +396,13 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public, auth
 AS $$
 BEGIN
-  -- Sync only if status or role changes
+  -- SAFETY: Never sync during the initial registration phase to avoid circular deadlocks
+  -- handle_new_user already sets the initial metadata.
+  IF (NEW.created_at >= now() - interval '5 seconds') THEN
+    RETURN NEW;
+  END IF;
+
+  -- Sync only if status or role actually changes
   IF (TG_OP = 'UPDATE') AND (OLD.status IS DISTINCT FROM NEW.status OR OLD.role IS DISTINCT FROM NEW.role) THEN
     UPDATE auth.users
     SET raw_user_meta_data = raw_user_meta_data || 
