@@ -46,6 +46,18 @@ const Applications: React.FC = () => {
 
     useEffect(() => {
         fetchPendingUsers();
+
+        // Subscribe to changes in the profiles table for real-time updates
+        const channel = userService.subscribeToNewRegistrations((newProfile) => {
+            if (newProfile.role === 'resident' && (newProfile.status === 'pending' || newProfile.status === 'inactive')) {
+                showToast(`New resident application: ${newProfile.full_name}`, "info");
+                fetchPendingUsers();
+            }
+        });
+
+        return () => {
+            userService.unsubscribe(channel);
+        };
     }, []);
 
     const handleApprove = async (id: string, name: string) => {

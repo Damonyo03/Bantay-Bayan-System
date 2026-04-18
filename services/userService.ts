@@ -103,5 +103,19 @@ export const userService = {
         if (schedules.length === 0) return;
         const { error } = await supabase.from('personnel_schedules').upsert(schedules, { onConflict: 'user_id,date' });
         if (error) throw new Error("Bulk save failed.");
+    },
+
+    // Realtime Helpers
+    subscribeToNewRegistrations: (onNewRegistration: (profile: UserProfile) => void) => {
+        return supabase
+            .channel('public_profiles_changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
+                onNewRegistration(payload.new as UserProfile);
+            })
+            .subscribe();
+    },
+
+    unsubscribe: (channel: any) => {
+        supabase.removeChannel(channel);
     }
 };
