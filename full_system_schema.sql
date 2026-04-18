@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.incidents (
   narrative text NOT NULL,
   location text NOT NULL,
   status text DEFAULT 'Pending' CHECK (status IN ('Pending', 'Dispatched', 'Resolved', 'Closed')),
-  officer_id uuid REFERENCES public.profiles(id),
+  officer_id uuid REFERENCES public.profiles(id) ON UPDATE CASCADE,
   is_restricted_entry boolean DEFAULT false,
   updated_at timestamptz DEFAULT now(),
   created_at timestamptz DEFAULT now()
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS public.asset_requests (
   pickup_date date,
   return_date date,
   status text DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Released', 'Returned', 'Rejected')),
-  logged_by uuid REFERENCES public.profiles(id),
+  logged_by uuid REFERENCES public.profiles(id) ON UPDATE CASCADE,
   updated_at timestamptz DEFAULT now(),
   created_at timestamptz DEFAULT now()
 );
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS public.public_reports (
   narrative text NOT NULL,
   location text NOT NULL,
   status text DEFAULT 'Pending Review' CHECK (status IN ('Pending Review', 'Acknowledged', 'Converted to Incident', 'Rejected')),
-  submitted_by uuid REFERENCES public.profiles(id),
+  submitted_by uuid REFERENCES public.profiles(id) ON UPDATE CASCADE,
   converted_incident_id uuid REFERENCES public.incidents(id),
   updated_at timestamptz DEFAULT now(),
   created_at timestamptz DEFAULT now()
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
   operation text NOT NULL,
   old_data jsonb,
   new_data jsonb,
-  performed_by uuid REFERENCES public.profiles(id),
+  performed_by uuid REFERENCES public.profiles(id) ON UPDATE CASCADE,
   created_at timestamptz DEFAULT now()
 );
 
@@ -253,13 +253,11 @@ BEGIN
   SELECT id INTO existing_profile_id FROM public.profiles WHERE email = new.email LIMIT 1;
 
   -- 2. If a profile exists with a DIFFERENT ID, RE-LINK instead of Delete
-  -- This prevents Foreign Key violations if the email has existing blotter history.
+  -- The ON UPDATE CASCADE in our table definitions ensures all history 
+  -- in incidents, logs, and audit trails moves automatically to the new ID.
   IF existing_profile_id IS NOT NULL AND existing_profile_id != new.id THEN
-    -- Transfer all history from the old ID to the new ID
-    UPDATE public.incidents SET officer_id = new.id WHERE officer_id = existing_profile_id;
-    UPDATE public.asset_requests SET logged_by = new.id WHERE logged_by = existing_profile_id;
-    UPDATE public.public_reports SET submitted_by = new.id WHERE submitted_by = existing_profile_id;
-    UPDATE public.audit_logs SET performed_by = new.id WHERE performed_by = existing_profile_id;
+    -- Safety: Delete target ID if it somehow exists (e.g. abandoned registration)
+    DELETE FROM public.profiles WHERE id = new.id;
     
     -- Change the profile primary key to match the new Auth ID
     UPDATE public.profiles SET id = new.id WHERE id = existing_profile_id;
@@ -417,7 +415,7 @@ $$;
 -- Creates a record in the notifications table that can be picked up by a webhook
 CREATE TABLE IF NOT EXISTS public.approval_notifications (
   id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE ON UPDATE CASCADE,
   email text NOT NULL,
   full_name text NOT NULL,
   status text DEFAULT 'pending', -- 'pending', 'sent', 'failed'
