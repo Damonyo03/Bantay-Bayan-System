@@ -15,6 +15,29 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
+-- Define the custom role enum used by the system
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident', 'guest');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- Ensure all required values exist in the enums if they were previously created
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'pending';
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'active';
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'inactive';
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'rejected';
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'deactivated';
+
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'developer';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'barangay_captain';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'barangay_secretary';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'barangay_kagawad';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'supervisor';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'bantay_bayan';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'resident';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'guest';
+
 -- 2. USER PROFILES TABLE
 -- Stores personnel data and roles
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -22,7 +45,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email text UNIQUE NOT NULL,
   username text UNIQUE,
   full_name text NOT NULL,
-  role text DEFAULT 'guest' CHECK (role IN ('developer', 'barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident', 'guest')),
+  role user_role DEFAULT 'guest',
    status user_status DEFAULT 'pending',
   badge_number text UNIQUE,
   avatar_url text,

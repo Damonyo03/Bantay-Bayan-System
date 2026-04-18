@@ -45,12 +45,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
   const isStaff = isBantayBayan || isSupervisor || isHighLevelAdmin();
 
   const navItems = [
-    { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: !isGuest && !isResident },
+    { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: isStaff },
     { icon: MessageSquare, label: 'Submit Report', path: '/public-request', visible: true },
     { icon: FileText, label: 'Reports Queue', path: '/public-reports', visible: isStaff },
-    { icon: FileText, label: t.blotter, path: '/report', visible: !isGuest },
-    { icon: Video, label: 'CCTV Request', path: '/cctv-request', visible: !isGuest },
-    { icon: Package, label: t.resources, path: '/resources', visible: !isGuest },
+    { icon: FileText, label: t.blotter, path: '/report', visible: isStaff },
+    { icon: Video, label: 'CCTV Request', path: '/cctv-request', visible: isStaff },
+    { icon: Package, label: t.resources, path: '/resources', visible: isStaff },
     { icon: Archive, label: t.archives, path: '/archives', visible: isStaff },
     { icon: AlertOctagon, label: t.restrictedList, path: '/restricted', visible: true },
     {

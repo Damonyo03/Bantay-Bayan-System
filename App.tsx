@@ -68,7 +68,13 @@ const AppContent: React.FC = () => {
         <Routes>
             {/* Public Routes wrapped in PublicLayout */}
             <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
-            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <PublicLayout><Login /></PublicLayout>} />
+            <Route path="/login" element={
+                user ? (
+                    user.role === 'resident' ? <Navigate to="/public-request" replace /> : <Navigate to="/dashboard" replace />
+                ) : (
+                    <PublicLayout><Login /></PublicLayout>
+                )
+            } />
             <Route path="/update-password" element={<PublicLayout><UpdatePassword /></PublicLayout>} />
             
             {/* Protected Routes encapsulated in DashboardLayout */}
@@ -76,16 +82,20 @@ const AppContent: React.FC = () => {
                 <ProtectedRoute>
                     <DashboardLayout>
                         <Routes>
-                            <Route path="/dashboard" element={<CommandCenter />} />
+                             <Route path="/dashboard" element={
+                                <ProtectedRoute check={u => u.role !== 'resident' && u.role !== 'guest'}>
+                                    <CommandCenter />
+                                </ProtectedRoute>
+                            } />
                             <Route path="/public-request" element={<PublicServiceRequest />} />
                             <Route path="/public-reports" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><PublicReportsQueue /></ProtectedRoute>} />
-                            <Route path="/report" element={<ProtectedRoute check={u => u.role !== 'guest'}><IncidentForm /></ProtectedRoute>} />
-                            <Route path="/cctv-request" element={<ProtectedRoute check={u => u.role !== 'guest'}><CCTVRequestForm /></ProtectedRoute>} />
-                            <Route path="/resources" element={<ProtectedRoute check={u => u.role !== 'guest' && u.role !== 'resident'}><ResourceTracking /></ProtectedRoute>} />
-                            <Route path="/resources/new" element={<ProtectedRoute check={u => u.role !== 'guest' && u.role !== 'resident'}><ResourceForm /></ProtectedRoute>} />
+                            <Route path="/report" element={<ProtectedRoute check={u => !['guest', 'resident'].includes(u.role)}><IncidentForm /></ProtectedRoute>} />
+                            <Route path="/cctv-request" element={<ProtectedRoute check={u => !['guest', 'resident'].includes(u.role)}><CCTVRequestForm /></ProtectedRoute>} />
+                            <Route path="/resources" element={<ProtectedRoute check={u => !['guest', 'resident'].includes(u.role)}><ResourceTracking /></ProtectedRoute>} />
+                            <Route path="/resources/new" element={<ProtectedRoute check={u => !['guest', 'resident'].includes(u.role)}><ResourceForm /></ProtectedRoute>} />
                             <Route path="/archives" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><ResolvedCases /></ProtectedRoute>} />
                             <Route path="/restricted" element={<RestrictedPersons />} />
-                            <Route path="/users" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'resident', 'developer'].includes(u.role)}><UserManagement /></ProtectedRoute>} />
+                            <Route path="/users" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><UserManagement /></ProtectedRoute>} />
                             <Route path="/residents" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><ResidentDirectory /></ProtectedRoute>} />
                             <Route path="/applications" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'developer'].includes(u.role)}><Applications /></ProtectedRoute>} />
                             <Route path="/audit-logs" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'developer'].includes(u.role)}><AuditLogs /></ProtectedRoute>} />
