@@ -32,8 +32,11 @@ const Applications: React.FC = () => {
         setLoading(true);
         try {
             const data = await userService.getUsers();
-            // Show both 'pending' (new system) and 'inactive' (old system) applications
-            setPendingUsers(data.filter(u => u.status === 'pending' || u.status === 'inactive'));
+            // Strictly show only Resident applications in this queue
+            setPendingUsers(data.filter(u => 
+                (u.status === 'pending' || u.status === 'inactive') && 
+                u.role === 'resident'
+            ));
         } catch (error) {
             showToast("Failed to fetch applications", "error");
         } finally {
@@ -82,7 +85,7 @@ const Applications: React.FC = () => {
         <div className="space-y-8 pb-20 animate-fade-in relative z-10">
             <PageHeader 
                 title="Registration Desk" 
-                subtitle="Review and authorize new system membership requests" 
+                subtitle="Review and authorize new resident/voter membership requests" 
             />
 
             <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
