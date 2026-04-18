@@ -258,70 +258,53 @@ DECLARE
   final_role text;
   existing_profile_id uuid;
 BEGIN
-  -- 1. IDENTIFY COLLISION (SAFE BLOCK)
-  -- If this fails, we skip linking and proceed with a fresh profile.
-  BEGIN
-    SELECT id INTO existing_profile_id FROM public.profiles WHERE email = new.email LIMIT 1;
-  EXCEPTION WHEN OTHERS THEN
-    INSERT INTO public.debug_logs (event_type, error_message, data) 
-    VALUES ('HANDLE_NEW_USER_COLLISION_CHECK', SQLERRM, jsonb_build_object('email', new.email));
-  END;
+  -- 1. CHECK FOR EMAIL COLLISION (Resident Linking)
+  -- If a resident was already added to the blotter, we link them here.
+  SELECT id INTO existing_profile_id FROM public.profiles WHERE email = new.email LIMIT 1;
 
-  -- 2. RE-LINKING (EXCEPTION-SHIELDED BLOCK)
-  -- This is the most common failure point. We shield it to prevent crashes.
   IF existing_profile_id IS NOT NULL AND existing_profile_id != new.id THEN
+    -- Move the record to the new Auth ID
+    -- ON UPDATE CASCADE will handle foreign keys for incidents/asset requests
     BEGIN
-      -- Safety: Delete target ID if it somehow exists (e.g. abandoned registration)
-      DELETE FROM public.profiles WHERE id = new.id;
-      
-      -- Atomic Move of the Primary Key
-      UPDATE public.profiles 
-      SET id = new.id, 
-          last_active_at = now() 
-      WHERE id = existing_profile_id;
+      UPDATE public.profiles SET id = new.id WHERE id = existing_profile_id;
     EXCEPTION WHEN OTHERS THEN
-      -- LOG ERROR BUT DO NOT STOP SIGNUP
-      INSERT INTO public.debug_logs (event_type, error_message, data) 
-      VALUES ('HANDLE_NEW_USER_LINKING_FAILED', SQLERRM, jsonb_build_object('email', new.email, 'old_id', existing_profile_id, 'new_id', new.id));
+      -- If re-linking fails for some reason, we delete the conflicting profile 
+      -- to allow the new registration to proceed (fresh start is better than crash)
+      DELETE FROM public.profiles WHERE email = new.email;
     END;
   END IF;
 
-  -- 3. EXTRACTION & VALIDATION
+  -- 2. PREPARE METADATA
   requested_role := COALESCE(new.raw_user_meta_data ->> 'role', 'resident');
   final_role := CASE WHEN requested_role IN ('resident', 'bantay_bayan') THEN requested_role ELSE 'resident' END;
 
   base_username := COALESCE(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1));
   final_username := base_username;
   
-  -- Deduplication Loop
+  -- Deduplication Loop for Username
   WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username AND id != new.id) LOOP
     final_username := base_username || '_' || substr(md5(random()::text), 1, 4);
   END LOOP;
 
-  -- 4. FINAL UPSERT (INDESTRUCTIBLE)
-  BEGIN
-    INSERT INTO public.profiles (id, email, full_name, role, status, username, last_active_at)
-    VALUES (
-      new.id,
-      new.email,
-      COALESCE(new.raw_user_meta_data ->> 'full_name', 'Unnamed User'),
-      final_role,
-      'pending'::user_status,
-      final_username,
-      now()
-    )
-    ON CONFLICT (id) DO UPDATE SET
-      email = EXCLUDED.email,
-      full_name = EXCLUDED.full_name,
-      role = EXCLUDED.role,
-      status = EXCLUDED.status,
-      username = EXCLUDED.username,
-      last_active_at = now();
-  EXCEPTION WHEN OTHERS THEN
-    INSERT INTO public.debug_logs (event_type, error_message, data) 
-    VALUES ('HANDLE_NEW_USER_FINAL_INSERT_FAILED', SQLERRM, jsonb_build_object('id', new.id, 'email', new.email));
-  END;
-  
+  -- 3. FINAL ATOMIC UPSERT
+  INSERT INTO public.profiles (id, email, full_name, role, status, username, last_active_at)
+  VALUES (
+    new.id,
+    new.email,
+    COALESCE(new.raw_user_meta_data ->> 'full_name', 'Unnamed User'),
+    final_role,
+    'pending'::user_status,
+    final_username,
+    now()
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = EXCLUDED.full_name,
+    role = EXCLUDED.role,
+    status = EXCLUDED.status,
+    username = EXCLUDED.username,
+    last_active_at = now();
+
   RETURN NEW;
 END;
 $$;
