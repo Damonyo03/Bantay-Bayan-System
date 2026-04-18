@@ -378,19 +378,51 @@ BEGIN
 END;
 $$;
 
--- 5. TRIGGER FUNCTION: Audit Logging
-CREATE OR REPLACE FUNCTION public.audit_trigger_func()
-RETURNS TRIGGER AS $$
+-- 6. AUTH: Sync Profile Status to Auth Metadata (Security Definer)
+-- This ensures that when an admin approves a profile in public.profiles, 
+-- the user's Auth metadata is updated so the frontend recognizes the change immediately.
+CREATE OR REPLACE FUNCTION public.sync_status_to_auth()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public, auth
+AS $$
 BEGIN
-    INSERT INTO public.audit_logs (table_name, record_id, operation, old_data, new_data, performed_by)
-    VALUES (TG_TABLE_NAME, COALESCE(NEW.id, OLD.id), TG_OP, 
-            CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN to_jsonb(OLD) ELSE NULL END,
-            CASE WHEN TG_OP IN ('UPDATE', 'INSERT') THEN to_jsonb(NEW) ELSE NULL END,
-            auth.uid());
-    RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
+  -- Sync only if status or role changes
+  IF (TG_OP = 'UPDATE') AND (OLD.status IS DISTINCT FROM NEW.status OR OLD.role IS DISTINCT FROM NEW.role) THEN
+    UPDATE auth.users
+    SET raw_user_meta_data = raw_user_meta_data || 
+      jsonb_build_object('status', NEW.status, 'role', NEW.role)
+    WHERE id = NEW.id;
+  END IF;
+  RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
+-- 7. NOTIFY: Queue Approval Email
+-- Creates a record in the notifications table that can be picked up by a webhook
+CREATE TABLE IF NOT EXISTS public.approval_notifications (
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+  email text NOT NULL,
+  full_name text NOT NULL,
+  status text DEFAULT 'pending', -- 'pending', 'sent', 'failed'
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION public.handle_approval_notification()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Only queue notification if status changes to 'active'
+  IF (OLD.status = 'pending' OR OLD.status = 'inactive') AND NEW.status = 'active' THEN
+    INSERT INTO public.approval_notifications (user_id, email, full_name)
+    VALUES (NEW.id, NEW.email, NEW.full_name);
+  END IF;
+  RETURN NEW;
+END;
+$$;
 
 -- ==============================================================================
 -- TRIGGERS & PERMISSIONS
@@ -400,18 +432,27 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- 2. Incident Audit Trigger
+-- 2. Status Synchronization Trigger
+DROP TRIGGER IF EXISTS on_profile_updated_sync_auth ON public.profiles;
+CREATE TRIGGER on_profile_updated_sync_auth AFTER UPDATE ON public.profiles FOR EACH ROW EXECUTE PROCEDURE public.sync_status_to_auth();
+
+-- 3. Approval Notification Trigger
+DROP TRIGGER IF EXISTS on_profile_approved_notify ON public.profiles;
+CREATE TRIGGER on_profile_approved_notify AFTER UPDATE ON public.profiles FOR EACH ROW EXECUTE PROCEDURE public.handle_approval_notification();
+
+-- 4. Incident Audit Trigger
 DROP TRIGGER IF EXISTS incident_audit ON public.incidents;
 CREATE TRIGGER incident_audit BEFORE INSERT OR UPDATE OR DELETE ON public.incidents FOR EACH ROW EXECUTE PROCEDURE public.audit_trigger_func();
 
--- 3. Public Reports Audit Trigger
+-- 5. Public Reports Audit Trigger
 DROP TRIGGER IF EXISTS public_reports_audit ON public.public_reports;
 CREATE TRIGGER public_reports_audit BEFORE INSERT OR UPDATE OR DELETE ON public.public_reports FOR EACH ROW EXECUTE PROCEDURE public.audit_trigger_func();
 
--- 4. Grants
+-- 6. Grants
 GRANT EXECUTE ON FUNCTION public.admin_reset_system_data() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.resolve_watchlist_incident(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_user_by_id(UUID) TO authenticated;
+GRANT ALL ON TABLE public.approval_notifications TO authenticated;
 
 -- Refresh Cache
 NOTIFY pgrst, 'reload schema';

@@ -215,9 +215,15 @@ const Login: React.FC = () => {
                         <div className="w-20 h-20 bg-green-100 dark:bg-green-500/10 rounded-full flex items-center justify-center mx-auto text-green-600 dark:text-green-400">
                             <CheckCircle size={40} />
                         </div>
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic">Registration Sent</h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Your account is now pending administrative approval.</p>
+                        <div className="space-y-3">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic">Verification Required</h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium px-4">
+                                We've sent a confirmation link to your email. Please verify it to continue.
+                            </p>
+                            <div className="p-4 bg-taguig-blue/5 dark:bg-taguig-gold/5 rounded-2xl border border-taguig-blue/10">
+                                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Next Step</p>
+                                <p className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 uppercase">After verification, our admin will review and approve your access.</p>
+                            </div>
                         </div>
                         <button onClick={() => setView('login')} className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black py-4 rounded-2xl uppercase tracking-widest text-[10px]">Return to Login</button>
                     </div>

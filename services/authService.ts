@@ -36,7 +36,12 @@ export const authService = {
             password,
         });
 
-        if (authError) throw new Error("Invalid credentials");
+        if (authError) {
+            if (authError.message.includes("Email not confirmed")) {
+                throw new Error("Email verification required. Please check your inbox and confirm your email address before logging in.");
+            }
+            throw new Error("Invalid credentials");
+        }
         if (!authData.user) throw new Error("No user returned");
 
         // MFA Check
@@ -188,7 +193,8 @@ export const authService = {
                     username: username,
                     role: role,
                     status: 'pending'
-                }
+                },
+                emailRedirectTo: 'https://bantaybayanonline.vercel.app/#/login'
             }
         });
 

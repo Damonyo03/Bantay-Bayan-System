@@ -48,7 +48,7 @@ const Applications: React.FC = () => {
     const handleApprove = async (id: string, name: string) => {
         try {
             await userService.updateUserStatus(id, 'active');
-            showToast(`Application approved for ${name}`, "success");
+            showToast(`Application approved for ${name}. Verification sync complete.`, "success");
             fetchPendingUsers();
         } catch (error) {
             showToast("Failed to approve application", "error");
