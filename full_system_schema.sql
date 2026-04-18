@@ -260,7 +260,11 @@ BEGIN
     DELETE FROM public.profiles WHERE id = new.id;
     
     -- Change the profile primary key to match the new Auth ID
-    UPDATE public.profiles SET id = new.id WHERE id = existing_profile_id;
+    -- We also refresh last_active_at to ensure the 2-minute safety buffer is activated.
+    UPDATE public.profiles 
+    SET id = new.id, 
+        last_active_at = now() 
+    WHERE id = existing_profile_id;
   END IF;
 
   -- 3. Extract and Validate Role (Clamps to 'resident' or 'bantay_bayan')
@@ -279,21 +283,23 @@ BEGIN
   END LOOP;
 
   -- 5. Final Upsert (Create or Update the record)
-  INSERT INTO public.profiles (id, email, full_name, role, status, username)
+  INSERT INTO public.profiles (id, email, full_name, role, status, username, last_active_at)
   VALUES (
     new.id,
     new.email,
     COALESCE(new.raw_user_meta_data ->> 'full_name', 'Unnamed User'),
     final_role,
     'pending'::user_status,
-    final_username
+    final_username,
+    now()
   )
   ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
     full_name = EXCLUDED.full_name,
     role = EXCLUDED.role,
     status = EXCLUDED.status,
-    username = EXCLUDED.username;
+    username = EXCLUDED.username,
+    last_active_at = now();
   
   RETURN NEW;
 END;
@@ -394,9 +400,10 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public, auth
 AS $$
 BEGIN
-  -- SAFETY: Never sync if the status is 'pending' and hasn't changed.
-  -- This specifically skips the account-linking phase during registration (which causes deadlocks).
-  IF (OLD.status = 'pending' AND NEW.status = 'pending') THEN
+  -- SAFETY: Never sync during the first 2 minutes of a profile's latest update.
+  -- This prevents deadlocks during registration and the account-linking phase, 
+  -- ensuring the Auth system has finished its transaction.
+  IF (NEW.last_active_at >= now() - interval '2 minutes') THEN
     RETURN NEW;
   END IF;
 
