@@ -396,9 +396,9 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public, auth
 AS $$
 BEGIN
-  -- SAFETY: Never sync during the initial registration phase to avoid circular deadlocks
-  -- handle_new_user already sets the initial metadata.
-  IF (NEW.created_at >= now() - interval '5 seconds') THEN
+  -- SAFETY: Never sync if the status is 'pending' and hasn't changed.
+  -- This specifically skips the account-linking phase during registration (which causes deadlocks).
+  IF (OLD.status = 'pending' AND NEW.status = 'pending') THEN
     RETURN NEW;
   END IF;
 
