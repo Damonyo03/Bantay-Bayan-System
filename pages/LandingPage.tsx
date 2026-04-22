@@ -220,7 +220,7 @@ const LandingPage: React.FC = () => {
                                             <div className="flex flex-col items-center w-full max-w-5xl gap-4 md:gap-8 px-4">
                                                 {/* Punong Barangay - Top Row */}
                                                 <div className="w-full max-w-xs md:max-w-md">
-                                                    <MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" primary />
+                                                    <MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" image="/OFFICIALS/KAP-RICHARD-PASADILLA.jpg" primary />
                                                 </div>
                                                 
                                                 {/* Connecting Line (Visual Only) */}
@@ -228,21 +228,21 @@ const LandingPage: React.FC = () => {
 
                                                 {/* Secretary & Treasurer - Second Row */}
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
-                                                    <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" compact />
-                                                    <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" compact />
+                                                    <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" image="/OFFICIALS/SEC-ANDREA-DELLOSA.jpg" compact />
+                                                    <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" image="/OFFICIALS/TREAS-ALEX-AGAWIN.jpg" compact />
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="w-full flex-shrink-0 flex items-center justify-center py-6">
                                             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 lg:gap-10 w-full max-w-7xl px-4 items-stretch">
-                                                <MemberNode role="Kagawad" name="HON. EDNA M. BACCAY" desc="Education & Culture" compact />
-                                                <MemberNode role="Kagawad" name="HON. CHRISTINE JAGONIO" desc="Finance & Social Services" compact />
-                                                <MemberNode role="Kagawad" name="HON. NILDA B. CAYABYAB" desc="Health & Sanitation" compact />
-                                                <MemberNode role="Kagawad" name="HON. ISAGANI M. DELGADO" desc="Livelihood" compact />
-                                                <MemberNode role="Kagawad" name="HON. IRENE GRACE G. REALOSA" desc="Infrastructure & DRRM" compact />
-                                                <MemberNode role="Kagawad" name="HON. ARNEL P. MATUTINO" desc="Peace & Order" compact />
-                                                <MemberNode role="Kagawad" name="HON. MYRNA P. MIGUEL" desc="Cleanliness & Beautification" compact />
-                                                <MemberNode role="SK Chairperson" name="HON. JOSHUA DANIEL C. ESPEJO" desc="Youth Development" compact />
+                                                <MemberNode role="Kagawad" name="HON. EDNA M. BACCAY" desc="Education & Culture" image="/OFFICIALS/KAG-EDNA-BACCAY.jpg" compact />
+                                                <MemberNode role="Kagawad" name="HON. CHRISTINE JAGONIO" desc="Finance & Social Services" image="/OFFICIALS/KAG-CHRISTINE-JAGONIO.jpg" compact />
+                                                <MemberNode role="Kagawad" name="HON. NILDA B. CAYABYAB" desc="Health & Sanitation" image="/OFFICIALS/KAG-NILDA-CAYABYAB.jpg" compact />
+                                                <MemberNode role="Kagawad" name="HON. ISAGANI M. DELGADO" desc="Livelihood" image="/OFFICIALS/KAG-ISAGANI-DELGADO.jpg" compact />
+                                                <MemberNode role="Kagawad" name="HON. IRENE GRACE G. REALOSA" desc="Infrastructure & DRRM" image="/OFFICIALS/KAG-IRENE-GRACE-REALOSA.jpg" compact />
+                                                <MemberNode role="Kagawad" name="HON. ARNEL P. MATUTINO" desc="Peace & Order" image="/OFFICIALS/KAG-ARNEL-MATUTINO.jpg" compact />
+                                                <MemberNode role="Kagawad" name="HON. MYRNA P. MIGUEL" desc="Cleanliness & Beautification" image="/OFFICIALS/KAG-MYRNA-MIGUEL.jpg" compact />
+                                                <MemberNode role="SK Chairperson" name="HON. JOSHUA DANIEL C. ESPEJO" desc="Youth Development" image="/OFFICIALS/SK-JOSHUA-ESPEJO.jpg" compact />
                                             </div>
                                         </div>
                                     </div>
@@ -333,7 +333,7 @@ const LandingPage: React.FC = () => {
     );
 };
 
-const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?: boolean, compact?: boolean }> = ({ role, name, desc, primary, compact }) => {
+const MemberNode: React.FC<{ role: string, name: string, desc: string, image?: string, primary?: boolean, compact?: boolean }> = ({ role, name, desc, image, primary, compact }) => {
     const initials = name.split(' ').filter(n => n !== 'HON.' && n !== 'JR.').map(n => n[0]).join('').slice(0, 2);
 
     return (
@@ -357,9 +357,13 @@ const MemberNode: React.FC<{ role: string, name: string, desc: string, primary?:
                     relative w-full h-full rounded-full flex items-center justify-center border-2 md:border-4 overflow-hidden
                     ${primary ? 'bg-white/10 border-white/30' : 'bg-slate-800 border-white/10 group-hover:border-taguig-gold/50'}
                 `}>
-                    <span className={`font-black uppercase tracking-tighter ${compact ? 'text-xs md:text-xl' : 'text-lg md:text-3xl'} ${primary ? 'text-white' : 'text-taguig-gold'}`}>
-                        {initials}
-                    </span>
+                    {image ? (
+                        <img src={image} alt={name} className="w-full h-full object-cover" />
+                    ) : (
+                        <span className={`font-black uppercase tracking-tighter ${compact ? 'text-xs md:text-xl' : 'text-lg md:text-3xl'} ${primary ? 'text-white' : 'text-taguig-gold'}`}>
+                            {initials}
+                        </span>
+                    )}
                     {/* Subtle Scanline Animation */}
                     <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/5 to-transparent h-1/2 w-full -translate-y-full group-hover:translate-y-full transition-transform duration-[2s] ease-linear"></div>
                 </div>
