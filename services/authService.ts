@@ -172,15 +172,20 @@ export const authService = {
     },
 
     registerUser: async (email: string, username: string, password: string, fullName: string, role: string, validIdFile?: File) => {
-        // 0. Check if username is already taken
+        // 0. Check if username or email is already taken
         const { data: existingUser } = await supabase
             .from('profiles')
-            .select('username')
-            .eq('username', username)
+            .select('username, email')
+            .or(`username.eq.${username},email.eq.${email}`)
             .maybeSingle();
 
         if (existingUser) {
-            throw new Error("Username is already taken. Please choose another.");
+            if (existingUser.username === username) {
+                throw new Error("Username is already taken. Please choose another.");
+            }
+            if (existingUser.email === email) {
+                throw new Error("This email is already registered. Please sign in instead.");
+            }
         }
 
         let validIdUrl = null;
