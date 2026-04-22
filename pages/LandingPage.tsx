@@ -14,28 +14,20 @@ import { useNavigate } from 'react-router-dom';
 
 const HERO_SLIDES = [
     {
-        title: "Welcome to",
-        highlight: "Post Proper",
-        subtitle: "Northside.",
-        description: "An 'Inner Fort' barangay committed to public excellence, vibrant community development, and steadfast peace and order in Taguig City.",
+        title: "Our",
+        highlight: "Vision",
+        subtitle: "Future Forward.",
+        description: "Barangay Post Proper Northside envisions a livable, greener, resilient, peaceful, sustainable, progressive, competitive, inclusive and gender-responsive community that is within reach by its people, and the pillar of effective and efficient delivery of quality programs and services that harness its residents to be smart, productive, empowered, and morally upright citizens of Taguig City, the Philippines and of the global community.",
         image: "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&q=80",
-        badge: "Barangay Introduction"
+        badge: "The Vision"
     },
     {
-        title: "History &",
-        highlight: "Heritage.",
-        subtitle: "Deeply Rooted.",
-        description: "Established in 1972, Post Proper Northside holds a pivotal history transitioning into a thriving progressive center within Taguig.",
-        image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80",
-        badge: "Our Heritage"
-    },
-    {
-        title: "Community",
-        highlight: "First.",
-        subtitle: "Always.",
-        description: "Driven by transparent governance, our leadership delivers social services, infrastructure, and an inclusive future for all residents.",
+        title: "Our",
+        highlight: "Mission",
+        subtitle: "Commitment.",
+        description: "Barangay Post Proper Northside shall realize its commitment to the community and its people in various sectors through its transparent, well-balanced, inclusive and gender-responsive Programs, Projects and Activities with regard to Peace and Order, Disaster Risk and Environmental management, Economic Development, Health, Social Services, Education, Infrastructure and Finance that foster a 'Strong Sense of Community' among its residents with a high-quality living and with competent and responsible public servants.",
         image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80",
-        badge: "Public Service"
+        badge: "The Mission"
     }
 ];
 
@@ -46,8 +38,8 @@ const SECTIONS = [
 ];
 
 const SEALS = [
-    { src: '/brgy_seal.png', alt: 'Barangay Seal' },
     { src: '/taguig_seal.png', alt: 'Taguig Seal' },
+    { src: '/brgy_seal.png', alt: 'Barangay Seal' },
     { src: '/logo.png', alt: 'BMS Logo' }
 ];
 
@@ -65,7 +57,7 @@ const LandingPage: React.FC = () => {
         if (mainIndex === 0) {
             const timer = setInterval(() => {
                 setHeroIndex((prev) => (prev + 1) % HERO_SLIDES.length);
-            }, 6000);
+            }, 8000);
             return () => clearInterval(timer);
         }
     }, [mainIndex]);
@@ -82,13 +74,19 @@ const LandingPage: React.FC = () => {
             <nav className="sticky top-0 left-0 right-0 z-[90] bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-shrink-0">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center space-x-6 group cursor-pointer" onClick={() => setMainIndex(0)}>
-                        <div className="flex items-center space-x-3">
-                            <img src="/taguig_seal.png" alt="Taguig Seal" className="h-10 md:h-14 w-auto drop-shadow-md group-hover:rotate-12 transition-transform" />
-                            <img src="/brgy_seal.png" alt="Barangay Seal" className="h-10 md:h-14 w-auto drop-shadow-md" />
+                        <div className="flex items-center -space-x-2 md:-space-x-4">
+                            {SEALS.map((seal, idx) => (
+                                <img 
+                                    key={idx} 
+                                    src={seal.src} 
+                                    alt={seal.alt} 
+                                    className="h-10 md:h-14 w-auto drop-shadow-2xl relative z-[5] transition-transform group-hover:scale-110" 
+                                    style={{ zIndex: SEALS.length - idx }}
+                                />
+                            ))}
                         </div>
                         <div className="hidden sm:flex flex-col border-l-2 border-white/10 pl-6 h-full justify-center">
                             <h1 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tight leading-tight group-hover:text-taguig-gold transition-colors">Post Proper Northside</h1>
-                            <p className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5 opacity-60">Peace & Security Operations</p>
                         </div>
                     </div>
 
@@ -164,18 +162,20 @@ const LandingPage: React.FC = () => {
                                 </div>
 
                                 <div className="max-w-7xl mx-auto h-full flex items-start w-full relative z-20 px-6 pt-24 md:pt-40 lg:pt-48">
-                                    <div className={`max-w-3xl space-y-6 transition-all duration-1000 delay-300 ${index === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
-                                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter italic leading-[1.1]">
+                                    <div className={`max-w-4xl space-y-6 transition-all duration-1000 delay-300 ${index === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
+                                        <div className="inline-block px-4 py-1.5 bg-taguig-blue text-white text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
+                                            {slide.badge}
+                                        </div>
+                                        <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter italic leading-[1.1]">
                                             {slide.title} <br />
-                                            <span className="text-taguig-gold">{slide.highlight}</span> <br />
-                                            {slide.subtitle}
+                                            <span className="text-taguig-gold">{slide.highlight}</span>
                                         </h2>
 
-                                        <p className="text-lg text-white/70 font-medium leading-relaxed max-w-2xl">
+                                        <p className="text-sm md:text-lg text-white/70 font-medium leading-relaxed max-w-3xl">
                                             {slide.description}
                                         </p>
 
-                                        <div className="flex flex-wrap gap-4 pt-4">
+                                        <div className="flex flex-wrap gap-4 pt-8">
                                             <button
                                                 onClick={() => setMainIndex(1)}
                                                 className="px-10 py-5 bg-white text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 hover:bg-taguig-gold transition-all shadow-2xl flex items-center group"
@@ -311,22 +311,6 @@ const LandingPage: React.FC = () => {
                         </div>
                     </div>
 
-                </div>
-            </div>
-
-            {/* Logo Cloud Section at the Bottom */}
-            <div className="bg-slate-900/50 backdrop-blur-md border-t border-white/5 py-12 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-40 hover:opacity-100 transition-opacity duration-700">
-                        {SEALS.map((seal, idx) => (
-                            <img 
-                                key={idx} 
-                                src={seal.src} 
-                                alt={seal.alt} 
-                                className="h-12 md:h-20 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-500 hover:scale-110" 
-                            />
-                        ))}
-                    </div>
                 </div>
             </div>
         </div>
