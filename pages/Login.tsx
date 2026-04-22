@@ -71,6 +71,27 @@ const Login: React.FC = () => {
 
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [dbStatus, setDbStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
+    // Check DB Connection on mount
+    React.useEffect(() => {
+        const checkConnection = async () => {
+            try {
+                // Try a simple ping to a public table or just check session
+                const { error } = await supabase.from('profiles').select('id').limit(1);
+                if (error && error.code !== 'PGRST116') { // PGRST116 is just "no rows", which is fine
+                    console.error("DB Connection Error:", error);
+                    setDbStatus('offline');
+                } else {
+                    setDbStatus('online');
+                }
+            } catch (err) {
+                console.error("DB Check Failed:", err);
+                setDbStatus('offline');
+            }
+        };
+        checkConnection();
+    }, []);
 
     // --- HANDLERS ---
 
@@ -111,12 +132,20 @@ const Login: React.FC = () => {
         try {
             let emailToUse = '';
             if (input.includes('@')) {
-                const { data, error: fetchError } = await supabase.from('profiles').select('email').eq('email', input).single();
-                if (fetchError || !data) throw new Error("No account found with this email.");
+                let { data } = await supabase.from('profiles').select('email').eq('email', input).maybeSingle();
+                if (!data) {
+                    const { data: appData } = await supabase.from('registration_applications').select('email').eq('email', input).maybeSingle();
+                    data = appData;
+                }
+                if (!data) throw new Error("No account found with this email.");
                 emailToUse = data.email;
             } else {
-                const { data, error: fetchError } = await supabase.from('profiles').select('email').eq('username', input).single();
-                if (fetchError || !data) throw new Error("No account found with this username.");
+                let { data } = await supabase.from('profiles').select('email').eq('username', input).maybeSingle();
+                if (!data) {
+                    const { data: appData } = await supabase.from('registration_applications').select('email').eq('username', input).maybeSingle();
+                    data = appData;
+                }
+                if (!data) throw new Error("No account found with this username.");
                 emailToUse = data.email;
             }
             setFoundEmail(emailToUse);
@@ -191,7 +220,7 @@ const Login: React.FC = () => {
 
     if (view === 'mfa') {
         return (
-            <ViewContainer title="Security Check" subtitle="Two-Factor Authentication" icon={Fingerprint}>
+            <ViewContainer title="Security Check" subtitle="Two-Factor Authentication" icon={Fingerprint} dbStatus={dbStatus}>
                 <form onSubmit={handleMfaVerify} className="space-y-6">
                     {error && <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium">{error}</div>}
                     <div className="space-y-4">
@@ -221,7 +250,7 @@ const Login: React.FC = () => {
 
     if (view === 'register') {
         return (
-            <ViewContainer title={t.joinSystem} subtitle="Personnel Registration" icon={UserPlus}>
+            <ViewContainer title={t.joinSystem} subtitle="Personnel Registration" icon={UserPlus} dbStatus={dbStatus}>
                 {regSuccess ? (
                     <div className="text-center space-y-6 py-4 animate-slide-up">
                         <div className="w-20 h-20 bg-green-100 dark:bg-green-500/10 rounded-full flex items-center justify-center mx-auto text-green-600 dark:text-green-400">
@@ -401,7 +430,7 @@ const Login: React.FC = () => {
 
     if (view === 'forgot') {
         return (
-            <ViewContainer title="Access Recovery" subtitle="Identify Account" icon={Search}>
+            <ViewContainer title="Access Recovery" subtitle="Identify Account" icon={Search} dbStatus={dbStatus}>
                 {!resetSent ? (
                     <form onSubmit={handleFindAccount} className="space-y-6">
                         {error && <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium">{error}</div>}
@@ -465,7 +494,7 @@ const Login: React.FC = () => {
     }
 
     return (
-        <ViewContainer title="Bantay Bayan" subtitle="Post Proper Northside Terminal">
+        <ViewContainer title="Bantay Bayan" subtitle="Post Proper Northside Terminal" dbStatus={dbStatus}>
             <form onSubmit={handleLogin} className="space-y-6">
                 {error && <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium transition-all">{error}</div>}
                 
@@ -540,7 +569,7 @@ const Background: React.FC = () => (
     </div>
 );
 
-const ViewContainer: React.FC<{ children: React.ReactNode, title: string, subtitle?: string, icon?: any }> = ({ children, title, subtitle, icon: Icon }) => {
+const ViewContainer: React.FC<{ children: React.ReactNode, title: string, subtitle?: string, icon?: any, dbStatus: 'checking' | 'online' | 'offline' }> = ({ children, title, subtitle, icon: Icon, dbStatus }) => {
     const { theme, toggleTheme } = useTheme();
     
     return (
@@ -561,6 +590,18 @@ const ViewContainer: React.FC<{ children: React.ReactNode, title: string, subtit
                     )}
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">{title}</h1>
                     {subtitle && <p className="text-taguig-blue dark:text-taguig-gold text-[10px] font-black uppercase tracking-[0.2em] mt-2">{subtitle}</p>}
+                    
+                    {/* DB Status Indicator */}
+                    <div className="mt-4 flex items-center space-x-2 px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full border border-slate-200 dark:border-white/10 transition-all">
+                        <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                            dbStatus === 'online' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 
+                            dbStatus === 'offline' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 
+                            'bg-slate-400'
+                        }`} />
+                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                            {dbStatus === 'online' ? 'System Online' : dbStatus === 'offline' ? 'System Offline' : 'Verifying Link...'}
+                        </span>
+                    </div>
                 </div>
                 {children}
                 

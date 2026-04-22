@@ -1,5 +1,19 @@
-
 import { createClient } from '@supabase/supabase-js';
+import { Preferences } from '@capacitor/preferences';
+
+// Custom storage adapter for Capacitor
+const capacitorStorage = {
+  getItem: async (key: string) => {
+    const { value } = await Preferences.get({ key });
+    return value;
+  },
+  setItem: async (key: string, value: string) => {
+    await Preferences.set({ key, value });
+  },
+  removeItem: async (key: string) => {
+    await Preferences.remove({ key });
+  },
+};
 
 // Configuration
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -12,8 +26,9 @@ if (!supabaseUrl || !supabaseKey) {
 // Create Client
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    persistSession: true, // Persist session in localStorage
-    autoRefreshToken: true, // Auto refresh token
-    detectSessionInUrl: true // Detect OAuth redirects
+    storage: capacitorStorage, // Use Capacitor Preferences for reliable mobile persistence
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
   }
 });

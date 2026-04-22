@@ -11,8 +11,22 @@ export const authService = {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) return null;
 
-        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-        return data as UserProfile;
+        // 1. Try to fetch from official profiles
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+        if (profile) return profile as UserProfile;
+
+        // 2. Fallback: check if they are in the registration queue
+        const { data: application } = await supabase.from('registration_applications').select('*').eq('id', session.user.id).maybeSingle();
+        if (application) {
+            // Return a "virtual" profile with pending status
+            return {
+                ...application,
+                status: 'pending',
+                created_at: application.applied_at
+            } as UserProfile;
+        }
+
+        return null;
     },
 
     login: async (identifier: string, password: string): Promise<{ user: UserProfile, mfaRequired: boolean }> => {
@@ -21,13 +35,24 @@ export const authService = {
 
         // Allow login by Username
         if (!identifier.includes('@')) {
-            const { data: profileData, error: profileError } = await supabase
+            // Check profiles first
+            let { data: profileData } = await supabase
                 .from('profiles')
                 .select('email')
                 .eq('username', identifier)
-                .single();
+                .maybeSingle();
 
-            if (profileError || !profileData) throw new Error("Invalid username or password");
+            // If not in profiles, check registration applications
+            if (!profileData) {
+                const { data: appData } = await supabase
+                    .from('registration_applications')
+                    .select('email')
+                    .eq('username', identifier)
+                    .maybeSingle();
+                profileData = appData;
+            }
+
+            if (!profileData) throw new Error("Invalid username or password");
             email = profileData.email;
         }
 
@@ -48,16 +73,27 @@ export const authService = {
         const { data: mfaData, error: mfaCheckError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         if (mfaCheckError) throw new Error(mfaCheckError.message);
 
+        // Fetch User Info (Queue Aware)
+        let { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).maybeSingle();
+        
+        if (!profile) {
+            // Check if they are pending in the queue
+            const { data: application } = await supabase.from('registration_applications').select('*').eq('id', authData.user.id).maybeSingle();
+            if (application) {
+                profile = { ...application, status: 'pending' };
+            }
+        }
+
+        if (!profile) throw new Error("Failed to fetch user profile");
+
         if (mfaData.nextLevel === 'aal2' && mfaData.currentLevel === 'aal1') {
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
             return { user: profile as UserProfile, mfaRequired: true };
         }
 
-        const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
-        if (profileError) throw new Error("Failed to fetch user profile");
-
-        // Update Last Active
-        await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', authData.user.id);
+        // Update Last Active if they are an official member
+        if (profile.status !== 'pending') {
+            await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', authData.user.id);
+        }
 
         return { user: profile as UserProfile, mfaRequired: false };
     },
@@ -69,7 +105,13 @@ export const authService = {
     resetPasswordForUser: async (identifier: string) => {
         let email = identifier;
         if (!identifier.includes('@')) {
-            const { data } = await supabase.from('profiles').select('email').eq('username', identifier).single();
+            // Check both tables
+            let { data } = await supabase.from('profiles').select('email').eq('username', identifier).maybeSingle();
+            if (!data) {
+                const { data: appData } = await supabase.from('registration_applications').select('email').eq('username', identifier).maybeSingle();
+                data = appData;
+            }
+            
             if (!data) return;
             email = data.email;
         }
@@ -172,19 +214,27 @@ export const authService = {
     },
 
     registerUser: async (email: string, username: string, password: string, fullName: string, role: string, validIdFile?: File) => {
-        // 0. Check if username or email is already taken
-        const { data: existingUser } = await supabase
+        // 0. Check if username or email is already taken (Check both profiles AND the queue)
+        const { data: existingProfile } = await supabase
             .from('profiles')
             .select('username, email')
             .or(`username.eq.${username},email.eq.${email}`)
             .maybeSingle();
 
+        const { data: existingApp } = await supabase
+            .from('registration_applications')
+            .select('username, email')
+            .or(`username.eq.${username},email.eq.${email}`)
+            .maybeSingle();
+
+        const existingUser = existingProfile || existingApp;
+
         if (existingUser) {
             if (existingUser.username === username) {
-                throw new Error("Username is already taken. Please choose another.");
+                throw new Error("Username is already taken or pending approval. Please choose another.");
             }
             if (existingUser.email === email) {
-                throw new Error("This email is already registered. Please sign in instead.");
+                throw new Error("This email is already registered or has a pending application.");
             }
         }
 
