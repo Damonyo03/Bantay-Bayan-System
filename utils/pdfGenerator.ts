@@ -92,9 +92,12 @@ const savePdf = async (doc: jsPDF, fileName: string, mode: 'download' | 'print' 
             // Fallback to FileOpener if custom bridge isn't available
             console.log('Native bridge unavailable, falling back to Capacitor Filesystem & FileOpener');
             try {
+                // Add timestamp to allow multiple downloads of the same form
+                const uniqueFileName = `${new Date().getTime()}_${fileName}`;
+                
                 console.log('Attempting to write file to Cache directory with Filesystem API...');
                 const savedFile = await Filesystem.writeFile({
-                    path: fileName,
+                    path: uniqueFileName,
                     data: base64Data,
                     directory: Directory.Cache,
                     recursive: true
