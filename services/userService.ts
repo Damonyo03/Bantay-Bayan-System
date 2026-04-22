@@ -20,9 +20,10 @@ export const userService = {
 
     getPendingApplications: async (): Promise<any[]> => {
         const { data, error } = await supabase
-            .from('registration_applications')
+            .from('profiles')
             .select('*')
-            .order('applied_at', { ascending: false });
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
         if (error) throw error;
         return data;
     },
@@ -33,12 +34,12 @@ export const userService = {
     },
 
     rejectApplication: async (userId: string) => {
-        // Delete from applications queue
-        const { error: queueError } = await supabase
-            .from('registration_applications')
+        // Just delete from profiles
+        const { error: profileError } = await supabase
+            .from('profiles')
             .delete()
             .eq('id', userId);
-        if (queueError) throw queueError;
+        if (profileError) throw profileError;
 
         // Also delete the auth user since they were never approved
         const { error: authError } = await supabase.rpc('delete_user_by_id', { user_uuid: userId });
@@ -135,8 +136,13 @@ export const userService = {
     // Realtime Helpers
     subscribeToNewRegistrations: (onNewRegistration: (application: any) => void) => {
         return supabase
-            .channel('registration_applications_changes')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'registration_applications' }, (payload) => {
+            .channel('profiles_status_changes')
+            .on('postgres_changes', { 
+                event: 'INSERT', 
+                schema: 'public', 
+                table: 'profiles',
+                filter: 'status=eq.pending'
+            }, (payload) => {
                 onNewRegistration(payload.new);
             })
             .subscribe();

@@ -201,7 +201,7 @@ const Applications: React.FC = () => {
                                     <div className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center">
                                         <Clock size={14} />
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Applied {new Date(applicant.applied_at).toLocaleDateString()}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Applied {new Date(applicant.created_at).toLocaleDateString()}</span>
                                 </div>
                             </div>
 

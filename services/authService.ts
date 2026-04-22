@@ -11,22 +11,8 @@ export const authService = {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) return null;
 
-        // 1. Try to fetch from official profiles
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-        if (profile) return profile as UserProfile;
-
-        // 2. Fallback: check if they are in the registration queue
-        const { data: application } = await supabase.from('registration_applications').select('*').eq('id', session.user.id).maybeSingle();
-        if (application) {
-            // Return a "virtual" profile with pending status
-            return {
-                ...application,
-                status: 'pending',
-                created_at: application.applied_at
-            } as UserProfile;
-        }
-
-        return null;
+        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+        return data as UserProfile;
     },
 
     login: async (identifier: string, password: string): Promise<{ user: UserProfile, mfaRequired: boolean }> => {
@@ -35,22 +21,11 @@ export const authService = {
 
         // Allow login by Username
         if (!identifier.includes('@')) {
-            // Check profiles first
-            let { data: profileData } = await supabase
+            const { data: profileData } = await supabase
                 .from('profiles')
                 .select('email')
                 .eq('username', identifier)
                 .maybeSingle();
-
-            // If not in profiles, check registration applications
-            if (!profileData) {
-                const { data: appData } = await supabase
-                    .from('registration_applications')
-                    .select('email')
-                    .eq('username', identifier)
-                    .maybeSingle();
-                profileData = appData;
-            }
 
             if (!profileData) throw new Error("Invalid username or password");
             email = profileData.email;
@@ -73,25 +48,15 @@ export const authService = {
         const { data: mfaData, error: mfaCheckError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         if (mfaCheckError) throw new Error(mfaCheckError.message);
 
-        // Fetch User Info (Queue Aware)
-        let { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).maybeSingle();
-        
-        if (!profile) {
-            // Check if they are pending in the queue
-            const { data: application } = await supabase.from('registration_applications').select('*').eq('id', authData.user.id).maybeSingle();
-            if (application) {
-                profile = { ...application, status: 'pending' };
-            }
-        }
-
-        if (!profile) throw new Error("Failed to fetch user profile");
+        const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', authData.user.id).maybeSingle();
+        if (profileError || !profile) throw new Error("Failed to fetch user profile");
 
         if (mfaData.nextLevel === 'aal2' && mfaData.currentLevel === 'aal1') {
             return { user: profile as UserProfile, mfaRequired: true };
         }
 
-        // Update Last Active if they are an official member
-        if (profile.status !== 'pending') {
+        // Update Last Active (only if active)
+        if (profile.status === 'active') {
             await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', authData.user.id);
         }
 
@@ -105,13 +70,7 @@ export const authService = {
     resetPasswordForUser: async (identifier: string) => {
         let email = identifier;
         if (!identifier.includes('@')) {
-            // Check both tables
-            let { data } = await supabase.from('profiles').select('email').eq('username', identifier).maybeSingle();
-            if (!data) {
-                const { data: appData } = await supabase.from('registration_applications').select('email').eq('username', identifier).maybeSingle();
-                data = appData;
-            }
-            
+            const { data } = await supabase.from('profiles').select('email').eq('username', identifier).maybeSingle();
             if (!data) return;
             email = data.email;
         }
