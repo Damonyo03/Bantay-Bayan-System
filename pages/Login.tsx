@@ -26,7 +26,8 @@ import {
     ArrowLeft,
     Moon,
     Sun,
-    ChevronDown
+    ChevronDown,
+    FileCheck
 } from 'lucide-react';
 
 import { Link } from 'react-router-dom';
