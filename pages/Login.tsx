@@ -148,6 +148,12 @@ const Login: React.FC = () => {
             setError("Passwords do not match.");
             return;
         }
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(regForm.email)) {
+            setError("Please enter a valid and existing email address.");
+            return;
+        }
+
         const pwdRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!pwdRegex.test(regForm.password)) {
             setError("Password too weak. Use 8+ chars, 1 Upper, 1 Special.");

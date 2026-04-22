@@ -4,6 +4,7 @@ import { userService } from '../services/userService';
 import { UserProfile, UserRole } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 import { 
     UserCheck, 
     UserX, 
@@ -16,7 +17,11 @@ import {
     Mail, 
     AlertTriangle,
     BadgeCheck,
-    ArrowRight
+    ArrowRight,
+    Eye,
+    X,
+    ExternalLink,
+    Image as ImageIcon
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 
@@ -27,15 +32,20 @@ const Applications: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('All');
+    
+    // ID Photo Modal State
+    const [idPhotoUrl, setIdPhotoUrl] = useState<string | null>(null);
+    const [isIdModalOpen, setIsIdModalOpen] = useState(false);
+    const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
 
     const fetchPendingUsers = async () => {
         setLoading(true);
         try {
             const data = await userService.getUsers();
-            // Strictly show only Resident applications in this queue
+            // Show pending/inactive users for approval
             setPendingUsers(data.filter(u => 
                 (u.status === 'pending' || u.status === 'inactive') && 
-                u.role === 'resident'
+                u.role !== 'developer' // Don't show developer accounts in application desk
             ));
         } catch (error) {
             showToast("Failed to fetch applications", "error");
@@ -47,10 +57,9 @@ const Applications: React.FC = () => {
     useEffect(() => {
         fetchPendingUsers();
 
-        // Subscribe to changes in the profiles table for real-time updates
         const channel = userService.subscribeToNewRegistrations((newProfile) => {
-            if (newProfile.role === 'resident' && (newProfile.status === 'pending' || newProfile.status === 'inactive')) {
-                showToast(`New resident application: ${newProfile.full_name}`, "info");
+            if ((newProfile.status === 'pending' || newProfile.status === 'inactive')) {
+                showToast(`New application: ${newProfile.full_name}`, "info");
                 fetchPendingUsers();
             }
         });
@@ -60,10 +69,28 @@ const Applications: React.FC = () => {
         };
     }, []);
 
+    const handleViewId = async (path: string) => {
+        if (!path) return;
+        setIsGeneratingUrl(true);
+        try {
+            const { data, error } = await supabase.storage
+                .from('identity-docs')
+                .createSignedUrl(path, 3600); // 1 hour link
+
+            if (error) throw error;
+            setIdPhotoUrl(data.signedUrl);
+            setIsIdModalOpen(true);
+        } catch (error) {
+            showToast("Could not retrieve ID photo", "error");
+        } finally {
+            setIsGeneratingUrl(false);
+        }
+    };
+
     const handleApprove = async (id: string, name: string) => {
         try {
             await userService.updateUserStatus(id, 'active');
-            showToast(`Application approved for ${name}. Verification sync complete.`, "success");
+            showToast(`Application approved for ${name}.`, "success");
             fetchPendingUsers();
         } catch (error) {
             showToast("Failed to approve application", "error");
@@ -97,7 +124,7 @@ const Applications: React.FC = () => {
         <div className="space-y-8 pb-20 animate-fade-in relative z-10">
             <PageHeader 
                 title="Registration Desk" 
-                subtitle="Review and authorize new resident/voter membership requests" 
+                subtitle="Review and authorize new membership requests and verify identity documents" 
             />
 
             <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
@@ -123,7 +150,6 @@ const Applications: React.FC = () => {
                             <option value="All">All Types</option>
                             <option value="resident">Residents</option>
                             <option value="bantay_bayan">Security Officers</option>
-                            <option value="guest">Guests</option>
                             <option value="supervisor">Supervisors</option>
                         </select>
                     </div>
@@ -152,12 +178,12 @@ const Applications: React.FC = () => {
             ) : (
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                     {filteredApplications.map((applicant) => (
-                        <div key={applicant.id} className="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-200 dark:border-white/10 shadow-premium hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 overflow-hidden">
+                        <div key={applicant.id} className="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-200 dark:border-white/10 shadow-premium hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 overflow-hidden flex flex-col">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <Shield size={80} />
                             </div>
                             
-                            <div className="flex items-center space-x-5 mb-8">
+                            <div className="flex items-center space-x-5 mb-6">
                                 <div className="w-16 h-16 rounded-3xl bg-taguig-blue/10 flex items-center justify-center text-taguig-blue shadow-inner group-hover:scale-110 transition-transform duration-500">
                                     <User size={32} />
                                 </div>
@@ -170,7 +196,7 @@ const Applications: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-4 mb-8">
+                            <div className="space-y-3 mb-6">
                                 <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-400">
                                     <div className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center">
                                         <Mail size={14} />
@@ -185,7 +211,34 @@ const Applications: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 relative z-10">
+                            {/* ID Photo Preview Section */}
+                            <div className="mb-8 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                {applicant.valid_id_url ? (
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-10 h-10 bg-taguig-blue/20 rounded-xl flex items-center justify-center text-taguig-blue">
+                                                <ImageIcon size={20} />
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Identity Doc Attached</span>
+                                        </div>
+                                        <button 
+                                            onClick={() => handleViewId(applicant.valid_id_url!)}
+                                            disabled={isGeneratingUrl}
+                                            className="flex items-center space-x-2 px-4 py-2 bg-taguig-blue text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-taguig-navy transition-all disabled:opacity-50"
+                                        >
+                                            <Eye size={14} />
+                                            <span>{isGeneratingUrl ? 'Loading...' : 'View ID'}</span>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center space-x-3 opacity-50 italic">
+                                        <AlertTriangle size={16} className="text-amber-500" />
+                                        <span className="text-xs text-slate-400">No ID photo provided</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mt-auto relative z-10">
                                 <button 
                                     onClick={() => handleReject(applicant.id, applicant.full_name)}
                                     className="flex items-center justify-center space-x-2 py-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 dark:hover:text-red-400 font-black uppercase tracking-widest text-[10px] transition-all"
@@ -203,6 +256,44 @@ const Applications: React.FC = () => {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* ID Photo Modal */}
+            {isIdModalOpen && idPhotoUrl && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl">
+                        <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/5">
+                            <h3 className="text-lg font-black uppercase italic tracking-tight dark:text-white">Identity Document Verification</h3>
+                            <div className="flex items-center space-x-4">
+                                <a 
+                                    href={idPhotoUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="p-2 text-slate-400 hover:text-taguig-blue transition-colors"
+                                    title="Open in new tab"
+                                >
+                                    <ExternalLink size={20} />
+                                </a>
+                                <button 
+                                    onClick={() => setIsIdModalOpen(false)}
+                                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-8 flex justify-center bg-slate-50 dark:bg-black/20 min-h-[400px]">
+                            <img 
+                                src={idPhotoUrl} 
+                                alt="Applicant ID" 
+                                className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-xl"
+                            />
+                        </div>
+                        <div className="p-6 bg-slate-100 dark:bg-white/5 text-center">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Private Document • Access Logs Recorded</p>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
