@@ -1,5 +1,5 @@
 
-export type IncidentType = 'Medical' | 'Fire' | 'Theft' | 'Disturbance' | 'Traffic' | 'Logistics' | 'Other';
+export type IncidentType = 'Theft' | 'Physical Injury' | 'Noise Complaint' | 'Domestic Dispute' | 'Public Intoxication' | 'Traffic Obstruction' | 'Suspicious Activity' | 'Medical' | 'Fire' | 'Disturbance' | 'Logistics' | 'Other';
 export type IncidentStatus = 'Pending' | 'Dispatched' | 'Resolved' | 'Closed';
 export type UserRole = 'developer' | 'barangay_captain' | 'barangay_secretary' | 'barangay_kagawad' | 'supervisor' | 'bantay_bayan' | 'resident' | 'guest';
 export type UserStatus = 'active' | 'inactive' | 'pending' | 'rejected' | 'deactivated';

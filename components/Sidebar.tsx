@@ -46,10 +46,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
 
   const navItems = [
     { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: isStaff },
-    { icon: MessageSquare, label: 'Submit Report', path: '/public-request', visible: true },
-    { icon: FileText, label: 'Reports Queue', path: '/public-reports', visible: isStaff },
+    { icon: MessageSquare, label: t.submitReport, path: '/public-request', visible: true },
+    { icon: FileText, label: t.reportsQueue, path: '/public-reports', visible: isStaff },
     { icon: FileText, label: t.blotter, path: '/report', visible: isStaff },
-    { icon: Video, label: 'CCTV Request', path: '/cctv-request', visible: isStaff },
+    { icon: Video, label: t.cctvRequest, path: '/cctv-request', visible: isStaff },
     { icon: Package, label: t.resources, path: '/resources', visible: isStaff },
     { icon: Archive, label: t.archives, path: '/archives', visible: isStaff },
     { icon: AlertOctagon, label: t.restrictedList, path: '/restricted', visible: true },
@@ -61,19 +61,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
     },
     {
       icon: Users,
-      label: 'Registered Citizens',
+      label: t.registeredCitizens,
       path: '/residents',
       visible: isStaff
     },
     {
       icon: Shield,
-      label: 'Applications',
+      label: t.applications,
       path: '/applications',
       visible: isHighLevelAdmin() || isSupervisor
     },
-    { icon: FileDown, label: 'Printable Forms', path: '/download-forms', visible: true },
+    { icon: FileDown, label: t.printableForms, path: '/download-forms', visible: true },
     { icon: FileClock, label: t.auditLogs, path: '/audit-logs', visible: isHighLevelAdmin() },
-    { icon: Settings, label: 'Settings', path: '/settings', visible: !isGuest },
+    { icon: Settings, label: t.settings, path: '/settings', visible: !isGuest },
   ].filter(item => item.visible);
 
   return (
@@ -167,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
           <div className="p-1.5 rounded-lg">
             <LogOut size={20} />
           </div>
-          <span className="font-bold text-sm uppercase tracking-wider">{t.signOut}</span>
+          <span className="font-bold text-sm uppercase tracking-wider">{t.logout}</span>
         </button>
       </div>
     </div>

@@ -356,7 +356,7 @@ const CommandCenter: React.FC = () => {
                         <Package size={28} />
                     </div>
                     <div className="relative z-10">
-                        <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-1">Equipment for Approval</p>
+                        <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-1">{t.equipmentForApproval}</p>
                         <p className="text-3xl md:text-4xl font-black text-taguig-navy dark:text-white font-display uppercase italic">{pendingAssets.length}</p>
                     </div>
                 </div>
@@ -537,9 +537,9 @@ const CommandCenter: React.FC = () => {
 
                     <div className="space-y-6">
                         <h2 className="heading-primary text-xl flex items-center justify-between mb-4">
-                            Active Resources
+                            {t.activeResources}
                             <button onClick={() => navigate('/resources')} className="text-xs font-bold bg-taguig-navy/5 dark:bg-white/10 px-3 py-1 rounded-lg hover:bg-taguig-navy hover:text-white transition-all flex items-center">
-                                View All <ArrowRight size={12} className="ml-1" />
+                                {t.viewAll} <ArrowRight size={12} className="ml-1" />
                             </button>
                         </h2>
 
@@ -613,7 +613,7 @@ const CommandCenter: React.FC = () => {
                         {/* UPCOMING ACTIVITIES SECTION */}
                         <div className="space-y-4 pt-4">
                             <h2 className="heading-primary text-xl flex items-center justify-between mb-4">
-                                Upcoming Activities
+                                {t.upcomingActivities}
                                 {user?.role === 'supervisor' && (
                                     <button
                                         onClick={() => setShowActivityModal(true)}
@@ -677,7 +677,7 @@ const CommandCenter: React.FC = () => {
                         {/* RECENT REQUESTS FOOTPRINT */}
                         <div className="space-y-4 pt-4">
                             <h2 className="heading-primary text-xl flex items-center justify-between mb-4">
-                                Recent Requests
+                                {t.recentRequests}
                             </h2>
                             <div className="space-y-3">
                                 {isLoading ? (

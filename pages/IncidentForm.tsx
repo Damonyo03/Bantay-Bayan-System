@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { incidentService } from '../services/incidentService';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { IncidentType, IncidentParty, IncidentWithDetails, IncidentStatus } from '../types';
 import { generateOfficialReport } from '../utils/pdfGenerator';
 import { Plus, Trash2, Save, FileText, ChevronRight, UserPlus, Check, AlertOctagon, Printer, RotateCcw, Shield } from 'lucide-react';
@@ -9,13 +10,14 @@ import PageHeader from '../components/PageHeader';
 
 const IncidentForm: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastIncident, setLastIncident] = useState<IncidentWithDetails | null>(null);
 
   // Initial State Constants
   const initialFormData = {
-    type: 'Medical' as IncidentType,
+    type: 'Theft' as IncidentType,
     narrative: '',
     location: '',
     status: 'Pending' as IncidentStatus,
@@ -130,13 +132,18 @@ const IncidentForm: React.FC = () => {
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as IncidentType })}
                 >
-                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Medical</option>
-                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Fire</option>
-                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Theft</option>
-                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Disturbance</option>
-                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Traffic</option>
-                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Logistics</option>
-                  <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Other</option>
+                  <option value="Theft" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.theft}</option>
+                  <option value="Physical Injury" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.physicalInjury}</option>
+                  <option value="Noise Complaint" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.noiseComplaint}</option>
+                  <option value="Domestic Dispute" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.domesticDispute}</option>
+                  <option value="Public Intoxication" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.publicIntoxication}</option>
+                  <option value="Traffic Obstruction" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.trafficObstruction}</option>
+                  <option value="Suspicious Activity" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.suspiciousActivity}</option>
+                  <option value="Medical" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.medical}</option>
+                  <option value="Fire" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.fire}</option>
+                  <option value="Disturbance" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.disturbance}</option>
+                  <option value="Logistics" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.logistics}</option>
+                  <option value="Other" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.other}</option>
                 </select>
               </div>
 
@@ -160,9 +167,9 @@ const IncidentForm: React.FC = () => {
                   value={formData.status}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, status: e.target.value as IncidentStatus })}
                 >
-                  <option value="Pending" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Record Only (Pending)</option>
-                  <option value="Dispatched" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Dispatch Patrol</option>
-                  <option value="Resolved" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Amicably Settled</option>
+                  <option value="Pending" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.pending}</option>
+                  <option value="Dispatched" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.dispatched}</option>
+                  <option value="Resolved" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{t.resolved}</option>
                 </select>
               </div>
 

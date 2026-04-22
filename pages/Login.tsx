@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { authService } from '../services/authService';
 import { supabase } from '../lib/supabaseClient';
 import { useTheme } from '../contexts/ThemeContext';
@@ -35,6 +36,7 @@ import { Link } from 'react-router-dom';
 const Login: React.FC = () => {
     const { login, verifyLoginMFA } = useAuth();
     const { theme, toggleTheme } = useTheme();
+    const { t } = useLanguage();
     const [view, setView] = useState<'login' | 'mfa' | 'forgot' | 'register'>('login');
 
     // Login State
@@ -203,7 +205,7 @@ const Login: React.FC = () => {
                         disabled={isLoading || mfaCode.length < 6}
                         className="w-full bg-taguig-blue text-white font-black py-4 rounded-2xl shadow-xl shadow-taguig-blue/20 hover:bg-taguig-navy transition-all disabled:opacity-50 uppercase tracking-widest text-xs"
                     >
-                        {isLoading ? 'Verifying...' : 'Verify Identity'}
+                        {isLoading ? 'Verifying...' : t.signIn}
                     </button>
                     <button type="button" onClick={() => setView('login')} className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600">Back to Credentials</button>
                 </form>
@@ -213,7 +215,7 @@ const Login: React.FC = () => {
 
     if (view === 'register') {
         return (
-            <ViewContainer title="Request Access" subtitle="Personnel Registration" icon={UserPlus}>
+            <ViewContainer title={t.joinSystem} subtitle="Personnel Registration" icon={UserPlus}>
                 {regSuccess ? (
                     <div className="text-center space-y-6 py-4 animate-slide-up">
                         <div className="w-20 h-20 bg-green-100 dark:bg-green-500/10 rounded-full flex items-center justify-center mx-auto text-green-600 dark:text-green-400">
@@ -236,7 +238,7 @@ const Login: React.FC = () => {
                         {error && <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium transition-all">{error}</div>}
                         
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.fullName}</label>
                             <input
                                 required
                                 value={regForm.fullName}
@@ -248,7 +250,7 @@ const Login: React.FC = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Username</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.username}</label>
                                 <input
                                     required
                                     value={regForm.username}
@@ -258,7 +260,7 @@ const Login: React.FC = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.email}</label>
                                 <input
                                     type="email"
                                     required
@@ -271,7 +273,7 @@ const Login: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.password}</label>
                             <div className="relative">
                                 <input
                                     type={showRegPassword ? "text" : "password"}
@@ -378,7 +380,7 @@ const Login: React.FC = () => {
                             disabled={isLoading}
                             className="w-full bg-taguig-blue text-white font-black py-4 rounded-2xl shadow-xl shadow-taguig-blue/20 hover:bg-taguig-navy transition-all uppercase tracking-widest text-[10px] mt-4"
                         >
-                            {isLoading ? 'Processing...' : 'Submit Credentials'}
+                            {isLoading ? 'Processing...' : t.createAccount}
                         </button>
                     </form>
                 )}
@@ -466,15 +468,15 @@ const Login: React.FC = () => {
                                 value={identifier}
                                 onChange={e => setIdentifier(e.target.value)}
                                 className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4.5 pl-14 pr-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                placeholder="Username or Email"
+                                placeholder={t.username + " or " + t.email}
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
                         <div className="flex justify-between items-center ml-1">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Security Key</label>
-                            <button type="button" onClick={() => setView('forgot')} className="text-[10px] font-black text-taguig-blue hover:underline uppercase tracking-widest">Forgot?</button>
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t.password}</label>
+                            <button type="button" onClick={() => setView('forgot')} className="text-[10px] font-black text-taguig-blue hover:underline uppercase tracking-widest">{t.forgotPassword}</button>
                         </div>
                         <div className="relative group">
                             <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-taguig-blue transition-colors" size={20} />
@@ -498,7 +500,7 @@ const Login: React.FC = () => {
                     disabled={isLoading}
                     className="w-full mt-4 bg-taguig-blue text-white font-black py-5 rounded-2xl shadow-xl shadow-taguig-blue/20 hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70 flex items-center justify-center space-x-3 group"
                 >
-                    <span className="uppercase tracking-[0.2em] text-xs">{isLoading ? 'Authenticating...' : 'Establish Connection'}</span>
+                    <span className="uppercase tracking-[0.2em] text-xs">{isLoading ? 'Authenticating...' : t.login}</span>
                     {!isLoading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
                 </button>
 
