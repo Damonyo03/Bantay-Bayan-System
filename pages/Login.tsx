@@ -63,6 +63,8 @@ const Login: React.FC = () => {
     const [showRegPassword, setShowRegPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [regSuccess, setRegSuccess] = useState(false);
+    const [idFile, setIdFile] = useState<File | null>(null);
+    const [idPreview, setIdPreview] = useState<string | null>(null);
 
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -155,7 +157,8 @@ const Login: React.FC = () => {
                 regForm.username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
                 regForm.password,
                 regForm.fullName,
-                regForm.role
+                regForm.role,
+                idFile || undefined
             );
             setRegSuccess(true);
 
@@ -321,6 +324,52 @@ const Login: React.FC = () => {
                                     {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
+                        </div>
+
+                        {/* ID Upload Section */}
+                        <div className="space-y-2 pt-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Photo of Valid ID</label>
+                            
+                            {!idPreview ? (
+                                <div className="relative group">
+                                    <label className="flex flex-col items-center justify-center w-full h-32 bg-slate-100 dark:bg-black/20 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-slate-200 dark:hover:bg-white/5 transition-all">
+                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                            <FileCheck className="text-slate-400 group-hover:text-taguig-blue mb-2 transition-colors" size={24} />
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Click to upload ID photo</p>
+                                        </div>
+                                        <input 
+                                            type="file" 
+                                            className="hidden" 
+                                            accept="image/*"
+                                            required
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    setIdFile(file);
+                                                    setIdPreview(URL.createObjectURL(file));
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            ) : (
+                                <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-32 group">
+                                    <img src={idPreview} alt="ID Preview" className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => {
+                                                setIdFile(null);
+                                                setIdPreview(null);
+                                            }}
+                                            className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+                                    <div className="absolute bottom-2 left-2 px-2 py-1 bg-taguig-blue text-white text-[8px] font-black uppercase rounded">ID Selected</div>
+                                </div>
+                            )}
                         </div>
 
                         <button

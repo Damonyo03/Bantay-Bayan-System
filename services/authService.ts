@@ -171,7 +171,7 @@ export const authService = {
         return data;
     },
 
-    registerUser: async (email: string, username: string, password: string, fullName: string, role: string) => {
+    registerUser: async (email: string, username: string, password: string, fullName: string, role: string, validIdFile?: File) => {
         // 0. Check if username is already taken
         const { data: existingUser } = await supabase
             .from('profiles')
@@ -183,7 +183,23 @@ export const authService = {
             throw new Error("Username is already taken. Please choose another.");
         }
 
-        // 1. Sign up with Supabase Auth
+        let validIdUrl = null;
+
+        // 1. Upload Valid ID if provided
+        if (validIdFile) {
+            const fileExt = validIdFile.name.split('.').pop();
+            const fileName = `${username}_${Date.now()}.${fileExt}`;
+            const filePath = `registration/${fileName}`;
+
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('identity-docs')
+                .upload(filePath, validIdFile);
+
+            if (uploadError) throw new Error("Failed to upload ID photo: " + uploadError.message);
+            validIdUrl = filePath;
+        }
+
+        // 2. Sign up with Supabase Auth
         const { data, error: signUpError } = await supabase.auth.signUp({
             email,
             password,
@@ -192,7 +208,8 @@ export const authService = {
                     full_name: fullName,
                     username: username,
                     role: role,
-                    status: 'pending'
+                    status: 'pending',
+                    valid_id_url: validIdUrl
                 },
                 emailRedirectTo: 'https://bantaybayanonline.vercel.app/#/login'
             }
@@ -201,9 +218,6 @@ export const authService = {
         if (signUpError) throw signUpError;
         if (!data.user) throw new Error("Registration failed - no user returned");
 
-        // Profile is handled by DB triggers/functions in this system architecture,
-        // but we can ensure the username/fullname are set if needed.
-        // Based on the SQL files, there's likely a trigger on auth.users.
         return data.user;
     }
 };
