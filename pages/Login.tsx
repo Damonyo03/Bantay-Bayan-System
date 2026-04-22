@@ -294,22 +294,7 @@ const Login: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Applying as</label>
-                            <div className="relative group">
-                                <select 
-                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all appearance-none cursor-pointer"
-                                    value={regForm.role}
-                                    onChange={e => setRegForm({ ...regForm, role: e.target.value as UserRole })}
-                                >
-                                    <option value="resident" className="dark:bg-slate-900">Regular Citizen (Verified Resident)</option>
-                                    <option value="bantay_bayan" className="dark:bg-slate-900">Bantay Bayan Officer (Security)</option>
-                                </select>
-                                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-focus-within:text-taguig-blue transition-colors" size={18} />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm Identity Key</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CONFIRM PASSWORD</label>
                             <div className="relative">
                                 <input
                                     type={showConfirmPassword ? "text" : "password"}
@@ -328,6 +313,23 @@ const Login: React.FC = () => {
                                 </button>
                             </div>
                         </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Applying as</label>
+                            <div className="relative group">
+                                <select 
+                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all appearance-none cursor-pointer"
+                                    value={regForm.role}
+                                    onChange={e => setRegForm({ ...regForm, role: e.target.value as UserRole })}
+                                >
+                                    <option value="resident" className="dark:bg-slate-900">Regular Citizen (Verified Resident)</option>
+                                    <option value="bantay_bayan" className="dark:bg-slate-900">Bantay Bayan Officer (Security)</option>
+                                </select>
+                                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-focus-within:text-taguig-blue transition-colors" size={18} />
+                            </div>
+                        </div>
+
+
 
                         {/* ID Upload Section */}
                         <div className="space-y-2 pt-2">
@@ -510,7 +512,7 @@ const Login: React.FC = () => {
                         className="w-full py-4 rounded-2xl border border-dashed border-slate-300 dark:border-white/10 text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-center space-x-2"
                     >
                         <UserPlus size={16} />
-                        <span>Request Personnel Membership</span>
+                        <span>REGISTER / SIGN-UP</span>
                     </button>
                 </div>
             </form>
