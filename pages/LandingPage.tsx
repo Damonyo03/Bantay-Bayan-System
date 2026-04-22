@@ -74,18 +74,17 @@ const LandingPage: React.FC = () => {
             <nav className="sticky top-0 left-0 right-0 z-[90] bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-shrink-0">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center space-x-6 group cursor-pointer" onClick={() => setMainIndex(0)}>
-                        <div className="flex items-center -space-x-2 md:-space-x-4">
+                        <div className="flex items-center space-x-2 md:space-x-4">
                             {SEALS.map((seal, idx) => (
                                 <img 
                                     key={idx} 
                                     src={seal.src} 
                                     alt={seal.alt} 
-                                    className="h-10 md:h-14 w-auto drop-shadow-2xl relative z-[5] transition-transform group-hover:scale-110" 
-                                    style={{ zIndex: SEALS.length - idx }}
+                                    className="h-10 md:h-14 w-auto drop-shadow-2xl transition-transform group-hover:scale-110" 
                                 />
                             ))}
                         </div>
-                        <div className="hidden sm:flex flex-col border-l-2 border-white/10 pl-6 h-full justify-center">
+                        <div className="hidden sm:flex flex-col border-l-2 border-white/10 pl-6 justify-center">
                             <h1 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tight leading-tight group-hover:text-taguig-gold transition-colors">Post Proper Northside</h1>
                         </div>
                     </div>
