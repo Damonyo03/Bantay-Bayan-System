@@ -76,11 +76,11 @@ const LandingPage: React.FC = () => {
                     <div className="flex items-center space-x-6 group cursor-pointer" onClick={() => setMainIndex(0)}>
                         <div className="flex items-center space-x-2 md:space-x-4">
                             {SEALS.map((seal, idx) => (
-                                <img 
-                                    key={idx} 
-                                    src={seal.src} 
-                                    alt={seal.alt} 
-                                    className="h-10 md:h-14 w-auto drop-shadow-2xl transition-transform group-hover:scale-110" 
+                                <img
+                                    key={idx}
+                                    src={seal.src}
+                                    alt={seal.alt}
+                                    className="h-10 md:h-14 w-auto drop-shadow-2xl transition-transform group-hover:scale-110"
                                 />
                             ))}
                         </div>
@@ -221,7 +221,7 @@ const LandingPage: React.FC = () => {
                                                 <div className="w-full max-w-xs md:max-w-md">
                                                     <MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" image="/OFFICIALS/KAP-RICHARD-PASADILLA.jpg" primary />
                                                 </div>
-                                                
+
                                                 {/* Connecting Line (Visual Only) */}
                                                 <div className="hidden md:block h-8 w-px bg-gradient-to-b from-taguig-blue to-white/10"></div>
 
@@ -290,7 +290,7 @@ const LandingPage: React.FC = () => {
                                         <div className="space-y-3 text-sm md:text-lg font-bold text-white/70 flex flex-col">
                                             <p className="flex justify-between"><span>Brgy. Hall:</span> <span className="text-white">(02) 8881 3898</span></p>
                                             <p className="flex items-center mt-4 text-xs md:text-sm text-slate-400 italic gap-3">
-                                                <MapPin size={16}/> Lawton Ave, Taguig City
+                                                <MapPin size={16} /> Lawton Ave, Taguig City
                                             </p>
                                             <button onClick={() => navigate('/login')} className="text-left hover:text-white transition-colors mt-6 bg-white/5 px-6 py-4 rounded-2xl border border-white/10 text-xs md:text-sm uppercase font-black tracking-widest ">Admin Portal Access</button>
                                         </div>
