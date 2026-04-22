@@ -5,6 +5,10 @@ import { createClient } from '@supabase/supabase-js';
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 export const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+if (!supabaseUrl || !supabaseKey) {
+  console.error("SUPABASE CONFIG MISSING: Check your .env.local file and ensure variables are prefixed with VITE_");
+}
+
 // Create Client
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
