@@ -28,7 +28,7 @@ import PageHeader from '../components/PageHeader';
 const Applications: React.FC = () => {
     const { showToast } = useToast();
     const { user, isHighLevelAdmin } = useAuth();
-    const [pendingUsers, setPendingUsers] = useState<UserProfile[]>([]);
+    const [pendingUsers, setPendingUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('All');
@@ -41,12 +41,8 @@ const Applications: React.FC = () => {
     const fetchPendingUsers = async () => {
         setLoading(true);
         try {
-            const data = await userService.getUsers();
-            // Show pending/inactive users for approval
-            setPendingUsers(data.filter(u => 
-                (u.status === 'pending' || u.status === 'inactive') && 
-                u.role !== 'developer' // Don't show developer accounts in application desk
-            ));
+            const data = await userService.getPendingApplications();
+            setPendingUsers(data);
         } catch (error) {
             showToast("Failed to fetch applications", "error");
         } finally {
@@ -57,11 +53,9 @@ const Applications: React.FC = () => {
     useEffect(() => {
         fetchPendingUsers();
 
-        const channel = userService.subscribeToNewRegistrations((newProfile) => {
-            if ((newProfile.status === 'pending' || newProfile.status === 'inactive')) {
-                showToast(`New application: ${newProfile.full_name}`, "info");
-                fetchPendingUsers();
-            }
+        const channel = userService.subscribeToNewRegistrations((newApp) => {
+            showToast(`New registration attempt: ${newApp.full_name}`, "info");
+            fetchPendingUsers();
         });
 
         return () => {
@@ -89,8 +83,8 @@ const Applications: React.FC = () => {
 
     const handleApprove = async (id: string, name: string) => {
         try {
-            await userService.updateUserStatus(id, 'active');
-            showToast(`Application approved for ${name}.`, "success");
+            await userService.approveApplication(id);
+            showToast(`Application approved. ${name} is now an official member.`, "success");
             fetchPendingUsers();
         } catch (error) {
             showToast("Failed to approve application", "error");
@@ -98,10 +92,10 @@ const Applications: React.FC = () => {
     };
 
     const handleReject = async (id: string, name: string) => {
-        if (!confirm(`Reject application for ${name}?`)) return;
+        if (!confirm(`Reject application for ${name}? This will remove their registration attempt.`)) return;
         try {
-            await userService.updateUserStatus(id, 'rejected');
-            showToast("Application rejected", "info");
+            await userService.rejectApplication(id);
+            showToast("Application rejected and removed from queue.", "info");
             fetchPendingUsers();
         } catch (error) {
             showToast("Failed to reject application", "error");
@@ -123,8 +117,8 @@ const Applications: React.FC = () => {
     return (
         <div className="space-y-8 pb-20 animate-fade-in relative z-10">
             <PageHeader 
-                title="Registration Desk" 
-                subtitle="Review and authorize new membership requests and verify identity documents" 
+                title="Registration Queue" 
+                subtitle="Isolated desk for reviewing new identity-verified membership requests" 
             />
 
             <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
@@ -207,7 +201,7 @@ const Applications: React.FC = () => {
                                     <div className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center">
                                         <Clock size={14} />
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Applied {new Date(applicant.created_at).toLocaleDateString()}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Applied {new Date(applicant.applied_at).toLocaleDateString()}</span>
                                 </div>
                             </div>
 

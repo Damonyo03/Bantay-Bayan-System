@@ -18,6 +18,33 @@ export const userService = {
         return data as UserProfile[];
     },
 
+    getPendingApplications: async (): Promise<any[]> => {
+        const { data, error } = await supabase
+            .from('registration_applications')
+            .select('*')
+            .order('applied_at', { ascending: false });
+        if (error) throw error;
+        return data;
+    },
+
+    approveApplication: async (userId: string) => {
+        const { error } = await supabase.rpc('approve_registration_application', { target_user_id: userId });
+        if (error) throw error;
+    },
+
+    rejectApplication: async (userId: string) => {
+        // Delete from applications queue
+        const { error: queueError } = await supabase
+            .from('registration_applications')
+            .delete()
+            .eq('id', userId);
+        if (queueError) throw queueError;
+
+        // Also delete the auth user since they were never approved
+        const { error: authError } = await supabase.rpc('delete_user_by_id', { user_uuid: userId });
+        if (authError) throw authError;
+    },
+
     updateUserStatus: async (id: string, status: 'active' | 'inactive' | 'pending' | 'rejected' | 'deactivated') => {
         const { error } = await supabase.from('profiles').update({ status }).eq('id', id);
         if (error) throw error;
@@ -106,11 +133,11 @@ export const userService = {
     },
 
     // Realtime Helpers
-    subscribeToNewRegistrations: (onNewRegistration: (profile: UserProfile) => void) => {
+    subscribeToNewRegistrations: (onNewRegistration: (application: any) => void) => {
         return supabase
-            .channel('public_profiles_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
-                onNewRegistration(payload.new as UserProfile);
+            .channel('registration_applications_changes')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'registration_applications' }, (payload) => {
+                onNewRegistration(payload.new);
             })
             .subscribe();
     },
