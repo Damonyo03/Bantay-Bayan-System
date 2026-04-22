@@ -287,7 +287,7 @@ const Login: React.FC = () => {
                                     value={regForm.password}
                                     onChange={e => setRegForm({ ...regForm, password: e.target.value })}
                                     className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 pr-12 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                    placeholder="••••••••"
+                                    placeholder="Create a strong password"
                                 />
                                 <button
                                     type="button"
@@ -297,6 +297,9 @@ const Login: React.FC = () => {
                                     {showRegPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
+                            <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-1 ml-1 leading-relaxed">
+                                Standard: 8+ characters, 1 uppercase, 1 number, and 1 special symbol.
+                            </p>
                         </div>
 
                         <div className="space-y-2">
@@ -308,7 +311,7 @@ const Login: React.FC = () => {
                                     value={regForm.confirmPassword}
                                     onChange={e => setRegForm({ ...regForm, confirmPassword: e.target.value })}
                                     className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 pr-12 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                    placeholder="Re-enter security key"
+                                    placeholder="Confirm your password"
                                 />
                                 <button
                                     type="button"
