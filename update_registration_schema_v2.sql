@@ -1,11 +1,14 @@
 
--- Update Profiles table with new fields for Regular Citizens
-ALTER TABLE public.profiles 
-ADD COLUMN IF NOT EXISTS area text,
-ADD COLUMN IF NOT EXISTS address text,
-ADD COLUMN IF NOT EXISTS contact_info text;
+-- Ensure debug_logs table exists
+CREATE TABLE IF NOT EXISTS public.debug_logs (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    event_type text,
+    error_message text,
+    data jsonb,
+    created_at timestamptz DEFAULT now()
+);
 
--- Update handle_new_user trigger to extract new metadata fields
+-- Update handle_new_user trigger to extract new metadata fields and log errors
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
@@ -42,47 +45,60 @@ BEGIN
     v_final_username := v_base_username || '_' || substr(md5(random()::text), 1, 4);
   END LOOP;
 
-  -- 2. ATOMIC LINK-OR-INSERT
-  UPDATE public.profiles 
-  SET id = new.id, 
-      email = new.email,
-      full_name = v_full_name,
-      role = v_final_role,
-      status = 'inactive'::public.user_status,
-      username = v_final_username,
-      valid_id_url = v_valid_id_url,
-      area = v_area,
-      address = v_address,
-      contact_info = v_contact_info,
-      last_active_at = now()
-  WHERE email = new.email;
+  BEGIN
+    -- 2. ATOMIC LINK-OR-INSERT
+    UPDATE public.profiles 
+    SET id = new.id, 
+        email = new.email,
+        full_name = v_full_name,
+        role = v_final_role::public.user_role,
+        status = 'inactive'::public.user_status,
+        username = v_final_username,
+        valid_id_url = v_valid_id_url,
+        area = v_area,
+        address = v_address,
+        contact_info = v_contact_info,
+        last_active_at = now()
+    WHERE email = new.email;
 
-  IF NOT FOUND THEN
-    INSERT INTO public.profiles (
-        id, email, full_name, role, status, username, valid_id_url, 
-        area, address, contact_info, last_active_at
-    )
+    IF NOT FOUND THEN
+      INSERT INTO public.profiles (
+          id, email, full_name, role, status, username, valid_id_url, 
+          area, address, contact_info, last_active_at
+      )
+      VALUES (
+        new.id,
+        new.email,
+        v_full_name,
+        v_final_role::public.user_role,
+        'inactive'::public.user_status,
+        v_final_username,
+        v_valid_id_url,
+        v_area,
+        v_address,
+        v_contact_info,
+        now()
+      );
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    INSERT INTO public.debug_logs (event_type, error_message, data)
     VALUES (
-      new.id,
-      new.email,
-      v_full_name,
-      v_final_role,
-      'inactive'::public.user_status,
-      v_final_username,
-      v_valid_id_url,
-      v_area,
-      v_address,
-      v_contact_info,
-      now()
-    )
-    ON CONFLICT (id) DO NOTHING;
-  END IF;
+        'handle_new_user_error', 
+        SQLERRM, 
+        jsonb_build_object(
+            'user_id', new.id,
+            'email', new.email,
+            'metadata', new.raw_user_meta_data
+        )
+    );
+    RAISE EXCEPTION 'Database error saving new user: %', SQLERRM;
+  END;
 
   RETURN NEW;
 END;
 $$;
 
--- Recreate the trigger on auth.users (since CASCADE dropped it)
+-- Recreate the trigger on auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -138,7 +154,7 @@ $$;
 ALTER TABLE public.approval_notifications 
 ADD COLUMN IF NOT EXISTS notification_type text DEFAULT 'approval'; 
 
-DROP FUNCTION IF EXISTS public.handle_status_change_notification();
+DROP FUNCTION IF EXISTS public.handle_status_change_notification() CASCADE;
 CREATE OR REPLACE FUNCTION public.handle_status_change_notification()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -161,7 +177,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS on_profile_approved_notify ON public.profiles;
 DROP TRIGGER IF EXISTS on_profile_status_notify ON public.profiles;
 CREATE TRIGGER on_profile_status_notify 
 AFTER UPDATE ON public.profiles 

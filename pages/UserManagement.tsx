@@ -7,7 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera as CameraIcon, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, CalendarRange, CheckCircle, CalendarDays, ChevronDown, Check, Navigation, Copy, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Users, Shield, UserCheck, UserX, Plus, X, Lock, User, Mail, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertTriangle, Fingerprint, Clock, RefreshCw, Edit, Save, Camera as CameraIcon, Search, Filter, MoreHorizontal, Moon, Sun, Sunrise, Sunset, CalendarRange, CheckCircle, CalendarDays, ChevronDown, Check, Navigation, Copy, Trash2, Eye, EyeOff, BadgeCheck, FileText, Phone, MapPin, ExternalLink } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
@@ -86,6 +86,11 @@ const UserManagement: React.FC = () => {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isSavingEdit, setIsSavingEdit] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Profile Detail Modal State
+    const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
+    const [idPhotoUrl, setIdPhotoUrl] = useState<string | null>(null);
+    const [isLoadingId, setIsLoadingId] = useState(false);
 
     const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -287,25 +292,43 @@ const UserManagement: React.FC = () => {
         if (!editingSchedule) return;
         if (editingSchedule.date.getDay() === 6 && newStatus === 'Day Off') {
             showToast("Saturday cannot be a Day Off.", "error");
-            return;
-        }
-
         setIsSavingSchedule(true);
         try {
-            const dateStr = getLocalDateStr(editingSchedule.date);
             await userService.upsertSchedule({
                 user_id: editingSchedule.userId,
-                date: dateStr,
+                date: getLocalDateStr(editingSchedule.date),
                 shift: newShift,
                 status: newStatus
             });
-            showToast("Schedule updated", "success");
+            showToast("Deployment updated", "success");
             setEditingSchedule(null);
             fetchSchedules();
-        } catch (error) {
-            showToast("Failed to save schedule", "error");
+        } catch (error: any) {
+            showToast("Failed to update deployment", "error");
         } finally {
             setIsSavingSchedule(false);
+        }
+    };
+
+    const handleViewDetails = async (profile: UserProfile) => {
+        setSelectedProfile(profile);
+        if (profile.valid_id_url) {
+            setIsLoadingId(true);
+            try {
+                const { data, error } = await supabase.storage
+                    .from('identity-docs')
+                    .createSignedUrl(profile.valid_id_url, 3600);
+                
+                if (error) throw error;
+                setIdPhotoUrl(data.signedUrl);
+            } catch (err) {
+                console.error("Error generating signed URL:", err);
+                setIdPhotoUrl(null);
+            } finally {
+                setIsLoadingId(false);
+            }
+        } else {
+            setIdPhotoUrl(null);
         }
     };
 
@@ -661,7 +684,7 @@ const UserManagement: React.FC = () => {
     );
 
     const pendingUsers = users.filter((u: UserProfile) => 
-        u.status === 'pending' && 
+        (u.status === 'pending' || u.status === 'inactive') && 
         (u.role === 'bantay_bayan' || u.role === 'resident')
     );
 
@@ -892,10 +915,15 @@ const UserManagement: React.FC = () => {
                                                                         <X size={12} className="mr-1.5" />
                                                                         Rejected
                                                                     </span>
-                                                                ) : (
-                                                                    <span className="text-xs font-bold text-orange-700 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 px-3 py-1 rounded-full border border-orange-200 dark:border-orange-800 flex items-center w-fit">
+                                                                ) : rowUser.status === 'inactive' ? (
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 px-3 py-1.5 rounded-xl border border-amber-200 dark:border-amber-900/20 flex items-center w-fit">
                                                                         <AlertTriangle size={12} className="mr-1.5" />
-                                                                        Pending Review
+                                                                        Unverified
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest text-taguig-blue dark:text-taguig-gold bg-taguig-blue/5 dark:bg-taguig-gold/5 px-3 py-1.5 rounded-xl border border-taguig-blue/10 dark:border-taguig-gold/10 flex items-center w-fit">
+                                                                        <BadgeCheck size={12} className="mr-1.5" />
+                                                                        Pending Approval
                                                                     </span>
                                                                 )}
                                                             </td>
@@ -941,7 +969,17 @@ const UserManagement: React.FC = () => {
 
                                                                     {rowUser.status !== 'active' && (
                                                                         <>
-                                                                            {rowUser.status === 'inactive' && (
+                                                                            {(rowUser.status === 'inactive' || rowUser.status === 'pending') && (
+                                                                                <button
+                                                                                    onClick={() => handleViewDetails(rowUser)}
+                                                                                    className="p-2 text-slate-500 hover:text-taguig-blue bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors shadow-sm"
+                                                                                    title="View Registration Details"
+                                                                                >
+                                                                                    <Eye size={16} />
+                                                                                </button>
+                                                                            )}
+
+                                                                            {(rowUser.status === 'inactive' || rowUser.status === 'pending') && (
                                                                                 <button
                                                                                     onClick={() => handleRejectUser(rowUser.id)}
                                                                                     className="text-xs font-bold px-3 py-2 rounded-lg bg-white dark:bg-slate-700 text-orange-600 border border-slate-200 dark:border-slate-600 hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-all shadow-sm"
@@ -1599,6 +1637,138 @@ const UserManagement: React.FC = () => {
                                 )}
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Profile Detail Modal */}
+            {selectedProfile && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden border border-white dark:border-white/10 max-h-[90vh] flex flex-col">
+                        {/* Modal Header */}
+                        <div className="px-8 py-6 border-b border-taguig-blue/10 dark:border-white/5 bg-taguig-blue/5 flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                                <div className="w-14 h-14 bg-taguig-blue text-white rounded-2xl flex items-center justify-center shadow-lg shadow-taguig-blue/20">
+                                    <FileText size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-2xl text-taguig-blue dark:text-white uppercase tracking-tight italic">Registration Detail</h3>
+                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Resident Verification Pipeline</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setSelectedProfile(null)} 
+                                className="w-12 h-12 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-full flex items-center justify-center text-slate-400 hover:text-taguig-red transition-all shadow-sm"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Basic Info */}
+                                <div className="space-y-6">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest">Full Legal Name</label>
+                                        <p className="text-lg font-bold text-slate-900 dark:text-white">{selectedProfile.full_name}</p>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest">Email Address</label>
+                                        <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 font-bold">
+                                            <Mail size={16} className="text-taguig-blue" />
+                                            <span>{selectedProfile.email}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest">Contact Information</label>
+                                        <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 font-bold">
+                                            <Phone size={16} className="text-taguig-blue" />
+                                            <span>{selectedProfile.contact_info || 'Not Provided'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Address Info */}
+                                <div className="space-y-6">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest">Resident Area</label>
+                                        <div className="flex items-center space-x-2">
+                                            <MapPin size={16} className="text-taguig-red" />
+                                            <span className="bg-taguig-blue/10 text-taguig-blue dark:bg-taguig-gold/10 dark:text-taguig-gold px-3 py-1 rounded-lg text-sm font-black uppercase tracking-widest border border-taguig-blue/10 dark:border-taguig-gold/10">
+                                                {selectedProfile.area || 'Other/Unspecified'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest">Full Address</label>
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                                            {selectedProfile.address || 'No detailed address provided.'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ID Section */}
+                            <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest">Verification Document (Valid ID)</label>
+                                {isLoadingId ? (
+                                    <div className="h-64 bg-slate-100 dark:bg-white/5 rounded-3xl animate-pulse flex flex-col items-center justify-center space-y-4">
+                                        <RefreshCw size={32} className="text-taguig-blue/40 animate-spin" />
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Decrypting Identity Doc...</p>
+                                    </div>
+                                ) : idPhotoUrl ? (
+                                    <div className="group relative rounded-[2rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-premium group">
+                                        <img src={idPhotoUrl} alt="Valid ID" className="w-full h-auto max-h-[400px] object-contain bg-slate-900" />
+                                        <div className="absolute inset-0 bg-taguig-blue/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
+                                            <a href={idPhotoUrl} target="_blank" rel="noopener noreferrer" className="bg-white text-taguig-blue px-6 py-3 rounded-full font-black uppercase tracking-widest text-[11px] shadow-2xl hover:scale-110 transition-transform flex items-center space-x-2">
+                                                <ExternalLink size={16} />
+                                                <span>View Full Quality</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="h-48 bg-slate-50 dark:bg-white/5 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center space-y-3">
+                                        <div className="w-12 h-12 bg-slate-100 dark:bg-white/10 rounded-full flex items-center justify-center text-slate-400">
+                                            <CameraIcon size={24} />
+                                        </div>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No Document Uploaded</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Modal Footer Actions */}
+                        <div className="px-8 py-6 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Status</span>
+                                <span className={`text-xs font-black uppercase tracking-widest mt-1 ${selectedProfile.status === 'inactive' ? 'text-amber-500' : 'text-taguig-blue'}`}>
+                                    {selectedProfile.status === 'inactive' ? '• Awaiting Email Verification' : '• Verified & Awaiting Approval'}
+                                </span>
+                            </div>
+                            
+                            <div className="flex items-center space-x-3">
+                                <button 
+                                    onClick={() => setSelectedProfile(null)}
+                                    className="px-6 py-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-500 font-black uppercase tracking-widest text-[11px] hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                                >
+                                    Close
+                                </button>
+                                {selectedProfile.status === 'pending' && (
+                                    <button 
+                                        onClick={() => {
+                                            handleToggleStatus(selectedProfile.id, selectedProfile.status);
+                                            setSelectedProfile(null);
+                                        }}
+                                        className="bg-taguig-blue text-white px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[11px] shadow-lg shadow-taguig-blue/30 hover:bg-taguig-navy transition-all"
+                                    >
+                                        Approve Account
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
