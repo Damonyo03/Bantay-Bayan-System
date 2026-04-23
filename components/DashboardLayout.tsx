@@ -8,7 +8,39 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+    const { user, logout } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // If the user is pending approval, show a restricted view
+    if (user?.status === 'pending') {
+        return (
+            <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 font-sans antialiased">
+                <main className="flex-1 flex items-center justify-center p-6">
+                    <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-premium border border-slate-200 dark:border-white/10 text-center animate-fade-in">
+                        <div className="w-20 h-20 bg-orange-100 dark:bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-600">
+                            <Clock size={40} className="animate-pulse" />
+                        </div>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tight mb-4">Application Pending</h2>
+                        <p className="text-slate-600 dark:text-slate-400 font-medium mb-8">
+                            Thank you for verifying your email! Your registration has been received and is now in the queue for administrator review.
+                        </p>
+                        <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-6 mb-8 border border-slate-100 dark:border-white/5">
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.2em] mb-2">Next Steps</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-300 font-semibold">
+                                You will receive an email notification once your account has been approved or if further information is required.
+                            </p>
+                        </div>
+                        <button 
+                            onClick={() => logout()}
+                            className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="relative min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 font-sans antialiased selection:bg-taguig-gold/30 selection:text-taguig-navy">
@@ -30,7 +62,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 
                 <div className="flex items-center space-x-2">
                     <div className="w-9 h-9 rounded-full bg-taguig-navy dark:bg-taguig-blue text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-slate-800">
-                        {/* Avatar will be handled by PageHeader or we can add a small one here */}
                         <SidebarTriggerAvatar />
                     </div>
                 </div>

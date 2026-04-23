@@ -30,13 +30,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const profile = await authService.getCurrentUserProfile();
-        // Even on auto-login/refresh, check status
-        if (profile && profile.status !== 'active') {
-          // If the profile exists but is not active (pending, inactive, etc), 
-          // clear the session to prevent unauthorized access.
-          await authService.logout();
-          setUser(null);
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        let profile = await authService.getCurrentUserProfile();
+
+        if (profile && authUser) {
+          // Auto-verify: If user is 'inactive' (unverified) but email is confirmed, 
+          // upgrade them to 'pending' so they reflect in the admin queue.
+          if (profile.status === 'inactive' && authUser.email_confirmed_at) {
+            try {
+              const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ status: 'pending' })
+                .eq('id', profile.id);
+              
+              if (!updateError) {
+                profile.status = 'pending';
+              }
+            } catch (err) {
+              console.error("Auto-verification update failed:", err);
+            }
+          }
+
+          // Allow 'active' and 'pending' users to maintain a session
+          // 'pending' users will be handled by the UI (e.g. redirected or shown a restricted view)
+          if (profile.status === 'active' || profile.status === 'pending') {
+            setUser(profile);
+          } else {
+            // Rejected or Deactivated
+            await authService.logout();
+            setUser(null);
+          }
         } else {
           setUser(profile);
         }
@@ -83,14 +106,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { user, mfaRequired } = await authService.login(email, password);
 
-      if (user.status === 'pending') {
-        await authService.logout();
-        throw new Error("Your registration is pending manual admin approval. Please wait for an administrator to review your account.");
+      if (user.status === 'inactive') {
+        // If they managed to log in, it means they are verified in Auth.
+        // We update their status to 'pending' now.
+        try {
+          await supabase.from('profiles').update({ status: 'pending' }).eq('id', user.id);
+          user.status = 'pending';
+        } catch (err) {
+          console.error("Failed to upgrade status during login", err);
+        }
       }
 
-      if (user.status !== 'active') {
+      if (user.status === 'rejected') {
         await authService.logout();
-        throw new Error("Your account is currently inactive or has been rejected. Contact the administrator.");
+        throw new Error("Your application has been rejected. Please contact the barangay office for more information.");
+      }
+
+      if (user.status === 'deactivated') {
+        await authService.logout();
+        throw new Error("Your account has been deactivated. Please contact the administrator.");
       }
 
       // We set the user temporarily so we can display their name during 2FA challenge

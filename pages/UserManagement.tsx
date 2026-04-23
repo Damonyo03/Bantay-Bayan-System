@@ -661,8 +661,8 @@ const UserManagement: React.FC = () => {
     );
 
     const pendingUsers = users.filter((u: UserProfile) => 
-        (u.status === 'inactive' || u.status === 'pending') && 
-        u.role === 'bantay_bayan'
+        u.status === 'pending' && 
+        (u.role === 'bantay_bayan' || u.role === 'resident')
     );
 
     const filteredUsers = (
