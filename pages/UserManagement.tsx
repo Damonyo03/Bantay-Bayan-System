@@ -1263,16 +1263,18 @@ const UserManagement: React.FC = () => {
                                         onChange={e => setEditFormData({ ...editFormData, full_name: e.target.value })}
                                     />
                                 </div>
-                                <div>
-                                    <label htmlFor="editBadgeId" className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
-                                    <input
-                                        id="editBadgeId"
-                                        readOnly
-                                        type="text"
-                                        className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl py-3.5 px-4 outline-none text-slate-500 dark:text-slate-500 font-mono transition-all cursor-not-allowed"
-                                        value={editFormData.badge_number}
-                                    />
-                                </div>
+                                {!['resident', 'guest'].includes(editingUser.role) && (
+                                    <div>
+                                        <label htmlFor="editBadgeId" className="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">{t.badgeId}</label>
+                                        <input
+                                            id="editBadgeId"
+                                            readOnly
+                                            type="text"
+                                            className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl py-3.5 px-4 outline-none text-slate-500 dark:text-slate-500 font-mono transition-all cursor-not-allowed"
+                                            value={editFormData.badge_number}
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-4 flex gap-4">

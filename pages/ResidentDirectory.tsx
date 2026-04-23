@@ -68,7 +68,6 @@ const ResidentDirectory: React.FC = () => {
             'Email': r.email,
             'Role': r.role === 'resident' ? 'Verified Resident' : 'Guest',
             'Status': r.status,
-            'Badge Number': r.badge_number || 'N/A',
             'Created At': new Date(r.created_at).toLocaleString()
         }));
         exportToExcel(exportData, 'Citizen_Roster');

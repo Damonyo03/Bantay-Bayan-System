@@ -60,8 +60,13 @@ const Login: React.FC = () => {
         email: '',
         password: '',
         confirmPassword: '',
-        role: 'resident' as UserRole
+        role: '' as UserRole | '',
+        area: '',
+        otherArea: '',
+        address: '',
+        contactInfo: ''
     });
+    const [regStep, setRegStep] = useState<1 | 2 | 3>(1);
 
     const [showRegPassword, setShowRegPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -195,8 +200,13 @@ const Login: React.FC = () => {
                 regForm.username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
                 regForm.password,
                 regForm.fullName,
-                regForm.role,
-                idFile || undefined
+                regForm.role as string,
+                idFile || undefined,
+                {
+                    area: regForm.area === 'OTHERS' ? regForm.otherArea : regForm.area,
+                    address: regForm.address,
+                    contactInfo: regForm.contactInfo
+                }
             );
             setRegSuccess(true);
 
@@ -249,180 +259,270 @@ const Login: React.FC = () => {
     }
 
     if (view === 'register') {
+        const AREAS = ['VICINITY', 'CENTENNIAL', 'DREAMLAND', 'JAILSIDE', 'BANLIC', 'GOLF', 'KATIPUNAN', 'OTHERS'];
+
         return (
-            <ViewContainer title={t.joinSystem} subtitle="Personnel Registration" icon={UserPlus} dbStatus={dbStatus}>
+            <ViewContainer title={t.joinSystem} subtitle={`Step ${regStep} of 3`} icon={UserPlus} dbStatus={dbStatus}>
                 {regSuccess ? (
                     <div className="text-center space-y-6 py-4 animate-slide-up">
                         <div className="w-20 h-20 bg-green-100 dark:bg-green-500/10 rounded-full flex items-center justify-center mx-auto text-green-600 dark:text-green-400">
                             <CheckCircle size={40} />
                         </div>
                         <div className="space-y-3">
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic">Verification Required</h2>
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic">Application Submitted</h2>
                             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium px-4">
-                                We've sent a confirmation link to your email. Please verify it to continue.
+                                Thank you for signing up! We've sent a confirmation link to <strong>{regForm.email}</strong>.
                             </p>
                             <div className="p-4 bg-taguig-blue/5 dark:bg-taguig-gold/5 rounded-2xl border border-taguig-blue/10">
-                                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Next Step</p>
-                                <p className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 uppercase">After verification, our admin will review and approve your access.</p>
+                                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">What's Next?</p>
+                                <p className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 uppercase">
+                                    Once you confirm your email, our administrators will review your application. You will receive another email once your account is approved or rejected.
+                                </p>
                             </div>
                         </div>
                         <button onClick={() => setView('login')} className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black py-4 rounded-2xl uppercase tracking-widest text-[10px]">Return to Login</button>
                     </div>
                 ) : (
-                    <form onSubmit={handleRegister} className="space-y-5">
+                    <div className="space-y-6">
                         {error && <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium transition-all">{error}</div>}
                         
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.fullName}</label>
-                            <input
-                                required
-                                value={regForm.fullName}
-                                onChange={e => setRegForm({ ...regForm, fullName: e.target.value })}
-                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                placeholder="e.g. Juan S. Dela Cruz"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.username}</label>
-                                <input
-                                    required
-                                    value={regForm.username}
-                                    onChange={e => setRegForm({ ...regForm, username: e.target.value })}
-                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                    placeholder="jdelacruz"
-                                />
+                        {/* Step 1: Role Selection */}
+                        {regStep === 1 && (
+                            <div className="space-y-6 animate-slide-up">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">What role are you applying for?</label>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                setRegForm({ ...regForm, role: 'resident' });
+                                                setRegStep(2);
+                                            }}
+                                            className={`p-6 rounded-3xl border-2 text-left transition-all flex items-center justify-between group ${regForm.role === 'resident' ? 'border-taguig-blue bg-taguig-blue/5' : 'border-slate-100 dark:border-white/5 hover:border-taguig-blue/30'}`}
+                                        >
+                                            <div>
+                                                <p className="font-black text-slate-900 dark:text-white uppercase italic">Regular Citizen</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Verified Resident of Northside Terminal</p>
+                                            </div>
+                                            <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-taguig-blue group-hover:text-white transition-all">
+                                                <User size={20} />
+                                            </div>
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                setRegForm({ ...regForm, role: 'bantay_bayan' });
+                                                setRegStep(2);
+                                            }}
+                                            className={`p-6 rounded-3xl border-2 text-left transition-all flex items-center justify-between group ${regForm.role === 'bantay_bayan' ? 'border-taguig-blue bg-taguig-blue/5' : 'border-slate-100 dark:border-white/5 hover:border-taguig-blue/30'}`}
+                                        >
+                                            <div>
+                                                <p className="font-black text-slate-900 dark:text-white uppercase italic">Bantay Bayan</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Security & Peacekeeping Officer</p>
+                                            </div>
+                                            <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-taguig-blue group-hover:text-white transition-all">
+                                                <Shield size={20} />
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button onClick={() => setView('login')} className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 py-2">Cancel Registration</button>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.email}</label>
-                                <input
-                                    type="email"
-                                    required
-                                    value={regForm.email}
-                                    onChange={e => setRegForm({ ...regForm, email: e.target.value })}
-                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                    placeholder="j@gov.ph"
-                                />
-                            </div>
-                        </div>
+                        )}
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.password}</label>
-                            <div className="relative">
-                                <input
-                                    type={showRegPassword ? "text" : "password"}
-                                    required
-                                    value={regForm.password}
-                                    onChange={e => setRegForm({ ...regForm, password: e.target.value })}
-                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 pr-12 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                    placeholder="Create a strong password"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowRegPassword(!showRegPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-taguig-blue transition-colors focus:outline-none"
-                                >
-                                    {showRegPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
-                            </div>
-                            <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-1 ml-1 leading-relaxed">
-                                Standard: 8+ characters, 1 uppercase, 1 number, and 1 special symbol.
-                            </p>
-                        </div>
+                        {/* Step 2: Personal Information */}
+                        {regStep === 2 && (
+                            <div className="space-y-4 animate-slide-up">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                                    <input
+                                        required
+                                        value={regForm.fullName}
+                                        onChange={e => setRegForm({ ...regForm, fullName: e.target.value })}
+                                        className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                        placeholder="e.g. Juan S. Dela Cruz"
+                                    />
+                                </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CONFIRM PASSWORD</label>
-                            <div className="relative">
-                                <input
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    required
-                                    value={regForm.confirmPassword}
-                                    onChange={e => setRegForm({ ...regForm, confirmPassword: e.target.value })}
-                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 pr-12 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
-                                    placeholder="Confirm your password"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-taguig-blue transition-colors focus:outline-none"
-                                >
-                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
-                            </div>
-                        </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={regForm.email}
+                                        onChange={e => setRegForm({ ...regForm, email: e.target.value })}
+                                        className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                        placeholder="juan@email.com"
+                                    />
+                                </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Applying as</label>
-                            <div className="relative group">
-                                <select 
-                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all appearance-none cursor-pointer"
-                                    value={regForm.role}
-                                    onChange={e => setRegForm({ ...regForm, role: e.target.value as UserRole })}
-                                >
-                                    <option value="resident" className="dark:bg-slate-900">Regular Citizen (Verified Resident)</option>
-                                    <option value="bantay_bayan" className="dark:bg-slate-900">Bantay Bayan Officer (Security)</option>
-                                </select>
-                                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-focus-within:text-taguig-blue transition-colors" size={18} />
-                            </div>
-                        </div>
-
-
-
-                        {/* ID Upload Section */}
-                        <div className="space-y-2 pt-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Photo of Valid ID</label>
-                            
-                            {!idPreview ? (
-                                <div className="relative group">
-                                    <label className="flex flex-col items-center justify-center w-full h-32 bg-slate-100 dark:bg-black/20 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-slate-200 dark:hover:bg-white/5 transition-all">
-                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <FileCheck className="text-slate-400 group-hover:text-taguig-blue mb-2 transition-colors" size={24} />
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Click to upload ID photo</p>
+                                {regForm.role === 'resident' && (
+                                    <>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Area / Vicinity</label>
+                                            <div className="relative group">
+                                                <select 
+                                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all appearance-none cursor-pointer"
+                                                    value={regForm.area}
+                                                    onChange={e => setRegForm({ ...regForm, area: e.target.value })}
+                                                    required
+                                                >
+                                                    <option value="" disabled className="dark:bg-slate-900">Select Area</option>
+                                                    {AREAS.map(a => (
+                                                        <option key={a} value={a} className="dark:bg-slate-900">{a}</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-focus-within:text-taguig-blue transition-colors" size={18} />
+                                            </div>
                                         </div>
-                                        <input 
-                                            type="file" 
-                                            className="hidden" 
-                                            accept="image/*"
+
+                                        {regForm.area === 'OTHERS' && (
+                                            <div className="space-y-2 animate-slide-up">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Please specify Area</label>
+                                                <input
+                                                    required
+                                                    value={regForm.otherArea}
+                                                    onChange={e => setRegForm({ ...regForm, otherArea: e.target.value })}
+                                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                                    placeholder="Specify your location"
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Address</label>
+                                            <textarea
+                                                required
+                                                value={regForm.address}
+                                                onChange={e => setRegForm({ ...regForm, address: e.target.value })}
+                                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all min-h-[100px]"
+                                                placeholder="Street, Block, Lot, etc."
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Contact Information</label>
+                                            <input
+                                                required
+                                                value={regForm.contactInfo}
+                                                onChange={e => setRegForm({ ...regForm, contactInfo: e.target.value })}
+                                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                                placeholder="Phone or Mobile Number"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-4 pt-4">
+                                    <button onClick={() => setRegStep(1)} className="py-4 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">Back</button>
+                                    <button 
+                                        onClick={() => {
+                                            if (!regForm.fullName || !regForm.email) {
+                                                setError("Please fill in required fields.");
+                                                return;
+                                            }
+                                            if (regForm.role === 'resident' && (!regForm.area || !regForm.address || !regForm.contactInfo)) {
+                                                setError("Please fill in all citizen details.");
+                                                return;
+                                            }
+                                            setError('');
+                                            setRegStep(3);
+                                        }} 
+                                        className="bg-taguig-blue text-white font-black py-4 rounded-2xl uppercase tracking-widest text-[10px]"
+                                    >
+                                        Next Step
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Step 3: Account Credentials & ID */}
+                        {regStep === 3 && (
+                            <form onSubmit={handleRegister} className="space-y-5 animate-slide-up">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.username}</label>
+                                    <input
+                                        required
+                                        value={regForm.username}
+                                        onChange={e => setRegForm({ ...regForm, username: e.target.value })}
+                                        className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                        placeholder="Choose a username"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.password}</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showRegPassword ? "text" : "password"}
                                             required
-                                            onChange={(e) => {
+                                            value={regForm.password}
+                                            onChange={e => setRegForm({ ...regForm, password: e.target.value })}
+                                            className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 pr-12 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                            placeholder="Create password"
+                                        />
+                                        <button type="button" onClick={() => setShowRegPassword(!showRegPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-taguig-blue transition-colors">
+                                            {showRegPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm Password</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            required
+                                            value={regForm.confirmPassword}
+                                            onChange={e => setRegForm({ ...regForm, confirmPassword: e.target.value })}
+                                            className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 pr-12 text-slate-900 dark:text-white font-semibold outline-none focus:ring-4 focus:ring-taguig-blue/10 transition-all"
+                                            placeholder="Repeat password"
+                                        />
+                                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-taguig-blue transition-colors">
+                                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Valid ID Document</label>
+                                    {!idPreview ? (
+                                        <label className="flex flex-col items-center justify-center w-full h-32 bg-slate-100 dark:bg-black/20 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-slate-200 transition-all">
+                                            <FileCheck className="text-slate-400 mb-2" size={24} />
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Click to upload ID photo</p>
+                                            <input type="file" className="hidden" accept="image/*" required onChange={(e) => {
                                                 const file = e.target.files?.[0];
                                                 if (file) {
                                                     setIdFile(file);
                                                     setIdPreview(URL.createObjectURL(file));
                                                 }
-                                            }}
-                                        />
-                                    </label>
+                                            }} />
+                                        </label>
+                                    ) : (
+                                        <div className="relative rounded-2xl overflow-hidden border border-slate-200 h-32 group">
+                                            <img src={idPreview} alt="ID Preview" className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                                                <button type="button" onClick={() => { setIdFile(null); setIdPreview(null); }} className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors">
+                                                    <X size={20} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            ) : (
-                                <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 h-32 group">
-                                    <img src={idPreview} alt="ID Preview" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                                        <button 
-                                            type="button" 
-                                            onClick={() => {
-                                                setIdFile(null);
-                                                setIdPreview(null);
-                                            }}
-                                            className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
-                                        >
-                                            <X size={20} />
-                                        </button>
-                                    </div>
-                                    <div className="absolute bottom-2 left-2 px-2 py-1 bg-taguig-blue text-white text-[8px] font-black uppercase rounded">ID Selected</div>
-                                </div>
-                            )}
-                        </div>
 
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-taguig-blue text-white font-black py-4 rounded-2xl shadow-xl shadow-taguig-blue/20 hover:bg-taguig-navy transition-all uppercase tracking-widest text-[10px] mt-4"
-                        >
-                            {isLoading ? 'Processing...' : t.createAccount}
-                        </button>
-                    </form>
+                                <div className="grid grid-cols-2 gap-4 pt-4">
+                                    <button type="button" onClick={() => setRegStep(2)} className="py-4 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">Back</button>
+                                    <button 
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="bg-taguig-blue text-white font-black py-4 rounded-2xl shadow-xl shadow-taguig-blue/20 hover:bg-taguig-navy transition-all uppercase tracking-widest text-[10px]"
+                                    >
+                                        {isLoading ? 'Processing...' : 'Complete Signup'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
                 )}
             </ViewContainer>
         );

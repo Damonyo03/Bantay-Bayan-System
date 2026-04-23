@@ -172,7 +172,15 @@ export const authService = {
         return data;
     },
 
-    registerUser: async (email: string, username: string, password: string, fullName: string, role: string, validIdFile?: File) => {
+    registerUser: async (
+        email: string, 
+        username: string, 
+        password: string, 
+        fullName: string, 
+        role: string, 
+        validIdFile?: File,
+        extraInfo?: { area?: string; address?: string; contactInfo?: string }
+    ) => {
         // 0. Check if username or email is already taken (Check both profiles AND the queue)
         const { data: existingProfile } = await supabase
             .from('profiles')
@@ -223,7 +231,10 @@ export const authService = {
                     username: username,
                     role: role,
                     status: 'pending',
-                    valid_id_url: validIdUrl
+                    valid_id_url: validIdUrl,
+                    area: extraInfo?.area,
+                    address: extraInfo?.address,
+                    contact_info: extraInfo?.contactInfo
                 },
                 emailRedirectTo: 'https://bantaybayanonline.vercel.app/#/login'
             }

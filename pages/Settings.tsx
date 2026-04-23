@@ -22,6 +22,8 @@ const Settings: React.FC = () => {
     // Profile Form State
     const [fullName, setFullName] = useState(user?.full_name || '');
     const [badgeNumber, setBadgeNumber] = useState(user?.badge_number || '');
+    const [preferredShift, setPreferredShift] = useState<any>(user?.preferred_shift || '1st');
+    const [preferredDayOff, setPreferredDayOff] = useState(user?.preferred_day_off || 'Monday');
 
     const [imagePreview, setImagePreview] = useState<string | null>(user?.avatar_url || null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -63,6 +65,8 @@ const Settings: React.FC = () => {
             setFullName((prev: string) => (prev === '' || prev === user.full_name) ? user.full_name || '' : prev);
             setBadgeNumber((prev: string) => (prev === '' || prev === user.badge_number) ? user.badge_number || '' : prev);
             setEmail((prev: string) => (prev === '' || prev === user.email) ? user.email || '' : prev);
+            setPreferredShift(user.preferred_shift || '1st');
+            setPreferredDayOff(user.preferred_day_off || 'Monday');
         }
     }, [user]);
 
@@ -151,11 +155,19 @@ const Settings: React.FC = () => {
                 avatarUrl = await userService.uploadAvatar(user.id, selectedFile);
             }
 
-            // 2. Update profile (Badge ID is read-only, so we don't send it)
-            await userService.updateProfile(user.id, {
+            // 2. Update profile
+            const updates: any = {
                 full_name: fullName.trim(),
-                avatar_url: avatarUrl // Saves new timestamped URL to DB
-            });
+                avatar_url: avatarUrl
+            };
+
+            // Only update workforce fields if applicable
+            if (!['resident', 'guest'].includes(user.role)) {
+                updates.preferred_shift = preferredShift;
+                updates.preferred_day_off = preferredDayOff;
+            }
+
+            await userService.updateProfile(user.id, updates);
 
             // 3. Refresh Context
             await refreshUser();
@@ -480,20 +492,54 @@ const Settings: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label htmlFor="badgeNumber" className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Badge Number</label>
-                                <div className="relative">
-                                    <input
-                                        id="badgeNumber"
-                                        readOnly
-                                        type="text"
-                                        value={badgeNumber}
-                                        className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl px-6 py-4 outline-none text-slate-400 dark:text-slate-500 font-black tracking-widest transition-all cursor-not-allowed uppercase"
-                                        placeholder="BB-202X-XXX"
-                                    />
+                            {!['resident', 'guest'].includes(user?.role || '') && (
+                                <div>
+                                    <label htmlFor="badgeNumber" className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Badge Number</label>
+                                    <div className="relative">
+                                        <input
+                                            id="badgeNumber"
+                                            readOnly
+                                            type="text"
+                                            value={badgeNumber}
+                                            className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl px-6 py-4 outline-none text-slate-400 dark:text-slate-500 font-black tracking-widest transition-all cursor-not-allowed uppercase"
+                                            placeholder="BB-202X-XXX"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {!['resident', 'guest'].includes(user?.role || '') && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 pt-8 border-t border-slate-100 dark:border-white/5">
+                                <div>
+                                    <label htmlFor="preferredShift" className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Preferred Shift</label>
+                                    <select
+                                        id="preferredShift"
+                                        value={preferredShift}
+                                        onChange={e => setPreferredShift(e.target.value)}
+                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 outline-none text-slate-800 dark:text-white font-bold transition-all"
+                                    >
+                                        <option value="1st">1st Shift (Day)</option>
+                                        <option value="2nd">2nd Shift (Afternoon)</option>
+                                        <option value="3rd">3rd Shift (Night)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="preferredDayOff" className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Preferred Day Off</label>
+                                    <select
+                                        id="preferredDayOff"
+                                        value={preferredDayOff}
+                                        onChange={e => setPreferredDayOff(e.target.value)}
+                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 outline-none text-slate-800 dark:text-white font-bold transition-all"
+                                    >
+                                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                                            <option key={day} value={day}>{day}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
-                        </div>
+                        )}
+
                         <div className="pt-4 flex justify-end">
                             <button
                                 type="submit"

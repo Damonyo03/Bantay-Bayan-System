@@ -31,6 +31,9 @@ export interface UserProfile {
   valid_id_url?: string; // Field for verification document
   preferred_shift?: ShiftType;
   preferred_day_off?: string; // "Monday", "Tuesday", etc.
+  area?: string;
+  address?: string;
+  contact_info?: string;
   last_active_at: string;
   created_at: string;
 }

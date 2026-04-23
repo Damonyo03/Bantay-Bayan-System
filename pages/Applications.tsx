@@ -203,6 +203,23 @@ const Applications: React.FC = () => {
                                     </div>
                                     <span className="text-[10px] font-black uppercase tracking-widest">Applied {new Date(applicant.created_at).toLocaleDateString()}</span>
                                 </div>
+
+                                {applicant.area && (
+                                    <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 space-y-2">
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Area / Vicinity</span>
+                                            <span className="text-xs font-bold text-taguig-blue uppercase">{applicant.area}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Full Address</span>
+                                            <span className="text-xs font-medium text-slate-600 dark:text-slate-300 line-clamp-2 italic">{applicant.address}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Contact Information</span>
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{applicant.contact_info}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* ID Photo Preview Section */}
