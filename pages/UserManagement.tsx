@@ -292,6 +292,8 @@ const UserManagement: React.FC = () => {
         if (!editingSchedule) return;
         if (editingSchedule.date.getDay() === 6 && newStatus === 'Day Off') {
             showToast("Saturday cannot be a Day Off.", "error");
+            return;
+        }
         setIsSavingSchedule(true);
         try {
             await userService.upsertSchedule({
