@@ -504,13 +504,21 @@ const UserManagement: React.FC = () => {
     };
 
     const handleToggleStatus = async (id: string, currentStatus: string) => {
+        const isApproving = currentStatus === 'pending' || currentStatus === 'inactive';
         const newStatus = currentStatus === 'active' ? 'deactivated' : 'active';
+        
         try {
-            await userService.updateUserStatus(id, newStatus as any);
-            showToast(`User ${newStatus === 'active' ? 'activated' : 'deactivated'}.`, "success");
+            if (isApproving) {
+                await userService.approveApplication(id);
+                showToast("Application approved successfully.", "success");
+            } else {
+                await userService.updateUserStatus(id, newStatus as any);
+                showToast(`User ${newStatus === 'active' ? 'activated' : 'deactivated'}.`, "success");
+            }
             fetchUsers();
-        } catch (error) {
-            showToast("Failed to update status", "error");
+        } catch (error: any) {
+            console.error("Status update error:", error);
+            showToast(error.message || "Failed to update status", "error");
         }
     };
 
@@ -527,11 +535,12 @@ const UserManagement: React.FC = () => {
     const handleRejectUser = async (id: string) => {
         if (!confirm("Are you sure you want to reject this application?")) return;
         try {
-            await userService.updateUserStatus(id, 'rejected');
+            await userService.rejectApplication(id);
             showToast("Application rejected.", "info");
             fetchUsers();
-        } catch (error) {
-            showToast("Failed to reject application", "error");
+        } catch (error: any) {
+            console.error("Rejection error:", error);
+            showToast(error.message || "Failed to reject application", "error");
         }
     };
 
