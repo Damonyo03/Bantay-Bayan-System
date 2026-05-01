@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -22,6 +22,8 @@ import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { supabase } from '../lib/supabaseClient';
+import { userService } from '../services/userService';
 
 interface SidebarProps {
   onClose?: () => void;
@@ -43,6 +45,34 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
   const isBantayBayan = role === 'bantay_bayan';
   const isSupervisor = role === 'supervisor';
   const isStaff = isBantayBayan || isSupervisor || isHighLevelAdmin();
+
+  const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
+
+  useEffect(() => {
+      if (!isHighLevelAdmin() && !isSupervisor) return;
+
+      const fetchCount = async () => {
+          try {
+              const apps = await userService.getPendingApplications();
+              setPendingApplicationsCount(apps.length);
+          } catch (e) {
+              console.error(e);
+          }
+      };
+
+      fetchCount();
+
+      const channel = supabase
+          .channel('sidebar_pending_count')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+              fetchCount();
+          })
+          .subscribe();
+
+      return () => {
+          supabase.removeChannel(channel);
+      };
+  }, [user]);
 
   const navItems = [
     { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: isStaff },
@@ -69,7 +99,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
       icon: Shield,
       label: t.applications,
       path: '/applications',
-      visible: isHighLevelAdmin() || isSupervisor
+      visible: isHighLevelAdmin() || isSupervisor,
+      badgeCount: pendingApplicationsCount
     },
     { icon: FileDown, label: t.printableForms, path: '/download-forms', visible: true },
     { icon: FileClock, label: t.auditLogs, path: '/audit-logs', visible: isHighLevelAdmin() },
@@ -108,17 +139,24 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
             key={item.path}
             to={item.path}
             onClick={onClose}
-            className={`flex items-center space-x-3 p-3 rounded-xl transition-all duration-300 group ${(item.path === '/' ? location.pathname === '/' : isActive(item.path))
+            className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 group ${(item.path === '/' ? location.pathname === '/' : isActive(item.path))
               ? 'bg-taguig-navy text-white shadow-lg shadow-taguig-navy/20'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-taguig-navy dark:hover:text-white'
               }`}
           >
-            <div className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${(item.path === '/' ? location.pathname === '/' : isActive(item.path))
-              ? 'text-white'
-              : 'text-slate-400 dark:text-slate-400 group-hover:text-taguig-navy'}`}>
-              <item.icon size={20} />
+            <div className="flex items-center space-x-3">
+              <div className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${(item.path === '/' ? location.pathname === '/' : isActive(item.path))
+                ? 'text-white'
+                : 'text-slate-400 dark:text-slate-400 group-hover:text-taguig-navy'}`}>
+                <item.icon size={20} />
+              </div>
+              <span className="font-bold text-sm whitespace-nowrap tracking-tight">{item.label}</span>
             </div>
-            <span className="font-bold text-sm whitespace-nowrap tracking-tight">{item.label}</span>
+            {item.badgeCount && item.badgeCount > 0 ? (
+                <div className="bg-red-500 text-white text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 shadow-sm animate-pulse">
+                    {item.badgeCount > 99 ? '99+' : item.badgeCount}
+                </div>
+            ) : null}
           </Link>
         ))}
       </nav>
