@@ -28,7 +28,8 @@ import {
     Moon,
     Sun,
     ChevronDown,
-    FileCheck
+    FileCheck,
+    BadgeCheck
 } from 'lucide-react';
 
 import { Link } from 'react-router-dom';
