@@ -81,9 +81,11 @@ const Applications: React.FC = () => {
         }
     };
 
-    const handleApprove = async (id: string, name: string) => {
+    const handleApprove = async (id: string, name: string, email: string) => {
         try {
             await userService.approveApplication(id);
+            // Trigger email notification
+            await userService.sendApprovalEmailNotification(email, name);
             showToast(`Application approved. ${name} is now an official member.`, "success");
             fetchPendingUsers();
         } catch (error) {
@@ -258,7 +260,7 @@ const Applications: React.FC = () => {
                                     <span>Reject</span>
                                 </button>
                                 <button 
-                                    onClick={() => handleApprove(applicant.id, applicant.full_name)}
+                                    onClick={() => handleApprove(applicant.id, applicant.full_name, applicant.email)}
                                     className="flex items-center justify-center space-x-2 py-4 rounded-2xl bg-taguig-blue text-white shadow-lg shadow-taguig-blue/20 hover:bg-taguig-navy hover:scale-[1.02] active:scale-[0.98] font-black uppercase tracking-widest text-[10px] transition-all"
                                 >
                                     <UserCheck size={16} />

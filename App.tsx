@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { UserProfile } from './types';
 import CommandCenter from './pages/CommandCenter';
 import IncidentForm from './pages/IncidentForm';
@@ -16,6 +17,7 @@ import CCTVRequestForm from './pages/CCTVRequestForm';
 import SystemGuidelines from './pages/SystemGuidelines';
 import DownloadForms from './pages/DownloadForms';
 import LandingPage from './pages/LandingPage';
+import PendingApproval from './pages/PendingApproval';
 import PublicServiceRequest from './pages/PublicServiceRequest';
 import PublicReportsQueue from './pages/PublicReportsQueue';
 import ResidentDirectory from './pages/ResidentDirectory';
@@ -40,6 +42,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, check?: (user: UserP
 
     if (!user) {
         return <Navigate to="/" replace />;
+    }
+
+    if (user.status === 'pending') {
+        return <Navigate to="/pending" replace />;
     }
 
     if (check && !check(user)) {
@@ -67,13 +73,19 @@ const AppContent: React.FC = () => {
     return (
         <Routes>
             {/* Public Routes wrapped in PublicLayout */}
-            <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
+            <Route path="/" element={
+                Capacitor.isNativePlatform() ? <Navigate to="/login" replace /> : <PublicLayout><LandingPage /></PublicLayout>
+            } />
             <Route path="/login" element={
                 user ? (
+                    user.status === 'pending' ? <Navigate to="/pending" replace /> :
                     user.role === 'resident' ? <Navigate to="/public-request" replace /> : <Navigate to="/dashboard" replace />
                 ) : (
                     <PublicLayout><Login /></PublicLayout>
                 )
+            } />
+            <Route path="/pending" element={
+                user && user.status === 'pending' ? <PendingApproval /> : <Navigate to="/" replace />
             } />
             <Route path="/update-password" element={<PublicLayout><UpdatePassword /></PublicLayout>} />
             

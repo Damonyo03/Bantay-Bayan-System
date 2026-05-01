@@ -43,6 +43,19 @@ export const userService = {
         if (error) throw error;
     },
 
+    sendApprovalEmailNotification: async (email: string, name: string) => {
+        // In a production environment, this should trigger a Supabase Edge Function 
+        // or a backend service (like SendGrid, Postmark, or EmailJS) to send the actual email.
+        // For now, we simulate the email sending locally since there's no backend server.
+        console.log(`[EMAIL MOCK] Sending approval email to: ${email}`);
+        console.log(`[EMAIL MOCK] Subject: Your Bantay Bayan Account is Approved!`);
+        console.log(`[EMAIL MOCK] Body: Hello ${name},\n\nYour identity has been verified by the administrator. You can now log in and access the Bantay Bayan System.\n\nThank you.`);
+        
+        // Simulating a network request delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return true;
+    },
+
     deleteUser: async (id: string) => {
         const { error } = await supabase.rpc('delete_user_by_id', { user_uuid: id });
         if (error) throw error;

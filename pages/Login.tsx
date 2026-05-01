@@ -326,6 +326,17 @@ const Login: React.FC = () => {
                                         </button>
                                     </div>
                                 </div>
+
+                                <div className="p-4 bg-taguig-blue/5 dark:bg-white/5 border border-taguig-blue/10 dark:border-white/10 rounded-2xl">
+                                    <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 flex items-center"><BadgeCheck size={14} className="mr-1"/> Approval Procedure</h4>
+                                    <ol className="text-xs text-slate-600 dark:text-slate-400 space-y-1 list-decimal list-inside font-medium">
+                                        <li>Submit your application with a valid ID photo.</li>
+                                        <li>Your account will be temporarily marked as <span className="font-bold text-taguig-blue">Pending</span>.</li>
+                                        <li>Barangay administrators will review your identity.</li>
+                                        <li>Once approved, you will receive an <span className="font-bold text-taguig-blue">email notification</span> and gain full access.</li>
+                                    </ol>
+                                </div>
+
                                 <button onClick={() => setView('login')} className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 py-2">Cancel Registration</button>
                             </div>
                         )}
