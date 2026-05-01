@@ -46,27 +46,48 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
   const isSupervisor = role === 'supervisor';
   const isStaff = isBantayBayan || isSupervisor || isHighLevelAdmin();
 
-  const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
+  const [badges, setBadges] = useState({
+      applications: 0,
+      reports: 0,
+      incidents: 0,
+      resources: 0
+  });
 
   useEffect(() => {
-      if (!isHighLevelAdmin() && !isSupervisor) return;
+      if (!isStaff) return;
 
-      const fetchCount = async () => {
+      const fetchCounts = async () => {
+          const counts = { applications: 0, reports: 0, incidents: 0, resources: 0 };
+          
           try {
-              const apps = await userService.getPendingApplications();
-              setPendingApplicationsCount(apps.length);
+              if (isHighLevelAdmin() || isSupervisor) {
+                  const { count: appCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                  counts.applications = appCount || 0;
+              }
+
+              const { count: repCount } = await supabase.from('public_reports').select('*', { count: 'exact', head: true }).eq('status', 'Pending Review');
+              counts.reports = repCount || 0;
+
+              const { count: incCount } = await supabase.from('incidents').select('*', { count: 'exact', head: true }).eq('status', 'Pending');
+              counts.incidents = incCount || 0;
+
+              const { count: resCount } = await supabase.from('asset_requests').select('*', { count: 'exact', head: true }).eq('status', 'Pending');
+              counts.resources = resCount || 0;
+
+              setBadges(counts);
           } catch (e) {
-              console.error(e);
+              console.error("Error fetching badge counts", e);
           }
       };
 
-      fetchCount();
+      fetchCounts();
 
       const channel = supabase
-          .channel('sidebar_pending_count')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-              fetchCount();
-          })
+          .channel('sidebar_badges')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchCounts)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'public_reports' }, fetchCounts)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, fetchCounts)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'asset_requests' }, fetchCounts)
           .subscribe();
 
       return () => {
@@ -77,10 +98,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
   const navItems = [
     { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: isStaff },
     { icon: MessageSquare, label: t.submitReport, path: '/public-request', visible: true },
-    { icon: FileText, label: t.reportsQueue, path: '/public-reports', visible: isStaff },
-    { icon: FileText, label: t.blotter, path: '/report', visible: isStaff },
+    { icon: FileText, label: t.reportsQueue, path: '/public-reports', visible: isStaff, badgeCount: badges.reports },
+    { icon: FileText, label: t.blotter, path: '/report', visible: isStaff, badgeCount: badges.incidents },
     { icon: Video, label: t.cctvRequest, path: '/cctv-request', visible: isStaff },
-    { icon: Package, label: t.resources, path: '/resources', visible: isStaff },
+    { icon: Package, label: t.resources, path: '/resources', visible: isStaff, badgeCount: badges.resources },
     { icon: Archive, label: t.archives, path: '/archives', visible: isStaff },
     { icon: AlertOctagon, label: t.restrictedList, path: '/restricted', visible: true },
     {
@@ -100,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
       label: t.applications,
       path: '/applications',
       visible: isHighLevelAdmin() || isSupervisor,
-      badgeCount: pendingApplicationsCount
+      badgeCount: badges.applications
     },
     { icon: FileDown, label: t.printableForms, path: '/download-forms', visible: true },
     { icon: FileClock, label: t.auditLogs, path: '/audit-logs', visible: isHighLevelAdmin() },
