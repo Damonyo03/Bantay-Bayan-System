@@ -31,7 +31,9 @@ const Applications: React.FC = () => {
     const [pendingUsers, setPendingUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [roleFilter, setRoleFilter] = useState<string>('All');
+    const [areaFilter, setAreaFilter] = useState<string>('All');
+    
+    const AREAS = ['VICINITY', 'CENTENNIAL', 'DREAMLAND', 'JAILSIDE', 'BANLIC', 'GOLF', 'KATIPUNAN'];
     
     // ID Photo Modal State
     const [idPhotoUrl, setIdPhotoUrl] = useState<string | null>(null);
@@ -108,8 +110,8 @@ const Applications: React.FC = () => {
         const matchesSearch = u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                              u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
                              u.username?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesRole = roleFilter === 'All' || u.role === roleFilter;
-        return matchesSearch && matchesRole;
+        const matchesArea = areaFilter === 'All' || u.area === areaFilter;
+        return matchesSearch && matchesArea;
     });
 
     const formatRole = (role: string) => {
@@ -140,13 +142,14 @@ const Applications: React.FC = () => {
                         <Filter size={18} className="text-slate-400" />
                         <select 
                             className="bg-transparent outline-none text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 cursor-pointer"
-                            value={roleFilter}
-                            onChange={(e) => setRoleFilter(e.target.value)}
+                            value={areaFilter}
+                            onChange={(e) => setAreaFilter(e.target.value)}
                         >
-                            <option value="All">All Types</option>
-                            <option value="resident">Residents</option>
-                            <option value="bantay_bayan">Security Officers</option>
-                            <option value="supervisor">Supervisors</option>
+                            <option value="All">All Areas</option>
+                            {AREAS.map(area => (
+                                <option key={area} value={area}>{area}</option>
+                            ))}
+                            <option value="OTHERS">Others</option>
                         </select>
                     </div>
                     
