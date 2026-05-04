@@ -12,6 +12,7 @@ import {
     Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 
 const HERO_SLIDES = [
     {
@@ -46,6 +47,7 @@ const SEALS = [
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
+    const isNative = Capacitor.isNativePlatform();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Carousel States
@@ -131,13 +133,15 @@ const LandingPage: React.FC = () => {
                                 {sec.label}
                             </button>
                         ))}
-                        <a
-                            href="/BantayBayan.apk"
-                            download
-                            className="w-full block text-center py-4 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl"
-                        >
-                            Download Android App
-                        </a>
+                        {!isNative && (
+                            <a
+                                href="/BantayBayan.apk"
+                                download
+                                className="w-full block text-center py-4 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl"
+                            >
+                                Download Android App
+                            </a>
+                        )}
                         <button
                             onClick={() => navigate('/login')}
                             className="w-full mt-2 py-4 bg-taguig-blue text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl"
@@ -196,14 +200,16 @@ const LandingPage: React.FC = () => {
                                             >
                                                 Portal Login
                                             </button>
-                                            <a
-                                                href="/BantayBayan.apk"
-                                                download
-                                                className="px-10 py-5 bg-emerald-600/20 border-2 border-emerald-500/50 text-emerald-400 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all flex items-center group"
-                                            >
-                                                <Download size={16} className="mr-3" />
-                                                <span>Get Android App</span>
-                                            </a>
+                                            {!isNative && (
+                                                <a
+                                                    href="/BantayBayan.apk"
+                                                    download
+                                                    className="px-10 py-5 bg-emerald-600/20 border-2 border-emerald-500/50 text-emerald-400 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all flex items-center group"
+                                                >
+                                                    <Download size={16} className="mr-3" />
+                                                    <span>Get Android App</span>
+                                                </a>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
