@@ -97,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
 
   const navItems = [
     { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: isStaff, badgeCount: badges.incidents },
-    { icon: MessageSquare, label: t.submitReport, path: '/public-request', visible: true },
+    { icon: MessageSquare, label: t.submitReport, path: '/public-request', visible: isResident },
     { icon: FileText, label: t.reportsQueue, path: '/public-reports', visible: isStaff, badgeCount: badges.reports },
     { icon: FileText, label: t.blotter, path: '/report', visible: isStaff },
     { icon: Video, label: t.cctvRequest, path: '/cctv-request', visible: isStaff },

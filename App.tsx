@@ -99,7 +99,7 @@ const AppContent: React.FC = () => {
                                     <CommandCenter />
                                 </ProtectedRoute>
                             } />
-                            <Route path="/public-request" element={<PublicServiceRequest />} />
+                            <Route path="/public-request" element={<ProtectedRoute check={u => u.role === 'resident'}><PublicServiceRequest /></ProtectedRoute>} />
                             <Route path="/public-reports" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><PublicReportsQueue /></ProtectedRoute>} />
                             <Route path="/report" element={<ProtectedRoute check={u => !['guest', 'resident'].includes(u.role)}><IncidentForm /></ProtectedRoute>} />
                             <Route path="/cctv-request" element={<ProtectedRoute check={u => !['guest', 'resident'].includes(u.role)}><CCTVRequestForm /></ProtectedRoute>} />
