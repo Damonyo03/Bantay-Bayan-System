@@ -67,3 +67,75 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   @apply bg-slate-300 dark:bg-white/20;
 }
+
+/* Print Enhancements */
+@media print {
+  @page {
+    margin: 1cm;
+    size: auto;
+  }
+
+  /* Hide UI junk */
+  .print\:hidden,
+  nav,
+  aside,
+  .sidebar,
+  .no-print,
+  button,
+  .filter-bar,
+  .search-bar {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 10pt !important;
+  }
+
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Table styling for print */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  th, td {
+    border: 1px solid #ddd !important;
+    padding: 8px !important;
+    text-align: left !important;
+    font-size: 9pt !important;
+    color: black !important;
+    background: transparent !important;
+  }
+
+  th {
+    background-color: #f2f2f2 !important;
+    font-weight: bold !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .card-premium {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Force background colors for labels if needed */
+  .print-exact {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { systemService } from '../services/systemService';
 import { AuditLog } from '../types';
-import { FileClock, Activity, User, Filter, Search, RotateCcw, ChevronDown } from 'lucide-react';
+import { FileClock, Activity, User, Filter, Search, RotateCcw, ChevronDown, Printer } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 
 const AuditLogs: React.FC = () => {
@@ -78,21 +78,53 @@ const AuditLogs: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-20 animate-fade-in">
+      {/* PRINT-ONLY OFFICIAL HEADER */}
+      <div className="hidden print:flex flex-col items-center text-center mb-8 border-b-2 border-taguig-red pb-4">
+        <div className="flex items-center justify-center space-x-12 mb-4">
+          <img src="/taguig_seal.png" alt="Taguig" className="h-20 w-auto" />
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase font-bold text-slate-500">Republika ng Pilipinas</p>
+            <p className="text-[10px] uppercase font-bold text-slate-500">LUNGSOD NG TAGUIG</p>
+            <h1 className="text-2xl font-black italic tracking-tighter text-slate-900">BARANGAY POST PROPER NORTHSIDE</h1>
+            <p className="text-sm font-bold text-taguig-blue">OFFICE OF THE BANTAY BAYAN</p>
+          </div>
+          <img src="/brgy_seal.png" alt="Barangay" className="h-20 w-auto" />
+        </div>
+        <div className="text-[10px] italic text-slate-400">
+          6 MACDA Guijo Extn., P.P. Northside, Taguig City | Tel: 8710-6711 | Email: barangaypostpropernorthside@gmail.com
+        </div>
+        <div className="mt-8">
+          <h2 className="text-2xl font-black uppercase italic tracking-tight underline">System Audit Report</h2>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-2">Document Serial: {new Date().getTime()}</p>
+          <p className="text-[10px] font-bold text-slate-500 mt-1">Generated: {new Date().toLocaleString()}</p>
+        </div>
+      </div>
+
       <PageHeader
         title="History of Actions"
         subtitle="View recent system activities and events."
         icon={FileClock}
       >
-        <button
-          onClick={fetchLogs}
-          className="w-full md:w-auto p-4 bg-white dark:bg-white/5 text-taguig-navy dark:text-white rounded-xl hover:bg-taguig-navy hover:text-white transition-all shadow-sm border border-slate-200 dark:border-white/10 flex items-center justify-center group"
-        >
-          <RotateCcw size={20} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
-        </button>
+        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto print:hidden">
+          <button
+            onClick={() => window.print()}
+            className="flex-1 md:flex-none px-6 py-4 bg-white dark:bg-white/5 text-slate-700 dark:text-white rounded-xl hover:bg-taguig-blue hover:text-white transition-all shadow-sm border border-slate-200 dark:border-white/10 flex items-center justify-center space-x-3 group"
+          >
+            <Printer size={20} className="group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-black uppercase tracking-widest">Print Report</span>
+          </button>
+          
+          <button
+            onClick={fetchLogs}
+            className="flex-1 md:flex-none p-4 bg-white dark:bg-white/5 text-taguig-navy dark:text-white rounded-xl hover:bg-taguig-navy hover:text-white transition-all shadow-sm border border-slate-200 dark:border-white/10 flex items-center justify-center group"
+          >
+            <RotateCcw size={20} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
+          </button>
+        </div>
       </PageHeader>
 
       {/* FILTER BAR */}
-      <div className="card-premium p-4 rounded-[2rem] border border-slate-200 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center">
+      <div className="card-premium p-4 rounded-[2rem] border border-slate-200 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center print:hidden">
         <div className="relative flex-1 w-full">
           <label htmlFor="searchLogs" className="sr-only">Search by user, record ID, or table...</label>
           <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
