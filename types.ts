@@ -88,6 +88,8 @@ export interface AssetRequest {
   logged_by: string;
   created_at: string;
   updated_at: string;
+  release_photo_url?: string;
+  return_photo_url?: string;
   // Joined fields
   logger_name?: string;
 }

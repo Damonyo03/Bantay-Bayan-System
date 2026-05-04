@@ -70,11 +70,42 @@ export const resourceService = {
         return data;
     },
 
-    updateAssetRequestStatus: async (id: string, status: string) => {
-        const { data, error } = await supabase.from('asset_requests').update({ status, updated_at: new Date().toISOString() }).eq('id', id).select();
+    updateAssetRequestStatus: async (id: string, status: string, photoUrl?: string) => {
+        const updates: any = { status, updated_at: new Date().toISOString() };
+        if (status === 'Released' && photoUrl) updates.release_photo_url = photoUrl;
+        if (status === 'Returned' && photoUrl) updates.return_photo_url = photoUrl;
+
+        const { data, error } = await supabase.from('asset_requests').update(updates).eq('id', id).select();
         if (error) throw error;
         if (!data || data.length === 0) throw new Error("Update failed.");
         return data[0];
+    },
+
+    uploadAssetPhoto: async (requestId: string, file: File, type: 'release' | 'return'): Promise<string> => {
+        if (file.size > 5 * 1024 * 1024) throw new Error("File too large (Max 5MB).");
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${requestId}_${type}_${new Date().getTime()}.${fileExt}`;
+        const filePath = `asset-conditions/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('assets')
+            .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+        if (uploadError) {
+            // Fallback to identity-docs if assets bucket doesn't exist yet
+            const { error: fallbackError } = await supabase.storage
+                .from('identity-docs')
+                .upload(filePath, file, { cacheControl: '3600', upsert: true });
+            
+            if (fallbackError) throw new Error("Upload failed: " + uploadError.message);
+            
+            const { data } = supabase.storage.from('identity-docs').getPublicUrl(filePath);
+            return data.publicUrl;
+        }
+
+        const { data } = supabase.storage.from('assets').getPublicUrl(filePath);
+        return data.publicUrl;
     },
 
     // CCTV

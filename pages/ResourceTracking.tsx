@@ -6,7 +6,7 @@ import { AssetRequest, DispatchLog, UserProfile, CCTVRequest, AuditLog } from '.
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
-import { Package, Plus, CheckCircle, XCircle, Truck, RotateCcw, Printer, AlertTriangle, RefreshCw, Archive, Clock, CalendarCheck, Car, MapPin, Navigation, CheckSquare, X, Loader2, Video, User, History, ChevronDown, ChevronUp } from 'lucide-react';
+import { Package, Plus, CheckCircle, XCircle, Truck, RotateCcw, Printer, AlertTriangle, RefreshCw, Archive, Clock, CalendarCheck, Car, MapPin, Navigation, CheckSquare, X, Loader2, Video, User, History, ChevronDown, ChevronUp, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import PageHeader from '../components/PageHeader';
@@ -59,6 +59,9 @@ const ResourceTracking: React.FC = () => {
     const [requestHistory, setRequestHistory] = useState<AuditLog[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [todaySchedule, setTodaySchedule] = useState<PersonnelScheduleType[]>([]);
+
+    const [pendingPhotoAction, setPendingPhotoAction] = useState<{ id: string, status: string } | null>(null);
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
     const isAuthorizedToApprove = user && ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'developer'].includes(user.role);
     const isSupervisor = user?.role === 'supervisor';
@@ -230,11 +233,15 @@ const ResourceTracking: React.FC = () => {
             return;
         }
 
+        // New Logic: Require Photo for Release/Return
+        if (['Released', 'Returned'].includes(status)) {
+            setPendingPhotoAction({ id, status });
+            return;
+        }
+
         let confirmMsg = "";
         if (status === 'Approved') confirmMsg = "Accept this request?";
         if (status === 'Rejected') confirmMsg = "Reject this request?";
-        if (status === 'Released') confirmMsg = "Mark items as Released?";
-        if (status === 'Returned') confirmMsg = "Mark items as Returned?";
 
         if (!confirm(confirmMsg)) return;
 
@@ -251,6 +258,28 @@ const ResourceTracking: React.FC = () => {
             fetchRequests();
         } finally {
             setProcessingId(null);
+        }
+    };
+
+    const handleStatusWithPhoto = async (id: string, status: string, file: File) => {
+        setProcessingId(id);
+        setIsUploadingPhoto(true);
+        try {
+            const type = status === 'Released' ? 'release' : 'return';
+            const photoUrl = await resourceService.uploadAssetPhoto(id, file, type);
+            await resourceService.updateAssetRequestStatus(id, status, photoUrl);
+            
+            showToast(`Items ${status} with photo verification.`, 'success');
+            setRequests(prev => prev.map(r => r.id === id ? { ...r, status: status as any, [`${type}_photo_url`]: photoUrl } : r));
+            
+            if (expandedRequestId === id) fetchRequestHistory(id);
+            setPendingPhotoAction(null);
+        } catch (error: any) {
+            console.error(error);
+            showToast(error.message || "Failed to upload photo", 'error');
+        } finally {
+            setProcessingId(null);
+            setIsUploadingPhoto(false);
         }
     };
 
@@ -683,6 +712,19 @@ const ResourceTracking: React.FC = () => {
                                                                 <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
                                                                     Status changed to <span className={statusVal === 'Rejected' ? 'text-red-600' : 'text-blue-600'}>{statusVal}</span>
                                                                 </p>
+                                                                {/* Display Verification Photos if available in audit log */}
+                                                                {history.new_data?.release_photo_url && (
+                                                                    <div className="mt-2 group relative w-32 h-20">
+                                                                        <img src={history.new_data.release_photo_url} alt="Release Condition" className="w-full h-full object-cover rounded-lg border border-slate-200 dark:border-white/10" />
+                                                                        <a href={history.new_data.release_photo_url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-lg transition-opacity text-white text-[8px] font-black uppercase tracking-tighter">View Full</a>
+                                                                    </div>
+                                                                )}
+                                                                {history.new_data?.return_photo_url && (
+                                                                    <div className="mt-2 group relative w-32 h-20">
+                                                                        <img src={history.new_data.return_photo_url} alt="Return Condition" className="w-full h-full object-cover rounded-lg border border-slate-200 dark:border-white/10" />
+                                                                        <a href={history.new_data.return_photo_url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-lg transition-opacity text-white text-[8px] font-black uppercase tracking-tighter">View Full</a>
+                                                                    </div>
+                                                                )}
                                                                 <p className="text-[10px] text-slate-500 font-medium">
                                                                     {new Date(history.created_at).toLocaleString()} • Performed by {history.performer_name}
                                                                 </p>
@@ -794,6 +836,58 @@ const ResourceTracking: React.FC = () => {
                             />
                             <button type="submit" disabled={processingId === 'new-log'} className="w-full bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-500/30 hover:bg-orange-700 transition-colors">Record Dispatch</button>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Photo Verification Modal */}
+            {pendingPhotoAction && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden border border-white dark:border-white/10 p-8">
+                        <div className="text-center mb-6">
+                            <div className="w-20 h-20 bg-taguig-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Camera size={40} className="text-taguig-blue" />
+                            </div>
+                            <h3 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white">Photo Verification</h3>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-2">
+                                Required for {pendingPhotoAction.status === 'Released' ? 'Item Release' : 'Item Return'}
+                            </p>
+                        </div>
+
+                        <div className="space-y-6">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
+                                Please capture or upload a clear photo of the items to document their condition.
+                            </p>
+
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                capture="environment"
+                                id="assetPhoto"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleStatusWithPhoto(pendingPhotoAction.id, pendingPhotoAction.status, file);
+                                }}
+                            />
+
+                            <button 
+                                onClick={() => document.getElementById('assetPhoto')?.click()}
+                                disabled={isUploadingPhoto}
+                                className="w-full py-4 bg-taguig-blue text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-taguig-navy transition-all shadow-xl shadow-taguig-blue/20 flex items-center justify-center space-x-3"
+                            >
+                                {isUploadingPhoto ? <Loader2 size={20} className="animate-spin" /> : <Camera size={20} />}
+                                <span>{isUploadingPhoto ? 'Uploading...' : 'Take Photo / Upload'}</span>
+                            </button>
+
+                            <button 
+                                onClick={() => setPendingPhotoAction(null)}
+                                disabled={isUploadingPhoto}
+                                className="w-full py-3 text-slate-400 hover:text-slate-600 dark:hover:text-white font-bold text-xs uppercase tracking-widest transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
