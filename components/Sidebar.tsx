@@ -96,10 +96,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
   }, [user]);
 
   const navItems = [
-    { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: isStaff },
+    { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: isStaff, badgeCount: badges.incidents },
     { icon: MessageSquare, label: t.submitReport, path: '/public-request', visible: true },
     { icon: FileText, label: t.reportsQueue, path: '/public-reports', visible: isStaff, badgeCount: badges.reports },
-    { icon: FileText, label: t.blotter, path: '/report', visible: isStaff, badgeCount: badges.incidents },
+    { icon: FileText, label: t.blotter, path: '/report', visible: isStaff },
     { icon: Video, label: t.cctvRequest, path: '/cctv-request', visible: isStaff },
     { icon: Package, label: t.resources, path: '/resources', visible: isStaff, badgeCount: badges.resources },
     { icon: Archive, label: t.archives, path: '/archives', visible: isStaff },

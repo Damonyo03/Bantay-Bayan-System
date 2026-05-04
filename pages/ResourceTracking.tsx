@@ -60,6 +60,9 @@ const ResourceTracking: React.FC = () => {
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [todaySchedule, setTodaySchedule] = useState<PersonnelScheduleType[]>([]);
 
+    const isAuthorizedToApprove = user && ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'developer'].includes(user.role);
+    const isSupervisor = user?.role === 'supervisor';
+
     const [filter, setFilter] = useState<'Pending' | 'Scheduled' | 'History' | 'Vehicles' | 'CCTV'>('Pending');
 
     const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
@@ -214,13 +217,21 @@ const ResourceTracking: React.FC = () => {
     };
 
     const handleStatusUpdate = async (id: string, status: string) => {
-        if (user?.role !== 'supervisor') {
-            showToast("Unauthorized: Supervisors only.", "error");
+        const canApprove = ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'developer'].includes(user?.role || '');
+        const canOperate = user?.role === 'supervisor' || canApprove;
+
+        if (['Approved', 'Rejected'].includes(status) && !canApprove) {
+            showToast("Unauthorized: Administrative roles only.", "error");
+            return;
+        }
+
+        if (['Released', 'Returned'].includes(status) && !canOperate) {
+            showToast("Unauthorized: Staff roles only.", "error");
             return;
         }
 
         let confirmMsg = "";
-        if (status === 'Approved') confirmMsg = "Approve this request?";
+        if (status === 'Approved') confirmMsg = "Accept this request?";
         if (status === 'Rejected') confirmMsg = "Reject this request?";
         if (status === 'Released') confirmMsg = "Mark items as Released?";
         if (status === 'Returned') confirmMsg = "Mark items as Returned?";
@@ -612,16 +623,16 @@ const ResourceTracking: React.FC = () => {
                                                 <Printer size={16} />
                                                 <span>Print Slip</span>
                                             </button>
-                                            {user?.role === 'supervisor' && req.status === 'Pending' && (
+                                            {isAuthorizedToApprove && req.status === 'Pending' && (
                                                 <div className="grid grid-cols-2 gap-3">
-                                                    <button onClick={() => handleStatusUpdate(req.id, 'Approved')} className="py-3.5 bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-taguig-blue/20 hover:bg-taguig-navy transition-all">Approve</button>
+                                                    <button onClick={() => handleStatusUpdate(req.id, 'Approved')} className="py-3.5 bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-taguig-blue/20 hover:bg-taguig-navy transition-all">Accept</button>
                                                     <button onClick={() => handleStatusUpdate(req.id, 'Rejected')} className="py-3.5 bg-taguig-red/10 text-taguig-red border border-taguig-red/20 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-taguig-red hover:text-white transition-all">Reject</button>
                                                 </div>
                                             )}
-                                            {user?.role === 'supervisor' && req.status === 'Approved' && (
+                                            {(isSupervisor || isAuthorizedToApprove) && req.status === 'Approved' && (
                                                 <button onClick={() => handleStatusUpdate(req.id, 'Released')} className="w-full py-3.5 bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-taguig-blue/20 hover:bg-taguig-navy transition-all">Release Assets</button>
                                             )}
-                                            {user?.role === 'supervisor' && req.status === 'Released' && (
+                                            {(isSupervisor || isAuthorizedToApprove) && req.status === 'Released' && (
                                                 <button onClick={() => handleStatusUpdate(req.id, 'Returned')} className="w-full py-3.5 bg-taguig-blue text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-taguig-blue/20 hover:bg-taguig-navy transition-all">Mark Returned</button>
                                             )}
                                         </div>
