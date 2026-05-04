@@ -314,7 +314,6 @@ const LandingPage: React.FC = () => {
                                             <p className="flex items-center mt-4 text-xs md:text-sm text-slate-400 italic gap-3">
                                                 <MapPin size={16} /> Lawton Ave, Taguig City
                                             </p>
-                                            <button onClick={() => navigate('/login')} className="text-left hover:text-white transition-colors mt-6 bg-white/5 px-6 py-4 rounded-2xl border border-white/10 text-xs md:text-sm uppercase font-black tracking-widest ">Admin Portal Access</button>
                                         </div>
                                     </div>
                                 </div>
