@@ -86,7 +86,7 @@ const CCTVRequestForm: React.FC = () => {
             };
 
             await resourceService.createCCTVRequest(payload);
-            await generateCCTVForm(payload);
+            await generateCCTVForm({ ...formData, request_number: payload.request_number });
             showToast("CCTV Request recorded successfully", "success");
             setIsSuccess(true);
         } catch (error: any) {
