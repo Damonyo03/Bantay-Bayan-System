@@ -24,6 +24,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabaseClient';
 import { userService } from '../services/userService';
+import { branding } from '../src/config/branding';
+import BrandLogo from './BrandLogo';
 
 interface SidebarProps {
   onClose?: () => void;
@@ -140,16 +142,37 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
         </button>
       )}
 
-      {/* Branding */}
+      {/* Branding — edit src/config/branding.ts to re-brand */}
+      {/* BrandLogo shows a placeholder when src="" — no broken images */}
       <div className="mb-8 px-1 mt-4">
         <div className="flex items-center justify-center mb-4 space-x-2">
-          <img src="/taguig_seal.png" alt="Taguig Seal" className="w-10 h-10 object-contain filter drop-shadow-md" />
-          <img src="/brgy_seal.png" alt="Brgy Seal" className="w-10 h-10 object-contain filter drop-shadow-md" />
-          <img src="/logo.png" alt="Bantay Bayan Logo" className="w-12 h-12 object-contain filter drop-shadow-md" />
+          <BrandLogo
+            src={branding.primarySealUrl}
+            alt="City Seal"
+            variant="seal-primary"
+            className="w-10 h-10 filter drop-shadow-md"
+            placeholderClassName="border-white/20"
+          />
+          <BrandLogo
+            src={branding.secondarySealUrl}
+            alt="Barangay Seal"
+            variant="seal-secondary"
+            className="w-10 h-10 filter drop-shadow-md"
+            placeholderClassName="border-white/20"
+          />
+          <BrandLogo
+            src={branding.appLogoUrl}
+            alt="System Logo"
+            variant="logo"
+            className="w-12 h-12 filter drop-shadow-md"
+            placeholderClassName="border-taguig-blue/40"
+          />
         </div>
         <div className="text-center">
-          <span className="block font-black text-taguig-navy dark:text-white text-[15px] tracking-tight leading-tight uppercase font-display">City of Taguig</span>
-          <span className="text-[9px] text-taguig-red dark:text-taguig-gold font-black tracking-[0.15em] uppercase">Post Proper Northside</span>
+          <span className="block font-black text-taguig-navy dark:text-white text-[15px] tracking-tight leading-tight uppercase font-display">{branding.cityName}</span>
+          {branding.orgSubtitle && (
+            <span className="text-[9px] text-taguig-red dark:text-taguig-gold font-black tracking-[0.15em] uppercase">{branding.orgSubtitle}</span>
+          )}
         </div>
       </div>
 

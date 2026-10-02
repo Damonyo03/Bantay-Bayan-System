@@ -747,7 +747,7 @@ const UserManagement: React.FC = () => {
         <div className="space-y-8 pb-20 animate-fade-in">
             <PageHeader
                 title="Staff Directory"
-                subtitle="Member Management • Post Proper Northside"
+                subtitle="Member Management • Operations"
             >
                 {(user?.role === 'barangay_captain' || user?.role === 'barangay_secretary' || user?.role === 'barangay_kagawad' || user?.role === 'supervisor' || user?.role === 'developer') && (
                     <div className="flex bg-taguig-navy/5 dark:bg-white/5 p-2 rounded-[1.5rem] w-full xl:w-auto overflow-x-auto no-scrollbar border border-slate-200 dark:border-white/10 shadow-sm">
@@ -1602,7 +1602,7 @@ const UserManagement: React.FC = () => {
                                             className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-taguig-blue/10 outline-none text-slate-800 dark:text-white transition-all font-bold placeholder:text-slate-400"
                                             value={newUser.email}
                                             onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                                            placeholder="juan@taguig.gov"
+                                            placeholder="staff@example.gov"
                                         />
                                     </div>
                                     <div>

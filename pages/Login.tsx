@@ -6,6 +6,8 @@ import { authService } from '../services/authService';
 import { supabase } from '../lib/supabaseClient';
 import { useTheme } from '../contexts/ThemeContext';
 import { UserProfile, UserRole } from '../types';
+import { branding } from '../src/config/branding';
+import BrandLogo from '../components/BrandLogo';
 import { 
     Shield, 
     Lock, 
@@ -260,7 +262,8 @@ const Login: React.FC = () => {
     }
 
     if (view === 'register') {
-        const AREAS = ['VICINITY', 'CENTENNIAL', 'DREAMLAND', 'JAILSIDE', 'BANLIC', 'GOLF', 'KATIPUNAN', 'OTHERS'];
+        // Registration areas come from src/config/branding.ts — edit there to re-brand
+        const AREAS = branding.registrationAreas;
 
         return (
             <ViewContainer title={t.joinSystem} subtitle={`Step ${regStep} of 3`} icon={UserPlus} dbStatus={dbStatus}>
@@ -303,7 +306,7 @@ const Login: React.FC = () => {
                                         >
                                             <div>
                                                 <p className="font-black text-slate-900 dark:text-white uppercase italic">Regular Citizen</p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Verified Resident of Northside Terminal</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Verified Community Resident</p>
                                             </div>
                                             <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-taguig-blue group-hover:text-white transition-all">
                                                 <User size={20} />
@@ -333,7 +336,7 @@ const Login: React.FC = () => {
                                     <ol className="text-xs text-slate-600 dark:text-slate-400 space-y-1 list-decimal list-inside font-medium">
                                         <li>Submit your application with a valid ID photo.</li>
                                         <li>Your account will be temporarily marked as <span className="font-bold text-taguig-blue">Pending</span>.</li>
-                                        <li>Barangay administrators will review your identity.</li>
+                                        <li>System administrators will review your identity.</li>
                                         <li>Once approved, you will receive an <span className="font-bold text-taguig-blue">email notification</span> and gain full access.</li>
                                     </ol>
                                 </div>
@@ -605,8 +608,9 @@ const Login: React.FC = () => {
         );
     }
 
+    {/* loginSubtitle is configurable from src/config/branding.ts */}
     return (
-        <ViewContainer title="Bantay Bayan" subtitle="Post Proper Northside Terminal" dbStatus={dbStatus}>
+        <ViewContainer title={branding.systemName} subtitle={branding.loginSubtitle} dbStatus={dbStatus}>
             <form onSubmit={handleLogin} className="space-y-6">
                 {error && <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium transition-all">{error}</div>}
                 
@@ -695,9 +699,28 @@ const ViewContainer: React.FC<{ children: React.ReactNode, title: string, subtit
                         </div>
                     ) : (
                         <div className="flex items-center justify-center space-x-3 mb-8">
-                            <img src="/taguig_seal.png" alt="Taguig Seal" className="w-16 h-16 object-contain" />
-                            <img src="/brgy_seal.png" alt="Brgy Seal" className="w-16 h-16 object-contain" />
-                            <img src="/logo.png" alt="Bantay Bayan Logo" className="w-20 h-20 object-contain" />
+                            {/* Seal images come from src/config/branding.ts */}
+                            <BrandLogo
+                                src={branding.primarySealUrl}
+                                alt="City Seal"
+                                variant="seal-primary"
+                                className="w-16 h-16"
+                                placeholderClassName="border-slate-300 dark:border-white/20 bg-slate-100 dark:bg-white/5"
+                            />
+                            <BrandLogo
+                                src={branding.secondarySealUrl}
+                                alt="Barangay Seal"
+                                variant="seal-secondary"
+                                className="w-16 h-16"
+                                placeholderClassName="border-slate-300 dark:border-white/20 bg-slate-100 dark:bg-white/5"
+                            />
+                            <BrandLogo
+                                src={branding.appLogoUrl}
+                                alt="System Logo"
+                                variant="logo"
+                                className="w-20 h-20"
+                                placeholderClassName="border-taguig-blue/40 bg-taguig-blue/5"
+                            />
                         </div>
                     )}
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">{title}</h1>

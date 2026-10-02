@@ -3,22 +3,36 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { FileOpener } from '@capacitor-community/file-opener';
 import { Capacitor } from '@capacitor/core';
 import { IncidentWithDetails, AssetRequest, CCTVRequest, VehicleUsageData } from '../types';
+import { branding } from '../src/config/branding';
 
-const TAGUIG_SEAL_B64 = '/taguig_seal.png';
-const BRGY_SEAL_B64 = '/brgy_seal.png';
+const getCaptainName = () => {
+    return branding.executive.find(m => m.isPrimary)?.name || "HON. PUNONG BARANGAY";
+};
 
 const drawOfficialHeader = (doc: jsPDF) => {
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Repositioned Logos: Taguig (Left), Barangay (Right)
+    // Logos: City/Primary (Left), Barangay/Secondary (Right)
     const logoY = 10;
     const logoSize = 25;
 
-    // Left Logo: Taguig City
-    doc.addImage(TAGUIG_SEAL_B64, 'PNG', 20, logoY, logoSize, logoSize);
+    // Left Logo: City Seal (only if configured)
+    if (branding.primarySealUrl && branding.primarySealUrl.trim() !== '') {
+        try {
+            doc.addImage(branding.primarySealUrl, 'PNG', 20, logoY, logoSize, logoSize);
+        } catch {
+            // Safe fallback if image is unreachable
+        }
+    }
 
-    // Right Logo: Barangay Northside
-    doc.addImage(BRGY_SEAL_B64, 'PNG', pageWidth - 45, logoY, logoSize, logoSize);
+    // Right Logo: Barangay Seal (only if configured)
+    if (branding.secondarySealUrl && branding.secondarySealUrl.trim() !== '') {
+        try {
+            doc.addImage(branding.secondarySealUrl, 'PNG', pageWidth - 45, logoY, logoSize, logoSize);
+        } catch {
+            // Safe fallback if image is unreachable
+        }
+    }
 
     // Header Text - Perfectly Centered between margins/logos
     const textCenterX = pageWidth / 2;
@@ -26,26 +40,26 @@ const drawOfficialHeader = (doc: jsPDF) => {
     doc.setFont("times", "normal");
     doc.setFontSize(10);
     doc.text("Republika ng Pilipinas", textCenterX, 12, { align: "center" });
-    doc.text("LUNGSOD NG TAGUIG", textCenterX, 16, { align: "center" });
+    if (branding.cityName) {
+        doc.text(branding.cityName.toUpperCase(), textCenterX, 16, { align: "center" });
+    }
 
-    // Primary Focal Point: Barangay Name
-    // Set to 16 for prominence, compacted gap
+    // Primary Focal Point: Barangay / Org Name
     doc.setFont("times", "bold");
     doc.setFontSize(16);
-    doc.text("BARANGAY POST PROPER NORTHSIDE", textCenterX, 25, { align: "center" });
+    doc.text(branding.orgName.toUpperCase(), textCenterX, 25, { align: "center" });
 
     // Subtitle: Office of the Bantay Bayan
-    // Size 12 for subtitle role, compacted gap
     doc.setFont("times", "bold");
     doc.setFontSize(12);
     doc.text("OFFICE OF THE BANTAY BAYAN", textCenterX, 31, { align: "center" });
 
-    // Address and Contact Details - Compacted
+    // Address and Contact Details
     doc.setFontSize(9);
     doc.setFont("times", "normal");
-    doc.text("6 MACDA Guijo Extn., P.P. Northside, Taguig City", textCenterX, 37, { align: "center" });
-    doc.text("Tel./Fax No.: 8710-6711 / 8788-1764", textCenterX, 41, { align: "center" });
-    doc.text("Email: barangaypostpropernorthside@gmail.com", textCenterX, 45, { align: "center" });
+    if (branding.emergency.address) {
+        doc.text(branding.emergency.address, textCenterX, 37, { align: "center" });
+    }
 
     doc.setDrawColor(150, 0, 0); // Maroon/Dark Red line
     doc.setLineWidth(0.8);
@@ -271,7 +285,7 @@ export const generateOfficialReport = async (incident: IncidentWithDetails, mode
     doc.text("Pinatunayan ni (Noted by):", rightSigX, yPos);
     yPos += 15;
     doc.setFont("times", "bold");
-    doc.text("HON. RICHARD C. PASADILLA", rightSigX, yPos);
+    doc.text(getCaptainName(), rightSigX, yPos);
     doc.line(rightSigX, yPos + 1, pageWidth - 20, yPos + 1);
     doc.setFontSize(8);
     doc.setFont("times", "normal");
@@ -409,7 +423,7 @@ export const generateBorrowingSlip = async (request: AssetRequest, mode: 'downlo
 
     const rightSigX = pageWidth - 80;
     doc.setFont("times", "bold");
-    doc.text("HON. RICHARD C. PASADILLA", rightSigX + 30, yPos, { align: "center" });
+    doc.text(getCaptainName(), rightSigX + 30, yPos, { align: "center" });
     doc.line(rightSigX, yPos + 1, pageWidth - 20, yPos + 1);
 
     doc.setFontSize(8);
@@ -586,7 +600,7 @@ export const generateCCTVForm = async (data: any, mode: 'download' | 'print' = '
     const rightSigX = pageWidth - 80;
     doc.setFont("times", "bold");
     doc.setFontSize(10);
-    doc.text("HON. RICHARD C. PASADILLA", rightSigX, yPos);
+    doc.text(getCaptainName(), rightSigX, yPos);
     doc.setFontSize(8);
     doc.setFont("times", "normal");
     doc.text("Punong Barangay", rightSigX + 5, yPos + 4);
@@ -648,7 +662,7 @@ export const reprintCCTVForm = async (data: CCTVRequest, mode: 'download' | 'pri
 
     const rightSigX = pageWidth - 80;
     doc.setFont("times", "bold");
-    doc.text("HON. RICHARD C. PASADILLA", rightSigX, yPos);
+    doc.text(getCaptainName(), rightSigX, yPos);
     doc.setFontSize(8);
     doc.setFont("times", "normal");
     doc.text("Punong Barangay", rightSigX + 5, yPos + 4);

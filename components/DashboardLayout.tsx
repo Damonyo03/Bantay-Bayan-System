@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import { Menu } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { branding } from '../src/config/branding';
+import BrandLogo from './BrandLogo';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -55,8 +57,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                         <Menu size={20} />
                     </button>
                     <div className="flex items-center space-x-2">
-                        <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
-                        <span className="font-black text-taguig-navy dark:text-white text-xs tracking-tight uppercase leading-none">Bantay Bayan</span>
+                        <BrandLogo
+                            src={branding.appLogoUrl}
+                            alt="App Logo"
+                            variant="logo"
+                            className="w-8 h-8"
+                            placeholderClassName="border-taguig-blue/30 bg-taguig-navy/10"
+                        />
+                        {/* orgShortName comes from src/config/branding.ts */}
+                        <span className="font-black text-taguig-navy dark:text-white text-xs tracking-tight uppercase leading-none">{branding.orgShortName}</span>
                     </div>
                 </div>
                 

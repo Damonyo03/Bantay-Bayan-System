@@ -1,7 +1,68 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Bantay Bayan System</string>
-    <string name="title_activity_main">Bantay Bayan System</string>
+
+    <!--
+    ╔══════════════════════════════════════════════════════════════╗
+    ║   BANTAY BAYAN SYSTEM — ANDROID BRANDING CONFIGURATION       ║
+    ║   RE-BRAND IN UNDER 5 MINUTES                                ║
+    ╠══════════════════════════════════════════════════════════════╣
+    ║                                                              ║
+    ║  WHAT TO CHANGE:                                             ║
+    ║    1. app_name      → App name shown on the home screen      ║
+    ║                       (also controls android:label in        ║
+    ║                        AndroidManifest.xml automatically)    ║
+    ║    2. org_name      → Full Barangay / LGU name               ║
+    ║    3. lgu_name      → City or Municipality name              ║
+    ║    4. org_subtitle  → Sub-unit or district (leave blank      ║
+    ║                       to hide the subtitle)                  ║
+    ║    5. login_subtitle→ Subtitle shown below system name on    ║
+    ║                        the login screen                      ║
+    ║                                                              ║
+    ║  WHAT NOT TO CHANGE:                                         ║
+    ║    - package_name   (used by deep-links & Capacitor)         ║
+    ║    - custom_url_scheme (used by OAuth redirect URIs)         ║
+    ║    - title_activity_main (kept in sync with app_name)        ║
+    ║                                                              ║
+    ║  For Web/Backend re-branding, see:                           ║
+    ║    src/config/branding.ts                                    ║
+    ║                                                              ║
+    ╚══════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ── System Identity ──────────────────────────────────────── -->
+
+    <!-- Launcher label — referenced by android:label="@string/app_name" in AndroidManifest.xml -->
+    <string name="app_name">Bantay Bayan</string>
+
+    <!-- Activity window title — keep in sync with app_name -->
+    <string name="title_activity_main">Bantay Bayan</string>
+
+    <!-- ── Organization Branding ────────────────────────────────── -->
+
+    <!-- Full Barangay / LGU name shown in headers and splash screens -->
+    <string name="org_name">Community Operations</string>
+
+    <!-- City or Municipality name -->
+    <string name="lgu_name">Your City</string>
+
+    <!--
+      Sub-unit or district label (e.g. a specific Barangay or Zone).
+      Set to an empty string to hide this label in the UI.
+    -->
+    <string name="org_subtitle"></string>
+
+    <!-- Subtitle displayed below the system name on the login screen -->
+    <string name="login_subtitle">Operations Portal</string>
+
+    <!-- ── Internal Keys — DO NOT RENAME ────────────────────────── -->
+    <!--
+      The strings below are used as technical identifiers (deep-link
+      schemes, Capacitor app ID, SharedPreferences keys). Changing
+      their VALUE would break OAuth redirect URIs and push notifications.
+      Changing their NAME would require code changes across Java/Kotlin files.
+      Leave these exactly as-is.
+    -->
     <string name="package_name">com.bantaybayan.app</string>
     <string name="custom_url_scheme">com.bantaybayan.app</string>
+
 </resources>

@@ -13,36 +13,22 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
+import { branding } from '../src/config/branding';
+import BrandLogo from '../components/BrandLogo';
 
-const HERO_SLIDES = [
-    {
-        title: "Our",
-        highlight: "Vision",
-        subtitle: "Future Forward.",
-        description: "Barangay Post Proper Northside envisions a livable, greener, resilient, peaceful, sustainable, progressive, competitive, inclusive and gender-responsive community that is within reach by its people, and the pillar of effective and efficient delivery of quality programs and services that harness its residents to be smart, productive, empowered, and morally upright citizens of Taguig City, the Philippines and of the global community.",
-        image: "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&q=80",
-        badge: "The Vision"
-    },
-    {
-        title: "Our",
-        highlight: "Mission",
-        subtitle: "Commitment.",
-        description: "Barangay Post Proper Northside shall realize its commitment to the community and its people in various sectors through its transparent, well-balanced, inclusive and gender-responsive Programs, Projects and Activities with regard to Peace and Order, Disaster Risk and Environmental management, Economic Development, Health, Social Services, Education, Infrastructure and Finance that foster a 'Strong Sense of Community' among its residents with a high-quality living and with competent and responsible public servants.",
-        image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80",
-        badge: "The Mission"
-    }
+// HERO_SLIDES and SEALS are configurable from src/config/branding.ts
+const HERO_SLIDES = branding.heroSlides;
+
+const SEALS = [
+    { src: branding.primarySealUrl, alt: 'City Seal', variant: 'seal-primary' as const },
+    { src: branding.secondarySealUrl, alt: 'Barangay Seal', variant: 'seal-secondary' as const },
+    { src: branding.appLogoUrl, alt: 'System Logo', variant: 'logo' as const },
 ];
 
 const SECTIONS = [
     { id: 'introduction', label: 'Introduction' },
     { id: 'leadership', label: 'Leadership' },
-    { id: 'emergency', label: 'Emergency' }
-];
-
-const SEALS = [
-    { src: '/taguig_seal.png', alt: 'Taguig Seal' },
-    { src: '/brgy_seal.png', alt: 'Barangay Seal' },
-    { src: '/logo.png', alt: 'BMS Logo' }
+    { id: 'emergency', label: 'Emergency' },
 ];
 
 const LandingPage: React.FC = () => {
@@ -79,16 +65,19 @@ const LandingPage: React.FC = () => {
                     <div className="flex items-center space-x-6 group cursor-pointer" onClick={() => setMainIndex(0)}>
                         <div className="flex items-center space-x-2 md:space-x-4">
                             {SEALS.map((seal, idx) => (
-                                <img
+                                <BrandLogo
                                     key={idx}
                                     src={seal.src}
                                     alt={seal.alt}
-                                    className="h-10 md:h-14 w-auto drop-shadow-2xl transition-transform group-hover:scale-110"
+                                    variant={seal.variant}
+                                    className="w-10 h-10 md:w-14 md:h-14 drop-shadow-2xl transition-transform group-hover:scale-110"
+                                    placeholderClassName="border-white/20 bg-white/5"
                                 />
                             ))}
                         </div>
+                        {/* orgName comes from src/config/branding.ts */}
                         <div className="hidden sm:flex flex-col border-l-2 border-white/10 pl-6 justify-center">
-                            <h1 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tight leading-tight group-hover:text-taguig-gold transition-colors">Post Proper Northside</h1>
+                            <h1 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tight leading-tight group-hover:text-taguig-gold transition-colors">{branding.orgName}</h1>
                         </div>
                     </div>
 
@@ -237,33 +226,33 @@ const LandingPage: React.FC = () => {
 
                                 <div className="overflow-hidden flex-1">
                                     <div className="flex transition-all duration-700 ease-in-out h-full" style={{ transform: `translateX(-${hierarchyIndex * 100}%)` }}>
+                                        {/* Executive — configured in src/config/branding.ts → branding.executive */}
                                         <div className="w-full flex-shrink-0 flex items-center justify-center">
                                             <div className="flex flex-col items-center w-full max-w-5xl gap-4 md:gap-8 px-4">
                                                 {/* Punong Barangay - Top Row */}
-                                                <div className="w-full max-w-xs md:max-w-md">
-                                                    <MemberNode role="Punong Barangay" name="HON. RICHARD C. PASADILLA" desc="Executive Command" image="/OFFICIALS/KAP-RICHARD-PASADILLA.jpg" primary />
-                                                </div>
+                                                {branding.executive.filter(m => m.isPrimary).map((member, i) => (
+                                                    <div key={i} className="w-full max-w-xs md:max-w-md">
+                                                        <MemberNode role={member.role} name={member.name} desc={member.desc} image={member.image || undefined} primary />
+                                                    </div>
+                                                ))}
 
                                                 {/* Connecting Line (Visual Only) */}
                                                 <div className="hidden md:block h-8 w-px bg-gradient-to-b from-taguig-blue to-white/10"></div>
 
                                                 {/* Secretary & Treasurer - Second Row */}
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
-                                                    <MemberNode role="Barangay Secretary" name="HON. ANDREA JEAN E. DELLOSA" desc="Administration" image="/OFFICIALS/SEC-ANDREA-DELLOSA.jpg" compact />
-                                                    <MemberNode role="Barangay Treasurer" name="HON. ALEXANDER V. AGAWIN JR." desc="Fiscal Oversight" image="/OFFICIALS/TREAS-ALEX-AGAWIN.jpg" compact />
+                                                    {branding.executive.filter(m => !m.isPrimary).map((member, i) => (
+                                                        <MemberNode key={i} role={member.role} name={member.name} desc={member.desc} image={member.image || undefined} compact />
+                                                    ))}
                                                 </div>
                                             </div>
                                         </div>
+                                        {/* Legislative — configured in src/config/branding.ts → branding.legislative */}
                                         <div className="w-full flex-shrink-0 flex items-center justify-center py-6">
                                             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 lg:gap-10 w-full max-w-7xl px-4 items-stretch">
-                                                <MemberNode role="Kagawad" name="HON. EDNA M. BACCAY" desc="Education & Culture" image="/OFFICIALS/KAG-EDNA-BACCAY.jpg" compact />
-                                                <MemberNode role="Kagawad" name="HON. CHRISTINE JAGONIO" desc="Finance & Social Services" image="/OFFICIALS/KAG-CHRISTINE-JAGONIO.jpg" compact />
-                                                <MemberNode role="Kagawad" name="HON. NILDA B. CAYABYAB" desc="Health & Sanitation" image="/OFFICIALS/KAG-NILDA-CAYABYAB.jpg" compact />
-                                                <MemberNode role="Kagawad" name="HON. ISAGANI M. DELGADO" desc="Livelihood" image="/OFFICIALS/KAG-ISAGANI-DELGADO.jpg" compact />
-                                                <MemberNode role="Kagawad" name="HON. IRENE GRACE G. REALOSA" desc="Infrastructure & DRRM" image="/OFFICIALS/KAG-IRENE-GRACE-REALOSA.jpg" compact />
-                                                <MemberNode role="Kagawad" name="HON. ARNEL P. MATUTINO" desc="Peace & Order" image="/OFFICIALS/KAG-ARNEL-MATUTINO.jpg" compact />
-                                                <MemberNode role="Kagawad" name="HON. MYRNA P. MIGUEL" desc="Cleanliness & Beautification" image="/OFFICIALS/KAG-MYRNA-MIGUEL.jpg" compact />
-                                                <MemberNode role="SK Chairperson" name="HON. JOSHUA DANIEL C. ESPEJO" desc="Youth Development" image="/OFFICIALS/SK-JOSHUA-ESPEJO.jpg" compact />
+                                                {branding.legislative.map((member, i) => (
+                                                    <MemberNode key={i} role={member.role} name={member.name} desc={member.desc} image={member.image || undefined} compact />
+                                                ))}
                                             </div>
                                         </div>
                                     </div>
@@ -290,29 +279,31 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Slide 2: Emergency & Footer Summary */}
+                    {/* Emergency contacts configured in src/config/branding.ts → branding.emergency */}
                     <div className="w-full min-h-full flex-shrink-0 bg-slate-950 flex flex-col justify-start px-6 text-white relative pt-16 md:pt-24 pb-20">
                         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                             <div className="space-y-10">
                                 <div className="space-y-4">
                                     <h3 className="text-4xl md:text-5xl font-black uppercase italic leading-tight tracking-tighter">Emergency <br /><span className="text-taguig-gold">Response Hub</span></h3>
-                                    <p className="text-lg text-white/40 font-medium max-w-md leading-relaxed">Official gateway for Unified Security operations within Post Proper Northside. Rapid. Tactical. Professional.</p>
+                                    <p className="text-lg text-white/40 font-medium max-w-md leading-relaxed">{branding.emergency.emergencyDesc}</p>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 border-t border-white/5 pt-10">
                                     <div className="space-y-4">
                                         <h5 className="text-xs md:text-sm font-black text-taguig-gold uppercase tracking-[0.2em] mb-4">24/7 City Hotlines</h5>
                                         <div className="space-y-3 text-sm md:text-lg font-bold text-white/70">
-                                            <p className="flex justify-between"><span>National:</span> <span className="text-white">911</span></p>
-                                            <p className="flex justify-between"><span>Taguig Emergency:</span> <span className="text-white">165-7777</span></p>
-                                            <p className="flex justify-between"><span>Command Center:</span> <span className="text-white">(02) 8789-3200</span></p>
-                                            <p className="flex justify-between"><span>BFP Fire:</span> <span className="text-white">(02) 8837-0740</span></p>
+                                            {branding.emergency.cityHotlines.map((contact, i) => (
+                                                <p key={i} className="flex justify-between"><span>{contact.label}</span> <span className="text-white">{contact.number}</span></p>
+                                            ))}
                                         </div>
                                     </div>
                                     <div className="space-y-4">
                                         <h5 className="text-xs md:text-sm font-black text-taguig-gold uppercase tracking-[0.2em] mb-4">Barangay Contacts</h5>
                                         <div className="space-y-3 text-sm md:text-lg font-bold text-white/70 flex flex-col">
-                                            <p className="flex justify-between"><span>Brgy. Hall:</span> <span className="text-white">(02) 8881 3898</span></p>
+                                            {branding.emergency.barangayContacts.map((contact, i) => (
+                                                <p key={i} className="flex justify-between"><span>{contact.label}</span> <span className="text-white">{contact.number}</span></p>
+                                            ))}
                                             <p className="flex items-center mt-4 text-xs md:text-sm text-slate-400 italic gap-3">
-                                                <MapPin size={16} /> Lawton Ave, Taguig City
+                                                <MapPin size={16} /> {branding.emergency.address}
                                             </p>
                                         </div>
                                     </div>
@@ -325,8 +316,9 @@ const LandingPage: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+                        {/* footerText configured in src/config/branding.ts */}
                         <div className="absolute bottom-10 left-6 right-6 flex items-center justify-between opacity-30 text-[9px] font-black uppercase tracking-[0.4em]">
-                            <p>BMS Core Command v4.0 © 2026</p>
+                            <p>{branding.footerText}</p>
                             <div className="flex space-x-6"><span>Terms</span> <span>Privacy</span></div>
                         </div>
                     </div>
