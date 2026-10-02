@@ -1,38 +1,30 @@
+import { useState, useEffect } from 'react';
+
 /**
  * ============================================================
  *  BANTAY BAYAN SYSTEM — BRANDING CONFIGURATION
  * ============================================================
  *
- *  ✅ RE-BRAND IN UNDER 5 MINUTES
+ *  ✅ RE-BRAND IN UNDER 5 MINUTES OR VIA SETTINGS UI
  *  ─────────────────────────────────────────────────────────
- *  This is the SINGLE SOURCE OF TRUTH for all display-level
- *  branding in the web application. To deploy this system for
- *  a different Barangay or LGU, simply update the values below.
+ *  This is the baseline configuration for all display-level
+ *  branding. Developers and administrators can also replace
+ *  the icons and logos directly through Settings > System Branding.
  *
  *  WHAT TO CHANGE:
- *    1. systemName       → The app's display name (shown in tabs, headers)
+ *    1. systemName       → The app's display name
  *    2. orgName          → Your Barangay / LGU full name
- *    3. orgShortName     → Short form used in narrow spaces (mobile nav, etc.)
+ *    3. orgShortName     → Short form used in mobile nav
  *    4. orgSubtitle      → Optional tagline or sub-unit name (set "" to hide)
- *    5. cityName         → City or municipality name
- *    6. primarySealUrl   → Path to your City/Municipality seal (in /public)
- *    7. secondarySealUrl → Path to your Barangay seal (in /public)
- *    8. appLogoUrl       → Path to your system logo (in /public)
+ *    5. cityName         → City or municipality name (set "" to hide text)
+ *    6. primarySealUrl   → Path or data URL for City/Municipality seal
+ *    7. secondarySealUrl → Path or data URL for Barangay seal
+ *    8. appLogoUrl       → Path or data URL for system logo
  *    9. emergencyContacts→ Update with your actual hotlines
- *   10. footerText       → Copyright / version string shown at the bottom
- *
- *  WHAT NOT TO CHANGE HERE:
- *    - API keys, Supabase URLs, or database field names
- *    - Role identifiers ('bantay_bayan', 'resident', 'admin', etc.)
- *    - Shared Preference keys or intent filter values
- *
- *  ─────────────────────────────────────────────────────────
- *  For Android re-branding, see:
- *    android/app/src/main/res/values/strings.xml
- *  ─────────────────────────────────────────────────────────
+ *   10. footerText       → Copyright / version string
  */
 
-export const branding = {
+export const defaultBranding = {
   // ── System Identity ──────────────────────────────────────
   /** Full system name — shown in page <title>, login screen, and browser tabs */
   systemName: "Bantay Bayan System",
@@ -45,40 +37,23 @@ export const branding = {
 
   /**
    * Sub-title line shown beneath the org name in the sidebar.
-   * Typically the Barangay sub-unit or district name.
-   * Set to "" (empty string) to hide this line entirely.
+   * Set to "" to hide this line entirely.
    */
   orgSubtitle: "",
 
-  /** City or municipality name */
-  cityName: "Your City",
+  /** City or municipality name. Set to "" to hide text and show only the elements. */
+  cityName: "",
 
   // ── Logos & Seals ─────────────────────────────────────────
   /**
-   * URL paths relative to /public.
-   * Drop your image files into the /public folder and set the paths below.
-   *
-   * Recommended sizes:
-   *   - primarySealUrl   : 200×200 px transparent PNG or SVG
-   *   - secondarySealUrl : 200×200 px transparent PNG or SVG
-   *   - appLogoUrl       : 256×256 px transparent PNG or SVG
-   *
-   * PLACEHOLDER BEHAVIOUR (handled by <BrandLogo> in components/BrandLogo.tsx)
-   *   - Set a path to ""  → a clean SVG placeholder is shown instead of a broken image.
-   *   - Set a path to "/your_file.png" → that image is rendered.
-   *   - If the image fails to load at runtime, the placeholder is shown automatically.
-   *
-   * Leave all three as "" until you have your own assets ready.
+   * URL paths relative to /public, or base64 Data URLs uploaded via Settings.
+   * Leaving these as "" will display designated SVG placeholder elements.
    */
-  primarySealUrl:   "",   // → e.g. "/city_seal.png"    (City / Municipality seal)
-  secondarySealUrl: "",   // → e.g. "/brgy_seal.png"    (Barangay seal)
-  appLogoUrl:       "",   // → e.g. "/logo.png"          (System / App logo)
+  primarySealUrl:   "",   // City / Municipality seal
+  secondarySealUrl: "",   // Barangay seal
+  appLogoUrl:       "",   // System / App logo
 
   // ── Landing Page — Vision & Mission ──────────────────────
-  /**
-   * Hero carousel slides shown on the public landing page.
-   * Replace these with your Barangay's actual Vision & Mission text.
-   */
   heroSlides: [
     {
       title: "Our",
@@ -101,21 +76,12 @@ export const branding = {
   ],
 
   // ── Leadership ───────────────────────────────────────────
-  /**
-   * Officials shown in the Landing Page "Leadership" carousel.
-   *
-   * executive[]: Top-tier officials (Punong Barangay, Secretary, Treasurer)
-   *   - set isPrimary: true for the top card (Punong Barangay)
-   *   - image paths are relative to /public/OFFICIALS/
-   *
-   * legislative[]: Kagawad / council members
-   */
   executive: [
     {
       role: "Punong Barangay",
       name: "HON. [CAPTAIN NAME]",
       desc: "Executive Command",
-      image: "", // → e.g. "/OFFICIALS/KAP-EXAMPLE.jpg"
+      image: "",
       isPrimary: true,
     },
     {
@@ -144,11 +110,6 @@ export const branding = {
   ],
 
   // ── Emergency Contacts ────────────────────────────────────
-  /**
-   * Hotlines displayed on the Landing Page "Emergency" slide.
-   * cityHotlines: City-level contacts
-   * barangayContacts: Barangay-level contacts
-   */
   emergency: {
     cityHotlines: [
       { label: "National:", number: "911" },
@@ -159,17 +120,12 @@ export const branding = {
     barangayContacts: [
       { label: "Brgy. Hall:", number: "[Barangay Hall No.]" },
     ],
-    address: "[Barangay Address], [City]",
+    address: "",
     emergencyDesc:
       "Official gateway for Unified Security operations within your community. Rapid. Tactical. Professional.",
   },
 
   // ── Registration Areas ────────────────────────────────────
-  /**
-   * Dropdown values for the "Area / Vicinity" field in the registration form.
-   * Replace with your actual sub-areas or puroks.
-   * The 'OTHERS' sentinel value must remain last — it triggers a free-text input.
-   */
   registrationAreas: [
     "AREA 1",
     "AREA 2",
@@ -179,15 +135,87 @@ export const branding = {
   ],
 
   // ── Login Page ───────────────────────────────────────────
-  /**
-   * Subtitle shown beneath the system name on the login screen.
-   * Typically the name of the portal or operations unit.
-   */
   loginSubtitle: "Operations Portal",
 
   // ── Footer ───────────────────────────────────────────────
-  /** Copyright line shown at the bottom of the Landing Page */
   footerText: "BMS Core Command v4.0 © 2026",
-} as const;
+};
 
-export type Branding = typeof branding;
+export type BrandingConfig = typeof defaultBranding;
+
+const STORAGE_KEY = 'bms_custom_branding';
+
+/** Get overrides stored by admin in localStorage */
+export const getCustomBranding = (): Partial<BrandingConfig> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+};
+
+/** Save admin custom branding (pictures, names, etc.) */
+export const saveCustomBranding = (custom: Partial<BrandingConfig>) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getCustomBranding();
+    const updated = { ...current, ...custom };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('bms_branding_changed'));
+  } catch (e) {
+    console.error('Failed to save branding:', e);
+  }
+};
+
+/** Reset custom branding to baseline defaults */
+export const clearCustomBranding = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    window.dispatchEvent(new Event('bms_branding_changed'));
+  } catch (e) {
+    console.error('Failed to clear branding:', e);
+  }
+};
+
+/** Resolve current active branding merged with any saved admin overrides */
+export const getActiveBranding = (): BrandingConfig => {
+  const custom = getCustomBranding();
+  return {
+    ...defaultBranding,
+    ...custom,
+    emergency: {
+      ...defaultBranding.emergency,
+      ...(custom.emergency || {}),
+    },
+  };
+};
+
+/** Reactive hook for React components to immediately re-render when branding changes */
+export const useBranding = (): BrandingConfig => {
+  const [currentBranding, setCurrentBranding] = useState<BrandingConfig>(getActiveBranding);
+
+  useEffect(() => {
+    const update = () => setCurrentBranding(getActiveBranding());
+    window.addEventListener('bms_branding_changed', update);
+    window.addEventListener('storage', update);
+    return () => {
+      window.removeEventListener('bms_branding_changed', update);
+      window.removeEventListener('storage', update);
+    };
+  }, []);
+
+  return currentBranding;
+};
+
+/** Proxy export for direct property access compatibility */
+export const branding = new Proxy(defaultBranding, {
+  get(_target, prop: string) {
+    const active = getActiveBranding();
+    return (active as any)[prop];
+  },
+});
+
+export type Branding = BrandingConfig;

@@ -6,7 +6,7 @@ import { authService } from '../services/authService';
 import { supabase } from '../lib/supabaseClient';
 import { useTheme } from '../contexts/ThemeContext';
 import { UserProfile, UserRole } from '../types';
-import { branding } from '../src/config/branding';
+import { useBranding } from '../src/config/branding';
 import BrandLogo from '../components/BrandLogo';
 import { 
     Shield, 
@@ -37,6 +37,7 @@ import {
 import { Link } from 'react-router-dom';
 
 const Login: React.FC = () => {
+    const branding = useBranding();
     const { login, verifyLoginMFA } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { t } = useLanguage();

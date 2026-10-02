@@ -5,12 +5,14 @@ import { authService } from '../services/authService';
 import { userService } from '../services/userService';
 import { systemService } from '../services/systemService';
 import { useToast } from '../contexts/ToastContext';
-import { Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, Check, ShieldAlert, Trash2, QrCode, Camera as CameraIcon, Database, Download, AlertTriangle, FileJson } from 'lucide-react';
+import { Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, Check, ShieldAlert, Trash2, QrCode, Camera as CameraIcon, Database, Download, AlertTriangle, FileJson, Upload, RotateCcw, Image as ImageIcon } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { useBranding, saveCustomBranding, clearCustomBranding } from '../src/config/branding';
+import BrandLogo from '../components/BrandLogo';
 
 const Settings: React.FC = () => {
     const { user, refreshUser } = useAuth();
@@ -51,6 +53,71 @@ const Settings: React.FC = () => {
     const [stepUpCode, setStepUpCode] = useState('');
     const [stepUpLoading, setStepUpLoading] = useState(false);
     const [pendingUpdates, setPendingUpdates] = useState<any>(null);
+
+    // Branding Management State (Developer & Captain)
+    const currentBranding = useBranding();
+    const [brandingForm, setBrandingForm] = useState({
+        primarySealUrl: currentBranding.primarySealUrl,
+        secondarySealUrl: currentBranding.secondarySealUrl,
+        appLogoUrl: currentBranding.appLogoUrl,
+        cityName: currentBranding.cityName,
+        orgName: currentBranding.orgName,
+    });
+    const [brandingSaving, setBrandingSaving] = useState(false);
+
+    useEffect(() => {
+        setBrandingForm({
+            primarySealUrl: currentBranding.primarySealUrl,
+            secondarySealUrl: currentBranding.secondarySealUrl,
+            appLogoUrl: currentBranding.appLogoUrl,
+            cityName: currentBranding.cityName,
+            orgName: currentBranding.orgName,
+        });
+    }, [currentBranding]);
+
+    const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'primarySealUrl' | 'secondarySealUrl' | 'appLogoUrl') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            showToast("Image must be smaller than 5MB", "error");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            setBrandingForm(prev => ({ ...prev, [field]: dataUrl }));
+            showToast("Picture loaded! Click 'Save Branding Changes' to apply.", "info");
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSaveBranding = (e: React.FormEvent) => {
+        e.preventDefault();
+        setBrandingSaving(true);
+        try {
+            saveCustomBranding({
+                primarySealUrl: brandingForm.primarySealUrl,
+                secondarySealUrl: brandingForm.secondarySealUrl,
+                appLogoUrl: brandingForm.appLogoUrl,
+                cityName: brandingForm.cityName,
+                orgName: brandingForm.orgName,
+            });
+            showToast("System branding and logos updated successfully!", "success");
+        } catch {
+            showToast("Failed to save branding settings", "error");
+        } finally {
+            setBrandingSaving(false);
+        }
+    };
+
+    const handleResetBranding = () => {
+        if (window.confirm("Are you sure you want to reset all seals and logos to default icons?")) {
+            clearCustomBranding();
+            showToast("System branding reset to default icons.", "info");
+        }
+    };
 
 
     useEffect(() => {
@@ -727,8 +794,198 @@ const Settings: React.FC = () => {
                             </div>
                         </form>
                     </div>
-
                 </div>
+
+                {/* ADMIN BRANDING & VISUAL IDENTITY (Developer / Captain Only) */}
+                {(user?.role === 'developer' || user?.role === 'barangay_captain') && (
+                    <div id="branding" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden mb-10">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-blue"></div>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+                            <h2 className="text-xl font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-tight italic flex items-center">
+                                <div className="p-2 bg-taguig-blue/10 rounded-lg mr-4 text-taguig-blue dark:text-taguig-gold">
+                                    <ImageIcon size={24} />
+                                </div>
+                                System Visual Branding & Logos
+                            </h2>
+                            <button
+                                type="button"
+                                onClick={handleResetBranding}
+                                className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-taguig-red transition-colors self-start md:self-auto"
+                            >
+                                <RotateCcw size={14} />
+                                <span>Reset to Default Icons</span>
+                            </button>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-8">
+                            Authorized Personnel Only • Custom Seals & Elements
+                        </p>
+
+                        <form onSubmit={handleSaveBranding} className="space-y-8">
+                            {/* Logo Upload Grids */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* 1. Primary Seal (City) */}
+                                <div className="p-6 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
+                                    <div className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                        City / Primary Seal
+                                    </div>
+                                    <div className="w-20 h-20 flex items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-inner">
+                                        <BrandLogo
+                                            src={brandingForm.primarySealUrl}
+                                            alt="Primary Seal"
+                                            variant="seal-primary"
+                                            className="w-16 h-16"
+                                        />
+                                    </div>
+                                    <div className="text-[10px] text-slate-400">
+                                        {brandingForm.primarySealUrl ? 'Custom Picture Attached' : 'Showing Default Icon Element'}
+                                    </div>
+                                    <div className="flex gap-2 w-full pt-2">
+                                        <label className="flex-1 px-3 py-2 bg-taguig-blue text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-taguig-navy transition-all flex items-center justify-center space-x-1 shadow-sm">
+                                            <Upload size={14} />
+                                            <span>Upload</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => handleLogoFileUpload(e, 'primarySealUrl')}
+                                            />
+                                        </label>
+                                        {brandingForm.primarySealUrl && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setBrandingForm(prev => ({ ...prev, primarySealUrl: '' }))}
+                                                className="px-3 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                title="Revert to Icon"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* 2. Secondary Seal (Barangay) */}
+                                <div className="p-6 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
+                                    <div className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                        Barangay / Secondary Seal
+                                    </div>
+                                    <div className="w-20 h-20 flex items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-inner">
+                                        <BrandLogo
+                                            src={brandingForm.secondarySealUrl}
+                                            alt="Secondary Seal"
+                                            variant="seal-secondary"
+                                            className="w-16 h-16"
+                                        />
+                                    </div>
+                                    <div className="text-[10px] text-slate-400">
+                                        {brandingForm.secondarySealUrl ? 'Custom Picture Attached' : 'Showing Default Icon Element'}
+                                    </div>
+                                    <div className="flex gap-2 w-full pt-2">
+                                        <label className="flex-1 px-3 py-2 bg-taguig-blue text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-taguig-navy transition-all flex items-center justify-center space-x-1 shadow-sm">
+                                            <Upload size={14} />
+                                            <span>Upload</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => handleLogoFileUpload(e, 'secondarySealUrl')}
+                                            />
+                                        </label>
+                                        {brandingForm.secondarySealUrl && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setBrandingForm(prev => ({ ...prev, secondarySealUrl: '' }))}
+                                                className="px-3 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                title="Revert to Icon"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* 3. System Logo */}
+                                <div className="p-6 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
+                                    <div className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                        System / App Logo
+                                    </div>
+                                    <div className="w-20 h-20 flex items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-inner">
+                                        <BrandLogo
+                                            src={brandingForm.appLogoUrl}
+                                            alt="System Logo"
+                                            variant="logo"
+                                            className="w-16 h-16"
+                                        />
+                                    </div>
+                                    <div className="text-[10px] text-slate-400">
+                                        {brandingForm.appLogoUrl ? 'Custom Picture Attached' : 'Showing Default Icon Element'}
+                                    </div>
+                                    <div className="flex gap-2 w-full pt-2">
+                                        <label className="flex-1 px-3 py-2 bg-taguig-blue text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-taguig-navy transition-all flex items-center justify-center space-x-1 shadow-sm">
+                                            <Upload size={14} />
+                                            <span>Upload</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => handleLogoFileUpload(e, 'appLogoUrl')}
+                                            />
+                                        </label>
+                                        {brandingForm.appLogoUrl && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setBrandingForm(prev => ({ ...prev, appLogoUrl: '' }))}
+                                                className="px-3 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                title="Revert to Icon"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Text labels customization */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2">
+                                        City / Municipality Name <span className="font-normal text-slate-400 lowercase">(leave empty to display only elements)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={brandingForm.cityName}
+                                        onChange={(e) => setBrandingForm(prev => ({ ...prev, cityName: e.target.value }))}
+                                        placeholder="Leave empty for icon-only display"
+                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2">
+                                        Organization / Barangay Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={brandingForm.orgName}
+                                        onChange={(e) => setBrandingForm(prev => ({ ...prev, orgName: e.target.value }))}
+                                        placeholder="e.g. Community Operations"
+                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Submit Button */}
+                            <div className="flex justify-end pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={brandingSaving}
+                                    className="px-8 py-3.5 bg-taguig-blue text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-taguig-navy transition-all shadow-lg shadow-taguig-blue/20 flex items-center space-x-2 disabled:opacity-50"
+                                >
+                                    <Save size={16} />
+                                    <span>{brandingSaving ? 'Saving...' : 'Save Branding Changes'}</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
 
                 {/* ADMIN DATA MANAGEMENT (Developer / Captain Only) */}
                 {(user?.role === 'developer' || user?.role === 'barangay_captain') && (

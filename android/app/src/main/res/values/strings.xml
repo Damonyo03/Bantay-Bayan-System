@@ -42,8 +42,8 @@
     <!-- Full Barangay / LGU name shown in headers and splash screens -->
     <string name="org_name">Community Operations</string>
 
-    <!-- City or Municipality name -->
-    <string name="lgu_name">Your City</string>
+    <!-- City or Municipality name (empty by default) -->
+    <string name="lgu_name"></string>
 
     <!--
       Sub-unit or district label (e.g. a specific Barangay or Zone).

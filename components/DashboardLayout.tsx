@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import { Menu } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { branding } from '../src/config/branding';
+import { useBranding } from '../src/config/branding';
 import BrandLogo from './BrandLogo';
 
 interface DashboardLayoutProps {
@@ -11,6 +11,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const { user, logout } = useAuth();
+    const branding = useBranding();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // If the user is pending approval, show a restricted view

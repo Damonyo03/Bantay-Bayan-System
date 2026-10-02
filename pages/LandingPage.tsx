@@ -13,17 +13,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
-import { branding } from '../src/config/branding';
+import { useBranding } from '../src/config/branding';
 import BrandLogo from '../components/BrandLogo';
-
-// HERO_SLIDES and SEALS are configurable from src/config/branding.ts
-const HERO_SLIDES = branding.heroSlides;
-
-const SEALS = [
-    { src: branding.primarySealUrl, alt: 'City Seal', variant: 'seal-primary' as const },
-    { src: branding.secondarySealUrl, alt: 'Barangay Seal', variant: 'seal-secondary' as const },
-    { src: branding.appLogoUrl, alt: 'System Logo', variant: 'logo' as const },
-];
 
 const SECTIONS = [
     { id: 'introduction', label: 'Introduction' },
@@ -32,9 +23,17 @@ const SECTIONS = [
 ];
 
 const LandingPage: React.FC = () => {
+    const branding = useBranding();
     const navigate = useNavigate();
     const isNative = Capacitor.isNativePlatform();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const heroSlides = branding.heroSlides;
+    const seals = [
+        { src: branding.primarySealUrl, alt: 'City Seal', variant: 'seal-primary' as const },
+        { src: branding.secondarySealUrl, alt: 'Barangay Seal', variant: 'seal-secondary' as const },
+        { src: branding.appLogoUrl, alt: 'System Logo', variant: 'logo' as const },
+    ];
 
     // Carousel States
     const [mainIndex, setMainIndex] = useState(0);
@@ -45,7 +44,7 @@ const LandingPage: React.FC = () => {
     useEffect(() => {
         if (mainIndex === 0) {
             const timer = setInterval(() => {
-                setHeroIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+                setHeroIndex((prev) => (prev + 1) % heroSlides.length);
             }, 8000);
             return () => clearInterval(timer);
         }
@@ -64,7 +63,7 @@ const LandingPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center space-x-6 group cursor-pointer" onClick={() => setMainIndex(0)}>
                         <div className="flex items-center space-x-2 md:space-x-4">
-                            {SEALS.map((seal, idx) => (
+                            {seals.map((seal, idx) => (
                                 <BrandLogo
                                     key={idx}
                                     src={seal.src}

@@ -24,7 +24,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabaseClient';
 import { userService } from '../services/userService';
-import { branding } from '../src/config/branding';
+import { useBranding } from '../src/config/branding';
 import BrandLogo from './BrandLogo';
 
 interface SidebarProps {
@@ -33,6 +33,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
+  const branding = useBranding();
   const location = useLocation();
   const { user, logout, isHighLevelAdmin } = useAuth();
   const { language, setLanguage, t } = useLanguage();
@@ -142,9 +143,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
         </button>
       )}
 
-      {/* Branding — edit src/config/branding.ts to re-brand */}
-      {/* BrandLogo shows a placeholder when src="" — no broken images */}
-      <div className="mb-8 px-1 mt-4">
+      {/* Branding Element — displays only elements when cityName is empty */}
+      <div className="mb-8 px-1 mt-4 relative group">
         <div className="flex items-center justify-center mb-4 space-x-2">
           <BrandLogo
             src={branding.primarySealUrl}
@@ -168,12 +168,27 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
             placeholderClassName="border-taguig-blue/40"
           />
         </div>
-        <div className="text-center">
-          <span className="block font-black text-taguig-navy dark:text-white text-[15px] tracking-tight leading-tight uppercase font-display">{branding.cityName}</span>
-          {branding.orgSubtitle && (
-            <span className="text-[9px] text-taguig-red dark:text-taguig-gold font-black tracking-[0.15em] uppercase">{branding.orgSubtitle}</span>
-          )}
-        </div>
+        {(branding.cityName || branding.orgSubtitle) ? (
+          <div className="text-center">
+            {branding.cityName && (
+              <span className="block font-black text-taguig-navy dark:text-white text-[15px] tracking-tight leading-tight uppercase font-display">{branding.cityName}</span>
+            )}
+            {branding.orgSubtitle && (
+              <span className="text-[9px] text-taguig-red dark:text-taguig-gold font-black tracking-[0.15em] uppercase">{branding.orgSubtitle}</span>
+            )}
+          </div>
+        ) : null}
+
+        {/* Quick link for Developer / Captain to replace icons with pictures in Settings */}
+        {(user?.role === 'developer' || user?.role === 'barangay_captain') && (
+          <Link
+            to="/settings"
+            title="Replace seals & logos"
+            className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-2 right-2 text-[9px] font-bold text-taguig-blue dark:text-taguig-gold bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full shadow border border-slate-200 dark:border-white/10"
+          >
+            Edit Logos
+          </Link>
+        )}
       </div>
 
       {/* Nav Links */}
