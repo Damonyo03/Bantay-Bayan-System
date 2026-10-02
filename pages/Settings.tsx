@@ -29,12 +29,12 @@ const Settings: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const isPrivilegedAdmin = user?.role === 'developer' || user?.role === 'barangay_captain';
 
-    // Support tab from query params (?tab=leadership, ?tab=emergency, ?tab=branding, etc.)
+    // Support tab from query params (?tab=profile, ?tab=leadership, ?tab=emergency, ?tab=branding, ?tab=data, ?tab=all)
     const tabParam = searchParams.get('tab');
-    const validTabs = ['branding', 'leadership', 'emergency', 'data', 'profile'];
+    const validTabs = ['profile', 'branding', 'leadership', 'emergency', 'data', 'all'];
     const activeSection = (tabParam && validTabs.includes(tabParam))
         ? tabParam
-        : (isPrivilegedAdmin ? 'branding' : 'profile');
+        : 'profile';
 
     const handleSelectTab = (tab: string) => {
         setSearchParams({ tab });
@@ -716,8 +716,8 @@ const Settings: React.FC = () => {
         if (!isPrivilegedAdmin || activeSection === 'profile') {
             return {
                 title: "Personal Settings",
-                subtitle: `Your account details • ${user?.full_name}`,
-                icon: SettingsIcon
+                subtitle: `Profile photo, personal details & data controls • ${user?.full_name}`,
+                icon: User
             };
         }
         if (activeSection === 'leadership') {
@@ -737,8 +737,15 @@ const Settings: React.FC = () => {
         if (activeSection === 'data') {
             return {
                 title: "System Data Governance",
-                subtitle: "Administrative database backup archives and system reset",
+                subtitle: "Administrative database backup archives and system reset / clear data",
                 icon: Database
+            };
+        }
+        if (activeSection === 'all') {
+            return {
+                title: "System Administration & Settings",
+                subtitle: "All configuration sections: personal profile, branding, leadership, hotlines, and database controls",
+                icon: SettingsIcon
             };
         }
         return {
@@ -778,8 +785,20 @@ const Settings: React.FC = () => {
                     <div className="flex flex-wrap gap-1.5 p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/5">
                         <button
                             type="button"
+                            onClick={() => handleSelectTab('profile')}
+                            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                                activeSection === 'profile'
+                                    ? 'bg-white dark:bg-slate-800 text-taguig-navy dark:text-taguig-gold shadow-sm font-black'
+                                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                            }`}
+                        >
+                            <User size={14} />
+                            <span>Personal Details</span>
+                        </button>
+                        <button
+                            type="button"
                             onClick={() => handleSelectTab('branding')}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                                 activeSection === 'branding'
                                     ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
                                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -791,7 +810,7 @@ const Settings: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => handleSelectTab('leadership')}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                                 activeSection === 'leadership'
                                     ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
                                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -803,7 +822,7 @@ const Settings: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => handleSelectTab('emergency')}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                                 activeSection === 'emergency'
                                     ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
                                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -815,33 +834,33 @@ const Settings: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => handleSelectTab('data')}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                                 activeSection === 'data'
                                     ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-sm font-black'
                                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                             }`}
                         >
-                            <Database size={14} />
-                            <span>Data Governance</span>
+                            <Trash2 size={14} />
+                            <span>Clear Data</span>
                         </button>
                         <button
                             type="button"
-                            onClick={() => handleSelectTab('profile')}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                activeSection === 'profile'
+                            onClick={() => handleSelectTab('all')}
+                            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                                activeSection === 'all'
                                     ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm font-black'
                                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                             }`}
                         >
-                            <User size={14} />
-                            <span>My Profile</span>
+                            <SettingsIcon size={14} />
+                            <span>View All</span>
                         </button>
                     </div>
                 </div>
             )}
 
             <div className="grid grid-cols-1 gap-8">
-                {(!isPrivilegedAdmin || activeSection === 'profile') && (
+                {(!isPrivilegedAdmin || activeSection === 'profile' || activeSection === 'all') && (
                     <>
                         {/* PROFILE SECTION */}
                         <div className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-white/10 relative overflow-hidden">
@@ -1145,7 +1164,7 @@ const Settings: React.FC = () => {
                 {isPrivilegedAdmin && (
                     <div className="space-y-6">
                         {/* TAB 1: VISUAL BRANDING & LOGOS */}
-                        {activeSection === 'branding' && (
+                        {(activeSection === 'branding' || activeSection === 'all') && (
                             <div id="branding" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-blue"></div>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
@@ -1336,7 +1355,7 @@ const Settings: React.FC = () => {
                         )}
 
                         {/* TAB 2: COMMUNITY LEADERSHIP & HIERARCHY */}
-                        {activeSection === 'leadership' && (
+                        {(activeSection === 'leadership' || activeSection === 'all') && (
                             <div id="leadership" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-gold"></div>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
@@ -1639,7 +1658,7 @@ const Settings: React.FC = () => {
                         )}
 
                         {/* TAB 3: EMERGENCY RESPONSE HUB & HOTLINES */}
-                        {activeSection === 'emergency' && (
+                        {(activeSection === 'emergency' || activeSection === 'all') && (
                             <div id="emergency" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
@@ -1841,7 +1860,7 @@ const Settings: React.FC = () => {
                         )}
 
                         {/* TAB 4: SYSTEM DATA GOVERNANCE */}
-                        {activeSection === 'data' && (
+                        {(activeSection === 'data' || activeSection === 'profile' || activeSection === 'all') && (
                             <div id="data" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-red/20 bg-taguig-red/[0.01] dark:bg-taguig-red/[0.03] relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
                                 <h2 className="text-xl font-black text-taguig-red uppercase tracking-tight italic mb-2 flex items-center">
