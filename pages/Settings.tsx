@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 import { userService } from '../services/userService';
@@ -9,7 +10,7 @@ import {
     Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, 
     Check, ShieldAlert, Trash2, QrCode, Camera as CameraIcon, Database, Download, 
     AlertTriangle, FileJson, Upload, RotateCcw, Image as ImageIcon, Users, 
-    PhoneCall, Plus, MapPin, Building, Shield, ChevronRight 
+    PhoneCall, Plus, MapPin, Building, Shield, ChevronRight, Edit3
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -25,6 +26,20 @@ import BrandLogo from '../components/BrandLogo';
 const Settings: React.FC = () => {
     const { user, refreshUser } = useAuth();
     const { showToast } = useToast();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const isPrivilegedAdmin = user?.role === 'developer' || user?.role === 'barangay_captain';
+
+    // Support tab from query params (?tab=leadership, ?tab=emergency, ?tab=branding, etc.)
+    const tabParam = searchParams.get('tab');
+    const validTabs = ['branding', 'leadership', 'emergency', 'data', 'profile'];
+    const activeSection = (tabParam && validTabs.includes(tabParam))
+        ? tabParam
+        : (isPrivilegedAdmin ? 'branding' : 'profile');
+
+    const handleSelectTab = (tab: string) => {
+        setSearchParams({ tab });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const [profileLoading, setProfileLoading] = useState(false);
     const [securityLoading, setSecurityLoading] = useState(false);
@@ -61,21 +76,6 @@ const Settings: React.FC = () => {
     const [stepUpCode, setStepUpCode] = useState('');
     const [stepUpLoading, setStepUpLoading] = useState(false);
     const [pendingUpdates, setPendingUpdates] = useState<any>(null);
-
-    // Admin Panel Sub-Navigation Tab State (Developer & Captain)
-    const [adminSection, setAdminSection] = useState<'branding' | 'leadership' | 'emergency' | 'data'>('branding');
-
-    useEffect(() => {
-        const handleHash = () => {
-            const hash = window.location.hash.replace('#', '');
-            if (hash === 'branding' || hash === 'leadership' || hash === 'emergency' || hash === 'data') {
-                setAdminSection(hash as any);
-            }
-        };
-        handleHash();
-        window.addEventListener('hashchange', handleHash);
-        return () => window.removeEventListener('hashchange', handleHash);
-    }, []);
 
     // Branding Management State (Developer & Captain)
     const currentBranding = useBranding();
@@ -712,25 +712,146 @@ const Settings: React.FC = () => {
         }
     };
 
+    const getHeaderInfo = () => {
+        if (!isPrivilegedAdmin || activeSection === 'profile') {
+            return {
+                title: "Personal Settings",
+                subtitle: `Your account details • ${user?.full_name}`,
+                icon: SettingsIcon
+            };
+        }
+        if (activeSection === 'leadership') {
+            return {
+                title: "Community Leadership Directory",
+                subtitle: "Executive Command & Legislative Council roster and official photos",
+                icon: Users
+            };
+        }
+        if (activeSection === 'emergency') {
+            return {
+                title: "Emergency Response Hub",
+                subtitle: "Public 24/7 hotlines, local desk contacts, and station location",
+                icon: PhoneCall
+            };
+        }
+        if (activeSection === 'data') {
+            return {
+                title: "System Data Governance",
+                subtitle: "Administrative database backup archives and system reset",
+                icon: Database
+            };
+        }
+        return {
+            title: "System Visual Branding & Logos",
+            subtitle: "Authorized personnel only • Custom seals, logos and naming elements",
+            icon: ImageIcon
+        };
+    };
+
+    const headerInfo = getHeaderInfo();
+
     return (
         <div className="max-w-4xl mx-auto pb-20 animate-fade-in">
             <PageHeader
-                title="Personal Settings"
-                subtitle={`Your account details • ${user?.full_name}`}
-                icon={SettingsIcon}
+                title={headerInfo.title}
+                subtitle={headerInfo.subtitle}
+                icon={headerInfo.icon}
             />
 
-            <div className="grid grid-cols-1 gap-8">
-
-                {/* PROFILE SECTION */}
-                <div className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-white/10 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-navy"></div>
-                    <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic mb-8 flex items-center">
-                        <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-lg mr-4">
-                            <User className="text-taguig-navy dark:text-taguig-gold" size={24} />
+            {/* Seamless Tab Navigation Bar (Positioned at Top for Instant Access) */}
+            {isPrivilegedAdmin && (
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-white/10 shadow-sm mb-8 mt-2">
+                    <div className="flex items-center space-x-3 px-2">
+                        <div className="p-2.5 bg-taguig-blue/10 dark:bg-taguig-gold/10 rounded-xl text-taguig-blue dark:text-taguig-gold">
+                            <Building size={20} />
                         </div>
-                        Public Profile
-                    </h2>
+                        <div>
+                            <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">
+                                Customization Suite
+                            </h3>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                Developer & Captain Controls
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/5">
+                        <button
+                            type="button"
+                            onClick={() => handleSelectTab('branding')}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                activeSection === 'branding'
+                                    ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
+                                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                            }`}
+                        >
+                            <ImageIcon size={14} />
+                            <span>Visual Branding</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleSelectTab('leadership')}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                activeSection === 'leadership'
+                                    ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
+                                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                            }`}
+                        >
+                            <Users size={14} />
+                            <span>Leadership Directory</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleSelectTab('emergency')}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                activeSection === 'emergency'
+                                    ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
+                                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                            }`}
+                        >
+                            <PhoneCall size={14} />
+                            <span>Emergency Hub</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleSelectTab('data')}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                activeSection === 'data'
+                                    ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-sm font-black'
+                                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                            }`}
+                        >
+                            <Database size={14} />
+                            <span>Data Governance</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleSelectTab('profile')}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                activeSection === 'profile'
+                                    ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm font-black'
+                                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                            }`}
+                        >
+                            <User size={14} />
+                            <span>My Profile</span>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-8">
+                {(!isPrivilegedAdmin || activeSection === 'profile') && (
+                    <>
+                        {/* PROFILE SECTION */}
+                        <div className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-white/10 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-navy"></div>
+                            <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic mb-8 flex items-center">
+                                <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-lg mr-4">
+                                    <User className="text-taguig-navy dark:text-taguig-gold" size={24} />
+                                </div>
+                                Public Profile
+                            </h2>
                     <form onSubmit={handleUpdateProfile} className="space-y-8">
 
                         {/* AVATAR UPLOAD */}
@@ -1017,80 +1138,14 @@ const Settings: React.FC = () => {
                         </form>
                     </div>
                 </div>
+                </>
+                )}
 
                 {/* ADMINISTRATIVE SYSTEM CONFIGURATION SUITE (Developer & Captain Only) */}
-                {(user?.role === 'developer' || user?.role === 'barangay_captain') && (
+                {isPrivilegedAdmin && (
                     <div className="space-y-6">
-                        {/* Admin Sub-Navigation Tab Bar */}
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-white/10 shadow-sm">
-                            <div className="flex items-center space-x-3 px-2">
-                                <div className="p-2.5 bg-taguig-blue/10 dark:bg-taguig-gold/10 rounded-xl text-taguig-blue dark:text-taguig-gold">
-                                    <Building size={20} />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">
-                                        System Customization Portal
-                                    </h3>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                        Developer & Captain Administrative Controls
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-wrap gap-1.5 p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/5">
-                                <button
-                                    type="button"
-                                    onClick={() => { setAdminSection('branding'); window.location.hash = 'branding'; }}
-                                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                        adminSection === 'branding'
-                                            ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
-                                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-                                    }`}
-                                >
-                                    <ImageIcon size={14} />
-                                    <span>Visual Branding</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setAdminSection('leadership'); window.location.hash = 'leadership'; }}
-                                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                        adminSection === 'leadership'
-                                            ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
-                                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-                                    }`}
-                                >
-                                    <Users size={14} />
-                                    <span>Leadership Directory</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setAdminSection('emergency'); window.location.hash = 'emergency'; }}
-                                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                        adminSection === 'emergency'
-                                            ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
-                                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-                                    }`}
-                                >
-                                    <PhoneCall size={14} />
-                                    <span>Emergency Hub</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setAdminSection('data'); window.location.hash = 'data'; }}
-                                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                        adminSection === 'data'
-                                            ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-sm font-black'
-                                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-                                    }`}
-                                >
-                                    <Database size={14} />
-                                    <span>Data Governance</span>
-                                </button>
-                            </div>
-                        </div>
-
                         {/* TAB 1: VISUAL BRANDING & LOGOS */}
-                        {adminSection === 'branding' && (
+                        {activeSection === 'branding' && (
                             <div id="branding" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-blue"></div>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
@@ -1281,7 +1336,7 @@ const Settings: React.FC = () => {
                         )}
 
                         {/* TAB 2: COMMUNITY LEADERSHIP & HIERARCHY */}
-                        {adminSection === 'leadership' && (
+                        {activeSection === 'leadership' && (
                             <div id="leadership" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-gold"></div>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
@@ -1584,7 +1639,7 @@ const Settings: React.FC = () => {
                         )}
 
                         {/* TAB 3: EMERGENCY RESPONSE HUB & HOTLINES */}
-                        {adminSection === 'emergency' && (
+                        {activeSection === 'emergency' && (
                             <div id="emergency" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
@@ -1786,7 +1841,7 @@ const Settings: React.FC = () => {
                         )}
 
                         {/* TAB 4: SYSTEM DATA GOVERNANCE */}
-                        {adminSection === 'data' && (
+                        {activeSection === 'data' && (
                             <div id="data" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-red/20 bg-taguig-red/[0.01] dark:bg-taguig-red/[0.03] relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
                                 <h2 className="text-xl font-black text-taguig-red uppercase tracking-tight italic mb-2 flex items-center">

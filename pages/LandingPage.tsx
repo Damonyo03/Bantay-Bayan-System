@@ -9,11 +9,13 @@ import {
     MapPin,
     AlertTriangle,
     Info,
-    Download
+    Download,
+    Edit3
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { useBranding } from '../src/config/branding';
+import { useAuth } from '../contexts/AuthContext';
 import BrandLogo from '../components/BrandLogo';
 
 const SECTIONS = [
@@ -24,6 +26,8 @@ const SECTIONS = [
 
 const LandingPage: React.FC = () => {
     const branding = useBranding();
+    const { user } = useAuth();
+    const isPrivilegedAdmin = user?.role === 'developer' || user?.role === 'barangay_captain';
     const navigate = useNavigate();
     const isNative = Capacitor.isNativePlatform();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -210,6 +214,15 @@ const LandingPage: React.FC = () => {
                             <div className="text-center space-y-2 mb-6 md:mb-10 flex flex-col items-center group">
                                 <h3 className="text-2xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter italic leading-none">Institutional Hierarchy</h3>
                                 <p className="text-slate-400 font-bold max-w-2xl mx-auto text-xs md:text-lg tracking-wide uppercase opacity-60">Strategic command and operational leadership.</p>
+                                {isPrivilegedAdmin && (
+                                    <button
+                                        onClick={() => navigate('/settings?tab=leadership')}
+                                        className="mt-2 inline-flex items-center space-x-2 px-4 py-1.5 bg-taguig-gold/20 hover:bg-taguig-gold text-taguig-gold hover:text-slate-950 text-xs font-black uppercase tracking-wider rounded-full border border-taguig-gold/30 transition-all shadow-lg"
+                                    >
+                                        <Edit3 size={13} />
+                                        <span>Edit Leadership Directory</span>
+                                    </button>
+                                )}
                             </div>
                             <div className="relative">
                                 {/* Sliding Titles */}
@@ -284,6 +297,15 @@ const LandingPage: React.FC = () => {
                                 <div className="space-y-4">
                                     <h3 className="text-4xl md:text-5xl font-black uppercase italic leading-tight tracking-tighter">Emergency <br /><span className="text-taguig-gold">Response Hub</span></h3>
                                     <p className="text-lg text-white/40 font-medium max-w-md leading-relaxed">{branding.emergency.emergencyDesc}</p>
+                                    {isPrivilegedAdmin && (
+                                        <button
+                                            onClick={() => navigate('/settings?tab=emergency')}
+                                            className="inline-flex items-center space-x-2 px-4 py-1.5 bg-taguig-gold/20 hover:bg-taguig-gold text-taguig-gold hover:text-slate-950 text-xs font-black uppercase tracking-wider rounded-full border border-taguig-gold/30 transition-all shadow-lg"
+                                        >
+                                            <Edit3 size={13} />
+                                            <span>Edit Emergency Hub</span>
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 border-t border-white/5 pt-10">
                                     <div className="space-y-4">

@@ -16,7 +16,9 @@ import {
   Sun, 
   FileDown,
   X,
-  MessageSquare
+  MessageSquare,
+  PhoneCall,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -39,7 +41,13 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
 
-  const isActive = (path: string) => location.pathname.startsWith(path);
+  const currentFullUrl = location.pathname + location.search;
+  const isActive = (path: string) => {
+    if (path.includes('?')) {
+      return currentFullUrl === path;
+    }
+    return location.pathname === path && !location.search;
+  };
 
   // Define permissions for roles
   const role = user?.role || 'guest';
@@ -47,6 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
   const isResident = role === 'resident';
   const isBantayBayan = role === 'bantay_bayan';
   const isSupervisor = role === 'supervisor';
+  const isPrivilegedAdmin = role === 'developer' || role === 'barangay_captain';
   const isStaff = isBantayBayan || isSupervisor || isHighLevelAdmin();
 
   const [badges, setBadges] = useState({
@@ -129,6 +138,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
     { icon: FileDown, label: t.printableForms, path: '/download-forms', visible: true },
     { icon: FileClock, label: t.auditLogs, path: '/audit-logs', visible: isHighLevelAdmin() },
     { icon: Settings, label: t.settings, path: '/settings', visible: !isGuest },
+    { icon: ImageIcon, label: 'Visual Branding', path: '/settings?tab=branding', visible: isPrivilegedAdmin },
+    { icon: Users, label: 'Leadership Setup', path: '/settings?tab=leadership', visible: isPrivilegedAdmin },
+    { icon: PhoneCall, label: 'Emergency Setup', path: '/settings?tab=emergency', visible: isPrivilegedAdmin },
   ].filter(item => item.visible);
 
   return (
