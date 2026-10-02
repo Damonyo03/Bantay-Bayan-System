@@ -5,13 +5,21 @@ import { authService } from '../services/authService';
 import { userService } from '../services/userService';
 import { systemService } from '../services/systemService';
 import { useToast } from '../contexts/ToastContext';
-import { Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, Check, ShieldAlert, Trash2, QrCode, Camera as CameraIcon, Database, Download, AlertTriangle, FileJson, Upload, RotateCcw, Image as ImageIcon } from 'lucide-react';
+import { 
+    Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, 
+    Check, ShieldAlert, Trash2, QrCode, Camera as CameraIcon, Database, Download, 
+    AlertTriangle, FileJson, Upload, RotateCcw, Image as ImageIcon, Users, 
+    PhoneCall, Plus, MapPin, Building, Shield, ChevronRight 
+} from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
-import { useBranding, saveCustomBranding, clearCustomBranding } from '../src/config/branding';
+import { 
+    useBranding, saveCustomBranding, clearCustomBranding, defaultBranding,
+    ExecutiveMember, LegislativeMember, HotlineContact
+} from '../src/config/branding';
 import BrandLogo from '../components/BrandLogo';
 
 const Settings: React.FC = () => {
@@ -54,6 +62,21 @@ const Settings: React.FC = () => {
     const [stepUpLoading, setStepUpLoading] = useState(false);
     const [pendingUpdates, setPendingUpdates] = useState<any>(null);
 
+    // Admin Panel Sub-Navigation Tab State (Developer & Captain)
+    const [adminSection, setAdminSection] = useState<'branding' | 'leadership' | 'emergency' | 'data'>('branding');
+
+    useEffect(() => {
+        const handleHash = () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'branding' || hash === 'leadership' || hash === 'emergency' || hash === 'data') {
+                setAdminSection(hash as any);
+            }
+        };
+        handleHash();
+        window.addEventListener('hashchange', handleHash);
+        return () => window.removeEventListener('hashchange', handleHash);
+    }, []);
+
     // Branding Management State (Developer & Captain)
     const currentBranding = useBranding();
     const [brandingForm, setBrandingForm] = useState({
@@ -65,6 +88,30 @@ const Settings: React.FC = () => {
     });
     const [brandingSaving, setBrandingSaving] = useState(false);
 
+    // Leadership Management State
+    const [executiveMembers, setExecutiveMembers] = useState<ExecutiveMember[]>(
+        currentBranding.executive || defaultBranding.executive
+    );
+    const [legislativeMembers, setLegislativeMembers] = useState<LegislativeMember[]>(
+        currentBranding.legislative || defaultBranding.legislative
+    );
+    const [leadershipSaving, setLeadershipSaving] = useState(false);
+
+    // Emergency Details Management State
+    const [cityHotlines, setCityHotlines] = useState<HotlineContact[]>(
+        currentBranding.emergency?.cityHotlines || defaultBranding.emergency.cityHotlines
+    );
+    const [barangayContacts, setBarangayContacts] = useState<HotlineContact[]>(
+        currentBranding.emergency?.barangayContacts || defaultBranding.emergency.barangayContacts
+    );
+    const [emergencyAddress, setEmergencyAddress] = useState<string>(
+        currentBranding.emergency?.address ?? defaultBranding.emergency.address
+    );
+    const [emergencyDesc, setEmergencyDesc] = useState<string>(
+        currentBranding.emergency?.emergencyDesc ?? defaultBranding.emergency.emergencyDesc
+    );
+    const [emergencySaving, setEmergencySaving] = useState(false);
+
     useEffect(() => {
         setBrandingForm({
             primarySealUrl: currentBranding.primarySealUrl,
@@ -73,6 +120,12 @@ const Settings: React.FC = () => {
             cityName: currentBranding.cityName,
             orgName: currentBranding.orgName,
         });
+        setExecutiveMembers(currentBranding.executive || defaultBranding.executive);
+        setLegislativeMembers(currentBranding.legislative || defaultBranding.legislative);
+        setCityHotlines(currentBranding.emergency?.cityHotlines || defaultBranding.emergency.cityHotlines);
+        setBarangayContacts(currentBranding.emergency?.barangayContacts || defaultBranding.emergency.barangayContacts);
+        setEmergencyAddress(currentBranding.emergency?.address ?? defaultBranding.emergency.address);
+        setEmergencyDesc(currentBranding.emergency?.emergencyDesc ?? defaultBranding.emergency.emergencyDesc);
     }, [currentBranding]);
 
     const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'primarySealUrl' | 'secondarySealUrl' | 'appLogoUrl') => {
@@ -116,6 +169,175 @@ const Settings: React.FC = () => {
         if (window.confirm("Are you sure you want to reset all seals and logos to default icons?")) {
             clearCustomBranding();
             showToast("System branding reset to default icons.", "info");
+        }
+    };
+
+    // Leadership handlers
+    const handleExecutiveChange = (index: number, field: keyof ExecutiveMember, value: any) => {
+        setExecutiveMembers(prev => {
+            const next = [...prev];
+            next[index] = { ...next[index], [field]: value };
+            return next;
+        });
+    };
+
+    const handleExecutivePhotoUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            showToast("Photo must be smaller than 5MB", "error");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            handleExecutiveChange(index, 'image', dataUrl);
+            showToast("Official photo loaded! Click 'Save Leadership' to apply.", "info");
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleAddExecutiveMember = () => {
+        setExecutiveMembers(prev => [
+            ...prev,
+            { role: 'Executive Officer', name: '', desc: 'Administration', image: '', isPrimary: false }
+        ]);
+    };
+
+    const handleRemoveExecutiveMember = (index: number) => {
+        if (executiveMembers[index]?.isPrimary) {
+            showToast("Cannot remove the primary Punong Barangay / Captain node", "warning");
+            return;
+        }
+        setExecutiveMembers(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleLegislativeChange = (index: number, field: keyof LegislativeMember, value: any) => {
+        setLegislativeMembers(prev => {
+            const next = [...prev];
+            next[index] = { ...next[index], [field]: value };
+            return next;
+        });
+    };
+
+    const handleLegislativePhotoUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            showToast("Photo must be smaller than 5MB", "error");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            handleLegislativeChange(index, 'image', dataUrl);
+            showToast("Council member photo loaded! Click 'Save Leadership' to apply.", "info");
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleAddLegislativeMember = () => {
+        setLegislativeMembers(prev => [
+            ...prev,
+            { role: 'Kagawad', name: '', desc: 'Committee Assignment', image: '' }
+        ]);
+    };
+
+    const handleRemoveLegislativeMember = (index: number) => {
+        setLegislativeMembers(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSaveLeadership = (e: React.FormEvent) => {
+        e.preventDefault();
+        setLeadershipSaving(true);
+        try {
+            saveCustomBranding({
+                executive: executiveMembers,
+                legislative: legislativeMembers,
+            });
+            showToast("Community leadership directory saved successfully!", "success");
+        } catch {
+            showToast("Failed to save leadership directory", "error");
+        } finally {
+            setLeadershipSaving(false);
+        }
+    };
+
+    const handleResetLeadership = () => {
+        if (window.confirm("Are you sure you want to reset leadership directory to baseline defaults?")) {
+            saveCustomBranding({
+                executive: defaultBranding.executive,
+                legislative: defaultBranding.legislative,
+            });
+            setExecutiveMembers(defaultBranding.executive);
+            setLegislativeMembers(defaultBranding.legislative);
+            showToast("Leadership directory reset to defaults.", "info");
+        }
+    };
+
+    // Emergency handlers
+    const handleCityHotlineChange = (index: number, field: keyof HotlineContact, value: string) => {
+        setCityHotlines(prev => {
+            const next = [...prev];
+            next[index] = { ...next[index], [field]: value };
+            return next;
+        });
+    };
+
+    const handleAddCityHotline = () => {
+        setCityHotlines(prev => [...prev, { label: 'Hotline:', number: '' }]);
+    };
+
+    const handleRemoveCityHotline = (index: number) => {
+        setCityHotlines(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleBarangayContactChange = (index: number, field: keyof HotlineContact, value: string) => {
+        setBarangayContacts(prev => {
+            const next = [...prev];
+            next[index] = { ...next[index], [field]: value };
+            return next;
+        });
+    };
+
+    const handleAddBarangayContact = () => {
+        setBarangayContacts(prev => [...prev, { label: 'Contact:', number: '' }]);
+    };
+
+    const handleRemoveBarangayContact = (index: number) => {
+        setBarangayContacts(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSaveEmergency = (e: React.FormEvent) => {
+        e.preventDefault();
+        setEmergencySaving(true);
+        try {
+            saveCustomBranding({
+                emergency: {
+                    cityHotlines,
+                    barangayContacts,
+                    address: emergencyAddress,
+                    emergencyDesc,
+                },
+            });
+            showToast("Emergency response details saved successfully!", "success");
+        } catch {
+            showToast("Failed to save emergency response details", "error");
+        } finally {
+            setEmergencySaving(false);
+        }
+    };
+
+    const handleResetEmergency = () => {
+        if (window.confirm("Are you sure you want to reset emergency details to baseline defaults?")) {
+            saveCustomBranding({
+                emergency: defaultBranding.emergency,
+            });
+            setCityHotlines(defaultBranding.emergency.cityHotlines);
+            setBarangayContacts(defaultBranding.emergency.barangayContacts);
+            setEmergencyAddress(defaultBranding.emergency.address);
+            setEmergencyDesc(defaultBranding.emergency.emergencyDesc);
+            showToast("Emergency details reset to defaults.", "info");
         }
     };
 
@@ -796,269 +1018,846 @@ const Settings: React.FC = () => {
                     </div>
                 </div>
 
-                {/* ADMIN BRANDING & VISUAL IDENTITY (Developer / Captain Only) */}
+                {/* ADMINISTRATIVE SYSTEM CONFIGURATION SUITE (Developer & Captain Only) */}
                 {(user?.role === 'developer' || user?.role === 'barangay_captain') && (
-                    <div id="branding" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden mb-10">
-                        <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-blue"></div>
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-                            <h2 className="text-xl font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-tight italic flex items-center">
-                                <div className="p-2 bg-taguig-blue/10 rounded-lg mr-4 text-taguig-blue dark:text-taguig-gold">
-                                    <ImageIcon size={24} />
-                                </div>
-                                System Visual Branding & Logos
-                            </h2>
-                            <button
-                                type="button"
-                                onClick={handleResetBranding}
-                                className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-taguig-red transition-colors self-start md:self-auto"
-                            >
-                                <RotateCcw size={14} />
-                                <span>Reset to Default Icons</span>
-                            </button>
-                        </div>
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-8">
-                            Authorized Personnel Only • Custom Seals & Elements
-                        </p>
-
-                        <form onSubmit={handleSaveBranding} className="space-y-8">
-                            {/* Logo Upload Grids */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* 1. Primary Seal (City) */}
-                                <div className="p-6 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
-                                    <div className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                                        City / Primary Seal
-                                    </div>
-                                    <div className="w-20 h-20 flex items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-inner">
-                                        <BrandLogo
-                                            src={brandingForm.primarySealUrl}
-                                            alt="Primary Seal"
-                                            variant="seal-primary"
-                                            className="w-16 h-16"
-                                        />
-                                    </div>
-                                    <div className="text-[10px] text-slate-400">
-                                        {brandingForm.primarySealUrl ? 'Custom Picture Attached' : 'Showing Default Icon Element'}
-                                    </div>
-                                    <div className="flex gap-2 w-full pt-2">
-                                        <label className="flex-1 px-3 py-2 bg-taguig-blue text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-taguig-navy transition-all flex items-center justify-center space-x-1 shadow-sm">
-                                            <Upload size={14} />
-                                            <span>Upload</span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={(e) => handleLogoFileUpload(e, 'primarySealUrl')}
-                                            />
-                                        </label>
-                                        {brandingForm.primarySealUrl && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setBrandingForm(prev => ({ ...prev, primarySealUrl: '' }))}
-                                                className="px-3 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
-                                                title="Revert to Icon"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* 2. Secondary Seal (Barangay) */}
-                                <div className="p-6 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
-                                    <div className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                                        Barangay / Secondary Seal
-                                    </div>
-                                    <div className="w-20 h-20 flex items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-inner">
-                                        <BrandLogo
-                                            src={brandingForm.secondarySealUrl}
-                                            alt="Secondary Seal"
-                                            variant="seal-secondary"
-                                            className="w-16 h-16"
-                                        />
-                                    </div>
-                                    <div className="text-[10px] text-slate-400">
-                                        {brandingForm.secondarySealUrl ? 'Custom Picture Attached' : 'Showing Default Icon Element'}
-                                    </div>
-                                    <div className="flex gap-2 w-full pt-2">
-                                        <label className="flex-1 px-3 py-2 bg-taguig-blue text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-taguig-navy transition-all flex items-center justify-center space-x-1 shadow-sm">
-                                            <Upload size={14} />
-                                            <span>Upload</span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={(e) => handleLogoFileUpload(e, 'secondarySealUrl')}
-                                            />
-                                        </label>
-                                        {brandingForm.secondarySealUrl && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setBrandingForm(prev => ({ ...prev, secondarySealUrl: '' }))}
-                                                className="px-3 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
-                                                title="Revert to Icon"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* 3. System Logo */}
-                                <div className="p-6 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
-                                    <div className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                                        System / App Logo
-                                    </div>
-                                    <div className="w-20 h-20 flex items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-inner">
-                                        <BrandLogo
-                                            src={brandingForm.appLogoUrl}
-                                            alt="System Logo"
-                                            variant="logo"
-                                            className="w-16 h-16"
-                                        />
-                                    </div>
-                                    <div className="text-[10px] text-slate-400">
-                                        {brandingForm.appLogoUrl ? 'Custom Picture Attached' : 'Showing Default Icon Element'}
-                                    </div>
-                                    <div className="flex gap-2 w-full pt-2">
-                                        <label className="flex-1 px-3 py-2 bg-taguig-blue text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-taguig-navy transition-all flex items-center justify-center space-x-1 shadow-sm">
-                                            <Upload size={14} />
-                                            <span>Upload</span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={(e) => handleLogoFileUpload(e, 'appLogoUrl')}
-                                            />
-                                        </label>
-                                        {brandingForm.appLogoUrl && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setBrandingForm(prev => ({ ...prev, appLogoUrl: '' }))}
-                                                className="px-3 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
-                                                title="Revert to Icon"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Text labels customization */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
-                                <div>
-                                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2">
-                                        City / Municipality Name <span className="font-normal text-slate-400 lowercase">(leave empty to display only elements)</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={brandingForm.cityName}
-                                        onChange={(e) => setBrandingForm(prev => ({ ...prev, cityName: e.target.value }))}
-                                        placeholder="Leave empty for icon-only display"
-                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
-                                    />
+                    <div className="space-y-6">
+                        {/* Admin Sub-Navigation Tab Bar */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-white/10 shadow-sm">
+                            <div className="flex items-center space-x-3 px-2">
+                                <div className="p-2.5 bg-taguig-blue/10 dark:bg-taguig-gold/10 rounded-xl text-taguig-blue dark:text-taguig-gold">
+                                    <Building size={20} />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2">
-                                        Organization / Barangay Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={brandingForm.orgName}
-                                        onChange={(e) => setBrandingForm(prev => ({ ...prev, orgName: e.target.value }))}
-                                        placeholder="e.g. Community Operations"
-                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Submit Button */}
-                            <div className="flex justify-end pt-2">
-                                <button
-                                    type="submit"
-                                    disabled={brandingSaving}
-                                    className="px-8 py-3.5 bg-taguig-blue text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-taguig-navy transition-all shadow-lg shadow-taguig-blue/20 flex items-center space-x-2 disabled:opacity-50"
-                                >
-                                    <Save size={16} />
-                                    <span>{brandingSaving ? 'Saving...' : 'Save Branding Changes'}</span>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
-
-                {/* ADMIN DATA MANAGEMENT (Developer / Captain Only) */}
-                {(user?.role === 'developer' || user?.role === 'barangay_captain') && (
-                    <div className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-red/20 bg-taguig-red/[0.01] dark:bg-taguig-red/[0.03] relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
-                        <h2 className="text-xl font-black text-taguig-red uppercase tracking-tight italic mb-2 flex items-center">
-                            <div className="p-2 bg-taguig-red/10 rounded-lg mr-4">
-                                <Database size={24} />
-                            </div>
-                            System Data Governance
-                        </h2>
-                        <p className="text-[10px] text-taguig-red/60 font-black uppercase tracking-[0.2em] mb-10">
-                            Authorized Personnel Only • Destructive Actions
-                        </p>
-
-                        <div className="space-y-6">
-
-                            {/* Step 1: Archive */}
-                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-red-100 dark:border-red-900/30">
-                                <div>
-                                    <h3 className="font-bold text-slate-800 dark:text-white text-sm">Step 1: Archive Data</h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Download a full JSON backup of Incidents, Logs, Requests, and Schedules.</p>
-                                </div>
-                                <button
-                                    onClick={handleDownloadBackup}
-                                    disabled={isBackingUp}
-                                    className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-bold flex items-center space-x-2 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
-                                >
-                                    {isBackingUp ? (
-                                        <span className="animate-pulse">Archiving...</span>
-                                    ) : (
-                                        <>
-                                            <Download size={16} />
-                                            <span>Download Backup</span>
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-
-                            {/* Step 2: Reset */}
-                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-red-100 dark:border-red-900/30">
-                                <div>
-                                    <h3 className="font-bold text-red-700 dark:text-red-400 text-sm flex items-center">
-                                        <AlertTriangle size={14} className="mr-1" />
-                                        Step 2: Reset System
+                                    <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">
+                                        System Customization Portal
                                     </h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Permanently delete all transactional data (Incidents, Assets, Logs). User accounts are preserved.</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                        Developer & Captain Administrative Controls
+                                    </p>
                                 </div>
-                                <button
-                                    onClick={handleResetSystem}
-                                    disabled={!backupDownloaded || resetting}
-                                    className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center space-x-2 transition-colors ${backupDownloaded
-                                        ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20 shadow-lg'
-                                        : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
-                                        }`}
-                                >
-                                    {resetting ? (
-                                        <span>Resetting...</span>
-                                    ) : (
-                                        <>
-                                            <Trash2 size={16} />
-                                            <span>Clear Database</span>
-                                        </>
-                                    )}
-                                </button>
                             </div>
 
-                            {!backupDownloaded && (
-                                <p className="text-[10px] text-center text-slate-400 italic">
-                                    * You must download a backup archive before the Reset option becomes available.
-                                </p>
-                            )}
+                            <div className="flex flex-wrap gap-1.5 p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/5">
+                                <button
+                                    type="button"
+                                    onClick={() => { setAdminSection('branding'); window.location.hash = 'branding'; }}
+                                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        adminSection === 'branding'
+                                            ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
+                                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                                    }`}
+                                >
+                                    <ImageIcon size={14} />
+                                    <span>Visual Branding</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setAdminSection('leadership'); window.location.hash = 'leadership'; }}
+                                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        adminSection === 'leadership'
+                                            ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
+                                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                                    }`}
+                                >
+                                    <Users size={14} />
+                                    <span>Leadership Directory</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setAdminSection('emergency'); window.location.hash = 'emergency'; }}
+                                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        adminSection === 'emergency'
+                                            ? 'bg-white dark:bg-slate-800 text-taguig-blue dark:text-taguig-gold shadow-sm font-black'
+                                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                                    }`}
+                                >
+                                    <PhoneCall size={14} />
+                                    <span>Emergency Hub</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setAdminSection('data'); window.location.hash = 'data'; }}
+                                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        adminSection === 'data'
+                                            ? 'bg-white dark:bg-slate-800 text-taguig-red shadow-sm font-black'
+                                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                                    }`}
+                                >
+                                    <Database size={14} />
+                                    <span>Data Governance</span>
+                                </button>
+                            </div>
                         </div>
+
+                        {/* TAB 1: VISUAL BRANDING & LOGOS */}
+                        {adminSection === 'branding' && (
+                            <div id="branding" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-blue"></div>
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+                                    <h2 className="text-xl font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-tight italic flex items-center">
+                                        <div className="p-2 bg-taguig-blue/10 rounded-lg mr-4 text-taguig-blue dark:text-taguig-gold">
+                                            <ImageIcon size={24} />
+                                        </div>
+                                        System Visual Branding & Logos
+                                    </h2>
+                                    <button
+                                        type="button"
+                                        onClick={handleResetBranding}
+                                        className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-taguig-red transition-colors self-start md:self-auto"
+                                    >
+                                        <RotateCcw size={14} />
+                                        <span>Reset to Default Icons</span>
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-8">
+                                    Authorized Personnel Only • Custom Seals & Elements
+                                </p>
+
+                                <form onSubmit={handleSaveBranding} className="space-y-8">
+                                    {/* Logo Upload Grids */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        {/* 1. Primary Seal (City) */}
+                                        <div className="p-6 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
+                                            <div className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                                City / Primary Seal
+                                            </div>
+                                            <div className="w-20 h-20 flex items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-inner">
+                                                <BrandLogo
+                                                    src={brandingForm.primarySealUrl}
+                                                    alt="Primary Seal"
+                                                    variant="seal-primary"
+                                                    className="w-16 h-16"
+                                                />
+                                            </div>
+                                            <div className="text-[10px] text-slate-400">
+                                                {brandingForm.primarySealUrl ? 'Custom Picture Attached' : 'Showing Default Icon Element'}
+                                            </div>
+                                            <div className="flex gap-2 w-full pt-2">
+                                                <label className="flex-1 px-3 py-2 bg-taguig-blue text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-taguig-navy transition-all flex items-center justify-center space-x-1 shadow-sm">
+                                                    <Upload size={14} />
+                                                    <span>Upload</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={(e) => handleLogoFileUpload(e, 'primarySealUrl')}
+                                                    />
+                                                </label>
+                                                {brandingForm.primarySealUrl && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setBrandingForm(prev => ({ ...prev, primarySealUrl: '' }))}
+                                                        className="px-3 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                        title="Revert to Icon"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* 2. Secondary Seal (Barangay) */}
+                                        <div className="p-6 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
+                                            <div className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                                Barangay / Secondary Seal
+                                            </div>
+                                            <div className="w-20 h-20 flex items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-inner">
+                                                <BrandLogo
+                                                    src={brandingForm.secondarySealUrl}
+                                                    alt="Secondary Seal"
+                                                    variant="seal-secondary"
+                                                    className="w-16 h-16"
+                                                />
+                                            </div>
+                                            <div className="text-[10px] text-slate-400">
+                                                {brandingForm.secondarySealUrl ? 'Custom Picture Attached' : 'Showing Default Icon Element'}
+                                            </div>
+                                            <div className="flex gap-2 w-full pt-2">
+                                                <label className="flex-1 px-3 py-2 bg-taguig-blue text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-taguig-navy transition-all flex items-center justify-center space-x-1 shadow-sm">
+                                                    <Upload size={14} />
+                                                    <span>Upload</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={(e) => handleLogoFileUpload(e, 'secondarySealUrl')}
+                                                    />
+                                                </label>
+                                                {brandingForm.secondarySealUrl && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setBrandingForm(prev => ({ ...prev, secondarySealUrl: '' }))}
+                                                        className="px-3 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                        title="Revert to Icon"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* 3. System Logo */}
+                                        <div className="p-6 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
+                                            <div className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                                System / App Logo
+                                            </div>
+                                            <div className="w-20 h-20 flex items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-inner">
+                                                <BrandLogo
+                                                    src={brandingForm.appLogoUrl}
+                                                    alt="System Logo"
+                                                    variant="logo"
+                                                    className="w-16 h-16"
+                                                />
+                                            </div>
+                                            <div className="text-[10px] text-slate-400">
+                                                {brandingForm.appLogoUrl ? 'Custom Picture Attached' : 'Showing Default Icon Element'}
+                                            </div>
+                                            <div className="flex gap-2 w-full pt-2">
+                                                <label className="flex-1 px-3 py-2 bg-taguig-blue text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-taguig-navy transition-all flex items-center justify-center space-x-1 shadow-sm">
+                                                    <Upload size={14} />
+                                                    <span>Upload</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={(e) => handleLogoFileUpload(e, 'appLogoUrl')}
+                                                    />
+                                                </label>
+                                                {brandingForm.appLogoUrl && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setBrandingForm(prev => ({ ...prev, appLogoUrl: '' }))}
+                                                        className="px-3 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                        title="Revert to Icon"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Text labels customization */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2">
+                                                City / Municipality Name <span className="font-normal text-slate-400 lowercase">(leave empty to display only elements)</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={brandingForm.cityName}
+                                                onChange={(e) => setBrandingForm(prev => ({ ...prev, cityName: e.target.value }))}
+                                                placeholder="Leave empty for icon-only display"
+                                                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2">
+                                                Organization / Barangay Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={brandingForm.orgName}
+                                                onChange={(e) => setBrandingForm(prev => ({ ...prev, orgName: e.target.value }))}
+                                                placeholder="e.g. Community Operations"
+                                                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <div className="flex justify-end pt-2">
+                                        <button
+                                            type="submit"
+                                            disabled={brandingSaving}
+                                            className="px-8 py-3.5 bg-taguig-blue text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-taguig-navy transition-all shadow-lg shadow-taguig-blue/20 flex items-center space-x-2 disabled:opacity-50"
+                                        >
+                                            <Save size={16} />
+                                            <span>{brandingSaving ? 'Saving...' : 'Save Branding Changes'}</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
+
+                        {/* TAB 2: COMMUNITY LEADERSHIP & HIERARCHY */}
+                        {adminSection === 'leadership' && (
+                            <div id="leadership" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-gold"></div>
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+                                    <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic flex items-center">
+                                        <div className="p-2 bg-taguig-gold/10 rounded-lg mr-4 text-taguig-gold">
+                                            <Users size={24} />
+                                        </div>
+                                        Community Leadership Directory
+                                    </h2>
+                                    <button
+                                        type="button"
+                                        onClick={handleResetLeadership}
+                                        className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-taguig-red transition-colors self-start md:self-auto"
+                                    >
+                                        <RotateCcw size={14} />
+                                        <span>Reset to Default Officials</span>
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-8">
+                                    Configure institutional hierarchy, executive leadership, and legislative council members
+                                </p>
+
+                                <form onSubmit={handleSaveLeadership} className="space-y-10">
+                                    {/* SECTION 1: EXECUTIVE COMMAND */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
+                                            <div>
+                                                <h3 className="text-sm font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-wider">
+                                                    The Executive Command
+                                                </h3>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                    Punong Barangay / Captain, Secretary, Treasurer, and administrative officers.
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddExecutiveMember}
+                                                className="px-3.5 py-1.5 bg-slate-100 dark:bg-white/10 hover:bg-taguig-blue hover:text-white text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
+                                            >
+                                                <Plus size={14} />
+                                                <span>Add Executive Officer</span>
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {executiveMembers.map((member, idx) => {
+                                                const initials = (member.name || '')
+                                                    .split(' ')
+                                                    .filter(n => n && n !== 'HON.' && n !== 'HON' && n !== 'JR.')
+                                                    .map(n => n[0])
+                                                    .join('')
+                                                    .slice(0, 2)
+                                                    .toUpperCase() || 'EX';
+
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        className={`p-6 rounded-2xl border transition-all ${
+                                                            member.isPrimary
+                                                                ? 'bg-taguig-blue/5 dark:bg-taguig-blue/10 border-taguig-blue/30 shadow-sm'
+                                                                : 'bg-white/70 dark:bg-slate-800/70 border-slate-200 dark:border-white/10'
+                                                        }`}
+                                                    >
+                                                        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                                                            {/* Photo Preview & Upload */}
+                                                            <div className="flex flex-col items-center space-y-2 flex-shrink-0">
+                                                                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-slate-200 dark:border-white/20 bg-slate-100 dark:bg-slate-900 flex items-center justify-center shadow-inner relative">
+                                                                    {member.image ? (
+                                                                        <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <span className="font-black text-sm text-taguig-blue dark:text-taguig-gold">
+                                                                            {initials}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <label className="px-2 py-1 bg-slate-100 dark:bg-white/10 hover:bg-taguig-blue hover:text-white text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center space-x-1">
+                                                                        <Upload size={10} />
+                                                                        <span>Photo</span>
+                                                                        <input
+                                                                            type="file"
+                                                                            accept="image/*"
+                                                                            className="hidden"
+                                                                            onChange={(e) => handleExecutivePhotoUpload(idx, e)}
+                                                                        />
+                                                                    </label>
+                                                                    {member.image && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleExecutiveChange(idx, 'image', '')}
+                                                                            className="p-1 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                                                                            title="Clear photo"
+                                                                        >
+                                                                            <Trash2 size={12} />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Member Details */}
+                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1 w-full">
+                                                                <div>
+                                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                                                                        Role / Official Title {member.isPrimary && <span className="text-taguig-gold">(Primary Command)</span>}
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={member.role}
+                                                                        onChange={(e) => handleExecutiveChange(idx, 'role', e.target.value)}
+                                                                        placeholder="e.g. Punong Barangay"
+                                                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                                                                        Full Name
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={member.name}
+                                                                        onChange={(e) => handleExecutiveChange(idx, 'name', e.target.value)}
+                                                                        placeholder="e.g. HON. JUAN DELA CRUZ"
+                                                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex items-end gap-2">
+                                                                    <div className="flex-1">
+                                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                                                                            Description / Committee
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={member.desc}
+                                                                            onChange={(e) => handleExecutiveChange(idx, 'desc', e.target.value)}
+                                                                            placeholder="e.g. Executive Command"
+                                                                            className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                                        />
+                                                                    </div>
+                                                                    {!member.isPrimary && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleRemoveExecutiveMember(idx)}
+                                                                            className="p-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
+                                                                            title="Remove member"
+                                                                        >
+                                                                            <Trash2 size={16} />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* SECTION 2: LEGISLATIVE ASSEMBLY */}
+                                    <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-white/10">
+                                        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
+                                            <div>
+                                                <h3 className="text-sm font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-wider">
+                                                    The Legislative Assembly
+                                                </h3>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                    Barangay Kagawads, SK Chairperson, and council members.
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddLegislativeMember}
+                                                className="px-3.5 py-1.5 bg-slate-100 dark:bg-white/10 hover:bg-taguig-blue hover:text-white text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
+                                            >
+                                                <Plus size={14} />
+                                                <span>Add Council Member</span>
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {legislativeMembers.map((member, idx) => {
+                                                const initials = (member.name || '')
+                                                    .split(' ')
+                                                    .filter(n => n && n !== 'HON.' && n !== 'HON' && n !== 'JR.')
+                                                    .map(n => n[0])
+                                                    .join('')
+                                                    .slice(0, 2)
+                                                    .toUpperCase() || `M${idx + 1}`;
+
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        className="p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-800/70 shadow-sm flex flex-col justify-between space-y-4"
+                                                    >
+                                                        <div className="flex items-start justify-between gap-3">
+                                                            <div className="flex items-center space-x-3">
+                                                                <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-200 dark:border-white/20 bg-slate-100 dark:bg-slate-900 flex items-center justify-center flex-shrink-0">
+                                                                    {member.image ? (
+                                                                        <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <span className="font-bold text-xs text-taguig-gold">
+                                                                            {initials}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                                        Member #{idx + 1}
+                                                                    </span>
+                                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                                        <label className="px-2 py-0.5 bg-slate-100 dark:bg-white/10 hover:bg-taguig-blue hover:text-white text-[9px] font-bold rounded cursor-pointer transition-colors flex items-center space-x-1">
+                                                                            <Upload size={9} />
+                                                                            <span>Upload Photo</span>
+                                                                            <input
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                className="hidden"
+                                                                                onChange={(e) => handleLegislativePhotoUpload(idx, e)}
+                                                                            />
+                                                                        </label>
+                                                                        {member.image && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleLegislativeChange(idx, 'image', '')}
+                                                                                className="text-slate-400 hover:text-red-500 p-0.5"
+                                                                                title="Remove photo"
+                                                                            >
+                                                                                <Trash2 size={11} />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveLegislativeMember(idx)}
+                                                                className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
+                                                                title="Delete council member"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <div>
+                                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">
+                                                                    Position / Role
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={member.role}
+                                                                    onChange={(e) => handleLegislativeChange(idx, 'role', e.target.value)}
+                                                                    placeholder="e.g. Kagawad or SK Chairperson"
+                                                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">
+                                                                    Official Name
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={member.name}
+                                                                    onChange={(e) => handleLegislativeChange(idx, 'name', e.target.value)}
+                                                                    placeholder="e.g. HON. [NAME]"
+                                                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">
+                                                                    Committee / Assignment
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={member.desc}
+                                                                    onChange={(e) => handleLegislativeChange(idx, 'desc', e.target.value)}
+                                                                    placeholder="e.g. Committee on Peace & Order"
+                                                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-white/10">
+                                        <button
+                                            type="submit"
+                                            disabled={leadershipSaving}
+                                            className="px-8 py-3.5 bg-taguig-blue text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-taguig-navy transition-all shadow-lg shadow-taguig-blue/20 flex items-center space-x-2 disabled:opacity-50"
+                                        >
+                                            <Save size={16} />
+                                            <span>{leadershipSaving ? 'Saving...' : 'Save Leadership Directory'}</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
+
+                        {/* TAB 3: EMERGENCY RESPONSE HUB & HOTLINES */}
+                        {adminSection === 'emergency' && (
+                            <div id="emergency" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-blue/20 bg-taguig-blue/[0.01] dark:bg-taguig-blue/[0.03] relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+                                    <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic flex items-center">
+                                        <div className="p-2 bg-taguig-red/10 rounded-lg mr-4 text-taguig-red">
+                                            <PhoneCall size={24} />
+                                        </div>
+                                        Emergency Response Hub & Contacts
+                                    </h2>
+                                    <button
+                                        type="button"
+                                        onClick={handleResetEmergency}
+                                        className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-taguig-red transition-colors self-start md:self-auto"
+                                    >
+                                        <RotateCcw size={14} />
+                                        <span>Reset to Default Emergency</span>
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-8">
+                                    Configure 24/7 emergency hotlines, rapid barangay desk numbers, and physical station details
+                                </p>
+
+                                <form onSubmit={handleSaveEmergency} className="space-y-10">
+                                    {/* SECTION 1: GENERAL STATION INFO */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-wider pb-2 border-b border-slate-200 dark:border-white/10">
+                                            Station Location & Emergency Scope
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2 flex items-center space-x-1.5">
+                                                    <MapPin size={12} className="text-taguig-red" />
+                                                    <span>Physical Barangay / Station Address</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={emergencyAddress}
+                                                    onChange={(e) => setEmergencyAddress(e.target.value)}
+                                                    placeholder="e.g. Barangay Hall, Community Center, City"
+                                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                                                    Emergency Gateway Description
+                                                </label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={emergencyDesc}
+                                                    onChange={(e) => setEmergencyDesc(e.target.value)}
+                                                    placeholder="Official gateway for Unified Security operations within your community..."
+                                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-medium text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* SECTION 2: 24/7 CITY / NATIONAL HOTLINES */}
+                                    <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-white/10">
+                                        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
+                                            <div>
+                                                <h3 className="text-sm font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-wider">
+                                                    24/7 City & National Hotlines
+                                                </h3>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                    Critical emergency numbers displayed under public 24/7 City Hotlines.
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddCityHotline}
+                                                className="px-3.5 py-1.5 bg-slate-100 dark:bg-white/10 hover:bg-taguig-blue hover:text-white text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
+                                            >
+                                                <Plus size={14} />
+                                                <span>Add Hotline</span>
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {cityHotlines.map((hotline, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="p-4 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center gap-3"
+                                                >
+                                                    <div className="flex-1">
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                                                            Hotline Label
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={hotline.label}
+                                                            onChange={(e) => handleCityHotlineChange(idx, 'label', e.target.value)}
+                                                            placeholder="e.g. National: or BFP Fire:"
+                                                            className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                                                            Phone / Hotline Number
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={hotline.number}
+                                                            onChange={(e) => handleCityHotlineChange(idx, 'number', e.target.value)}
+                                                            placeholder="e.g. 911 or (02) 8888-0000"
+                                                            className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveCityHotline(idx)}
+                                                        className="p-2 text-slate-400 hover:text-red-500 rounded-lg transition-colors mt-4"
+                                                        title="Delete hotline"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* SECTION 3: BARANGAY LOCAL CONTACTS */}
+                                    <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-white/10">
+                                        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
+                                            <div>
+                                                <h3 className="text-sm font-black text-taguig-blue dark:text-taguig-gold uppercase tracking-wider">
+                                                    Barangay Operations & Desk Contacts
+                                                </h3>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                    Local Barangay Hall, patrol dispatch, and ambulance hotlines.
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddBarangayContact}
+                                                className="px-3.5 py-1.5 bg-slate-100 dark:bg-white/10 hover:bg-taguig-blue hover:text-white text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
+                                            >
+                                                <Plus size={14} />
+                                                <span>Add Barangay Contact</span>
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {barangayContacts.map((contact, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="p-4 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center gap-3"
+                                                >
+                                                    <div className="flex-1">
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                                                            Contact Label
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={contact.label}
+                                                            onChange={(e) => handleBarangayContactChange(idx, 'label', e.target.value)}
+                                                            placeholder="e.g. Brgy. Hall:"
+                                                            className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                                                            Phone / Mobile Number
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={contact.number}
+                                                            onChange={(e) => handleBarangayContactChange(idx, 'number', e.target.value)}
+                                                            placeholder="e.g. 0917-123-4567"
+                                                            className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-taguig-blue/30"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveBarangayContact(idx)}
+                                                        className="p-2 text-slate-400 hover:text-red-500 rounded-lg transition-colors mt-4"
+                                                        title="Delete contact"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-white/10">
+                                        <button
+                                            type="submit"
+                                            disabled={emergencySaving}
+                                            className="px-8 py-3.5 bg-taguig-blue text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-taguig-navy transition-all shadow-lg shadow-taguig-blue/20 flex items-center space-x-2 disabled:opacity-50"
+                                        >
+                                            <Save size={16} />
+                                            <span>{emergencySaving ? 'Saving...' : 'Save Emergency Details'}</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
+
+                        {/* TAB 4: SYSTEM DATA GOVERNANCE */}
+                        {adminSection === 'data' && (
+                            <div id="data" className="card-premium p-10 rounded-[2.5rem] shadow-sm border border-taguig-red/20 bg-taguig-red/[0.01] dark:bg-taguig-red/[0.03] relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1.5 h-full bg-taguig-red"></div>
+                                <h2 className="text-xl font-black text-taguig-red uppercase tracking-tight italic mb-2 flex items-center">
+                                    <div className="p-2 bg-taguig-red/10 rounded-lg mr-4">
+                                        <Database size={24} />
+                                    </div>
+                                    System Data Governance
+                                </h2>
+                                <p className="text-[10px] text-taguig-red/60 font-black uppercase tracking-[0.2em] mb-10">
+                                    Authorized Personnel Only • Destructive Actions
+                                </p>
+
+                                <div className="space-y-6">
+                                    {/* Step 1: Archive */}
+                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-red-100 dark:border-red-900/30">
+                                        <div>
+                                            <h3 className="font-bold text-slate-800 dark:text-white text-sm">Step 1: Archive Data</h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Download a full JSON backup of Incidents, Logs, Requests, and Schedules.</p>
+                                        </div>
+                                        <button
+                                            onClick={handleDownloadBackup}
+                                            disabled={isBackingUp}
+                                            className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-bold flex items-center space-x-2 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+                                        >
+                                            {isBackingUp ? (
+                                                <span className="animate-pulse">Archiving...</span>
+                                            ) : (
+                                                <>
+                                                    <Download size={16} />
+                                                    <span>Download Backup</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    {/* Step 2: Reset */}
+                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-red-100 dark:border-red-900/30">
+                                        <div>
+                                            <h3 className="font-bold text-red-700 dark:text-red-400 text-sm flex items-center">
+                                                <AlertTriangle size={14} className="mr-1" />
+                                                Step 2: Reset System
+                                            </h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Permanently delete all transactional data (Incidents, Assets, Logs). User accounts are preserved.</p>
+                                        </div>
+                                        <button
+                                            onClick={handleResetSystem}
+                                            disabled={!backupDownloaded || resetting}
+                                            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center space-x-2 transition-colors ${backupDownloaded
+                                                ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20 shadow-lg'
+                                                : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
+                                                }`}
+                                        >
+                                            {resetting ? (
+                                                <span>Resetting...</span>
+                                            ) : (
+                                                <>
+                                                    <Trash2 size={16} />
+                                                    <span>Clear Database</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    {!backupDownloaded && (
+                                        <p className="text-[10px] text-center text-slate-400 italic">
+                                            * You must download a backup archive before the Reset option becomes available.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 

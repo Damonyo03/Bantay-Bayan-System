@@ -141,6 +141,33 @@ export const defaultBranding = {
   footerText: "BMS Core Command v4.0 © 2026",
 };
 
+export interface ExecutiveMember {
+  role: string;
+  name: string;
+  desc: string;
+  image: string;
+  isPrimary?: boolean;
+}
+
+export interface LegislativeMember {
+  role: string;
+  name: string;
+  desc: string;
+  image: string;
+}
+
+export interface HotlineContact {
+  label: string;
+  number: string;
+}
+
+export interface EmergencyInfo {
+  cityHotlines: HotlineContact[];
+  barangayContacts: HotlineContact[];
+  address: string;
+  emergencyDesc: string;
+}
+
 export type BrandingConfig = typeof defaultBranding;
 
 const STORAGE_KEY = 'bms_custom_branding';
@@ -156,12 +183,23 @@ export const getCustomBranding = (): Partial<BrandingConfig> => {
   }
 };
 
-/** Save admin custom branding (pictures, names, etc.) */
+/** Save admin custom branding (pictures, names, leadership, emergency, etc.) */
 export const saveCustomBranding = (custom: Partial<BrandingConfig>) => {
   if (typeof window === 'undefined') return;
   try {
     const current = getCustomBranding();
-    const updated = { ...current, ...custom };
+    const updated = {
+      ...current,
+      ...custom,
+      ...(custom.emergency
+        ? {
+            emergency: {
+              ...(current.emergency || defaultBranding.emergency),
+              ...custom.emergency,
+            },
+          }
+        : {}),
+    };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     window.dispatchEvent(new Event('bms_branding_changed'));
   } catch (e) {
@@ -186,6 +224,8 @@ export const getActiveBranding = (): BrandingConfig => {
   return {
     ...defaultBranding,
     ...custom,
+    executive: custom.executive || defaultBranding.executive,
+    legislative: custom.legislative || defaultBranding.legislative,
     emergency: {
       ...defaultBranding.emergency,
       ...(custom.emergency || {}),
