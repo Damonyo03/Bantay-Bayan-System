@@ -6,7 +6,7 @@ import { authService } from '../services/authService';
 import { supabase } from '../lib/supabaseClient';
 import { useTheme } from '../contexts/ThemeContext';
 import { UserProfile, UserRole } from '../types';
-import { useBranding } from '../src/config/branding';
+import { useBranding, branding } from '../src/config/branding';
 import BrandLogo from '../components/BrandLogo';
 import { 
     Shield, 
@@ -688,6 +688,7 @@ const Background: React.FC = () => (
 
 const ViewContainer: React.FC<{ children: React.ReactNode, title: string, subtitle?: string, icon?: any, dbStatus: 'checking' | 'online' | 'offline' }> = ({ children, title, subtitle, icon: Icon, dbStatus }) => {
     const { theme, toggleTheme } = useTheme();
+    const branding = useBranding();
     
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
