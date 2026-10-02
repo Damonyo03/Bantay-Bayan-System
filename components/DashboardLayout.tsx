@@ -63,7 +63,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             alt="App Logo"
                             variant="logo"
                             className="w-8 h-8"
-                            placeholderClassName="border-taguig-blue/30 bg-taguig-navy/10"
                         />
                         {/* orgShortName comes from src/config/branding.ts */}
                         <span className="font-black text-taguig-navy dark:text-white text-xs tracking-tight uppercase leading-none">{branding.orgShortName}</span>

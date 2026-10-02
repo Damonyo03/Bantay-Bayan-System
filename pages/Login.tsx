@@ -706,21 +706,18 @@ const ViewContainer: React.FC<{ children: React.ReactNode, title: string, subtit
                                 alt="City Seal"
                                 variant="seal-primary"
                                 className="w-16 h-16"
-                                placeholderClassName="border-slate-300 dark:border-white/20 bg-slate-100 dark:bg-white/5"
                             />
                             <BrandLogo
                                 src={branding.secondarySealUrl}
                                 alt="Barangay Seal"
                                 variant="seal-secondary"
                                 className="w-16 h-16"
-                                placeholderClassName="border-slate-300 dark:border-white/20 bg-slate-100 dark:bg-white/5"
                             />
                             <BrandLogo
                                 src={branding.appLogoUrl}
                                 alt="System Logo"
                                 variant="logo"
                                 className="w-20 h-20"
-                                placeholderClassName="border-taguig-blue/40 bg-taguig-blue/5"
                             />
                         </div>
                     )}

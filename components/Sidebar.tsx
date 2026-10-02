@@ -151,21 +151,18 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
             alt="City Seal"
             variant="seal-primary"
             className="w-10 h-10 filter drop-shadow-md"
-            placeholderClassName="border-white/20"
           />
           <BrandLogo
             src={branding.secondarySealUrl}
             alt="Barangay Seal"
             variant="seal-secondary"
             className="w-10 h-10 filter drop-shadow-md"
-            placeholderClassName="border-white/20"
           />
           <BrandLogo
             src={branding.appLogoUrl}
             alt="System Logo"
             variant="logo"
             className="w-12 h-12 filter drop-shadow-md"
-            placeholderClassName="border-taguig-blue/40"
           />
         </div>
         {(branding.cityName || branding.orgSubtitle) ? (

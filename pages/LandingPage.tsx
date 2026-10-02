@@ -70,7 +70,6 @@ const LandingPage: React.FC = () => {
                                     alt={seal.alt}
                                     variant={seal.variant}
                                     className="w-10 h-10 md:w-14 md:h-14 drop-shadow-2xl transition-transform group-hover:scale-110"
-                                    placeholderClassName="border-white/20 bg-white/5"
                                 />
                             ))}
                         </div>
@@ -149,7 +148,7 @@ const LandingPage: React.FC = () => {
 
                     {/* Slide 0: Introduction (Hero Sub-Carousel) */}
                     <div className="w-full min-h-full flex-shrink-0 relative">
-                        {HERO_SLIDES.map((slide, index) => (
+                        {(heroSlides || []).map((slide, index) => (
                             <div
                                 key={index}
                                 className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === heroIndex ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-110 z-0'}`}
@@ -229,7 +228,7 @@ const LandingPage: React.FC = () => {
                                         <div className="w-full flex-shrink-0 flex items-center justify-center">
                                             <div className="flex flex-col items-center w-full max-w-5xl gap-4 md:gap-8 px-4">
                                                 {/* Punong Barangay - Top Row */}
-                                                {branding.executive.filter(m => m.isPrimary).map((member, i) => (
+                                                {(branding.executive || []).filter(m => m.isPrimary).map((member, i) => (
                                                     <div key={i} className="w-full max-w-xs md:max-w-md">
                                                         <MemberNode role={member.role} name={member.name} desc={member.desc} image={member.image || undefined} primary />
                                                     </div>
@@ -240,7 +239,7 @@ const LandingPage: React.FC = () => {
 
                                                 {/* Secretary & Treasurer - Second Row */}
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
-                                                    {branding.executive.filter(m => !m.isPrimary).map((member, i) => (
+                                                    {(branding.executive || []).filter(m => !m.isPrimary).map((member, i) => (
                                                         <MemberNode key={i} role={member.role} name={member.name} desc={member.desc} image={member.image || undefined} compact />
                                                     ))}
                                                 </div>
@@ -249,7 +248,7 @@ const LandingPage: React.FC = () => {
                                         {/* Legislative — configured in src/config/branding.ts → branding.legislative */}
                                         <div className="w-full flex-shrink-0 flex items-center justify-center py-6">
                                             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 lg:gap-10 w-full max-w-7xl px-4 items-stretch">
-                                                {branding.legislative.map((member, i) => (
+                                                {(branding.legislative || []).map((member, i) => (
                                                     <MemberNode key={i} role={member.role} name={member.name} desc={member.desc} image={member.image || undefined} compact />
                                                 ))}
                                             </div>
@@ -290,7 +289,7 @@ const LandingPage: React.FC = () => {
                                     <div className="space-y-4">
                                         <h5 className="text-xs md:text-sm font-black text-taguig-gold uppercase tracking-[0.2em] mb-4">24/7 City Hotlines</h5>
                                         <div className="space-y-3 text-sm md:text-lg font-bold text-white/70">
-                                            {branding.emergency.cityHotlines.map((contact, i) => (
+                                            {(branding.emergency?.cityHotlines || []).map((contact, i) => (
                                                 <p key={i} className="flex justify-between"><span>{contact.label}</span> <span className="text-white">{contact.number}</span></p>
                                             ))}
                                         </div>
@@ -298,7 +297,7 @@ const LandingPage: React.FC = () => {
                                     <div className="space-y-4">
                                         <h5 className="text-xs md:text-sm font-black text-taguig-gold uppercase tracking-[0.2em] mb-4">Barangay Contacts</h5>
                                         <div className="space-y-3 text-sm md:text-lg font-bold text-white/70 flex flex-col">
-                                            {branding.emergency.barangayContacts.map((contact, i) => (
+                                            {(branding.emergency?.barangayContacts || []).map((contact, i) => (
                                                 <p key={i} className="flex justify-between"><span>{contact.label}</span> <span className="text-white">{contact.number}</span></p>
                                             ))}
                                             <p className="flex items-center mt-4 text-xs md:text-sm text-slate-400 italic gap-3">
