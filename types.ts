@@ -200,3 +200,56 @@ export interface LogEventParams {
   corrects_entry_id?: string | null;
 }
 
+// VEHICLE TRIP MONITORING TYPES
+export type VehicleStatus = 'available' | 'on_trip' | 'maintenance' | 'decommissioned';
+export type TripStatus = 'planned' | 'ongoing' | 'completed' | 'cancelled';
+
+export interface Vehicle {
+  id: string;
+  name: string;
+  plate_number: string;
+  status: VehicleStatus;
+  created_at: string;
+  // Joined live status
+  active_trip?: VehicleTrip | null;
+}
+
+export interface TripPassenger {
+  id: string;
+  trip_id: string;
+  person_id?: string | null;
+  passenger_name: string;
+  created_at?: string;
+}
+
+export interface TripStop {
+  id: string;
+  trip_id: string;
+  place: string;
+  arrival_time?: string | null;
+  departure_time?: string | null;
+  manual_time_reason?: string | null;
+  created_at?: string;
+}
+
+export interface VehicleTrip {
+  id: string;
+  vehicle_id: string;
+  driver_id?: string | null;
+  driver_name: string;
+  purpose: string;
+  status: TripStatus;
+  odometer_start?: number | null;
+  odometer_end?: number | null;
+  remarks?: string | null;
+  logged_by: string;
+  created_at: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  // Joined fields
+  vehicle?: Vehicle;
+  passengers?: TripPassenger[];
+  stops?: TripStop[];
+}
+
+

@@ -4,7 +4,7 @@
  */
 export const FEATURES = {
   LOGBOOK: true,
-  VEHICLE_MONITOR: false,
+  VEHICLE_MONITOR: true,
   SHIFT_HANDOVER: false,
   TANOD_MODE: false,
   OFFLINE_MODE: false,

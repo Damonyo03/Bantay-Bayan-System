@@ -23,6 +23,7 @@ import PublicReportsQueue from './pages/PublicReportsQueue';
 import ResidentDirectory from './pages/ResidentDirectory';
 import Applications from './pages/Applications';
 import Logbook from './pages/Logbook';
+import VehicleMonitor from './pages/vehicles/VehicleMonitor';
 import DashboardLayout from './components/DashboardLayout';
 import PublicLayout from './components/PublicLayout';
 import UpdatePassword from './pages/UpdatePassword';
@@ -105,6 +106,15 @@ const AppContent: React.FC = () => {
                                 isFeatureEnabled('LOGBOOK') ? (
                                     <ProtectedRoute check={u => !['guest', 'resident'].includes(u.role)}>
                                         <Logbook />
+                                    </ProtectedRoute>
+                                ) : (
+                                    <Navigate to="/dashboard" replace />
+                                )
+                            } />
+                            <Route path="/vehicles" element={
+                                isFeatureEnabled('VEHICLE_MONITOR') ? (
+                                    <ProtectedRoute check={u => !['guest', 'resident'].includes(u.role)}>
+                                        <VehicleMonitor />
                                     </ProtectedRoute>
                                 ) : (
                                     <Navigate to="/dashboard" replace />
