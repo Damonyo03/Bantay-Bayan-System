@@ -164,5 +164,15 @@ GRANT EXECUTE ON FUNCTION public.log_event(
     public.logbook_category, TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, UUID
 ) TO authenticated;
 
+-- 5. Enable Realtime Broadcasting
+DO $$ BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.logbook_entries;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+    WHEN undefined_object THEN null;
+END $$;
+
+ALTER TABLE public.logbook_entries REPLICA IDENTITY FULL;
+
 -- Refresh Schema Cache
 NOTIFY pgrst, 'reload schema';

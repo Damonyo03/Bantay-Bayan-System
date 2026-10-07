@@ -90,18 +90,23 @@ export const Logbook: React.FC = () => {
   // Real-time listener
   useEffect(() => {
     const channel = logbookService.subscribeToLogbook((newEntry) => {
-      // If the new entry belongs to the currently viewed day, refresh or prepend
-      const entryDay = newEntry.created_at.split('T')[0];
-      if (entryDay === selectedDate) {
-        setEntries((prev) => [newEntry, ...prev.filter((e) => e.id !== newEntry.id)]);
-        showToast(`New log entry: ${newEntry.title}`, 'info');
+      // Convert to local date YYYY-MM-DD
+      const d = new Date(newEntry.created_at);
+      const localYear = d.getFullYear();
+      const localMonth = String(d.getMonth() + 1).padStart(2, '0');
+      const localDay = String(d.getDate()).padStart(2, '0');
+      const localEntryDay = `${localYear}-${localMonth}-${localDay}`;
+
+      if (localEntryDay === selectedDate) {
+        fetchEntries();
+        showToast(`Logbook updated: ${newEntry.title}`, 'info');
       }
     });
 
     return () => {
       logbookService.unsubscribe(channel);
     };
-  }, [selectedDate]);
+  }, [selectedDate, selectedCategory, selectedReporter, searchQuery]);
 
   // Unique list of reporters from currently loaded entries
   const reportersList = useMemo(() => {

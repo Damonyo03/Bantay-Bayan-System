@@ -133,8 +133,9 @@ export const logbookService = {
    * Realtime subscription for logbook entry updates
    */
   subscribeToLogbook: (onNewEntry: (entry: LogbookEntry) => void) => {
+    const channelId = `logbook_live_${Math.random().toString(36).substring(2, 9)}`;
     return supabase
-      .channel('logbook_realtime_channel')
+      .channel(channelId)
       .on(
         'postgres_changes',
         {
