@@ -158,3 +158,45 @@ export interface PublicReport {
   updated_at: string;
   created_at: string;
 }
+
+// LOGBOOK TYPES
+export type LogbookCategory = 
+  | 'cctv_request' 
+  | 'blotter' 
+  | 'vehicle' 
+  | 'asset' 
+  | 'queue' 
+  | 'incident' 
+  | 'handover' 
+  | 'correction' 
+  | 'other';
+
+export interface LogbookEntry {
+  id: string;
+  created_at: string;
+  reported_by: string;
+  reporter_name: string;
+  reporter_role: string;
+  category: LogbookCategory;
+  action: string;
+  title: string;
+  description: string;
+  reference_type?: string | null;
+  reference_id?: string | null;
+  metadata?: Record<string, any>;
+  corrects_entry_id?: string | null;
+  // UI joined / helper properties
+  referenced_correction?: LogbookEntry | null;
+}
+
+export interface LogEventParams {
+  category: LogbookCategory;
+  action: string;
+  title: string;
+  description: string;
+  reference_type?: string | null;
+  reference_id?: string | null;
+  metadata?: Record<string, any>;
+  corrects_entry_id?: string | null;
+}
+

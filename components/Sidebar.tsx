@@ -18,7 +18,8 @@ import {
   X,
   MessageSquare,
   PhoneCall,
-  Image as ImageIcon
+  Image as ImageIcon,
+  BookOpen
 } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,6 +28,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabaseClient';
 import { userService } from '../services/userService';
 import { useBranding } from '../src/config/branding';
+import { isFeatureEnabled } from '../src/config/features';
 import BrandLogo from './BrandLogo';
 
 interface SidebarProps {
@@ -109,6 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
 
   const navItems = [
     { icon: LayoutDashboard, label: t.dashboard, path: '/dashboard', visible: isStaff, badgeCount: badges.incidents },
+    { icon: BookOpen, label: t.logbook || 'Logbook', path: '/logbook', visible: isStaff && isFeatureEnabled('LOGBOOK') },
     { icon: MessageSquare, label: t.submitReport, path: '/public-request', visible: isResident },
     { icon: FileText, label: t.reportsQueue, path: '/public-reports', visible: isStaff, badgeCount: badges.reports },
     { icon: FileText, label: t.blotter, path: '/report', visible: isStaff },

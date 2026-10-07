@@ -22,9 +22,11 @@ import PublicServiceRequest from './pages/PublicServiceRequest';
 import PublicReportsQueue from './pages/PublicReportsQueue';
 import ResidentDirectory from './pages/ResidentDirectory';
 import Applications from './pages/Applications';
+import Logbook from './pages/Logbook';
 import DashboardLayout from './components/DashboardLayout';
 import PublicLayout from './components/PublicLayout';
 import UpdatePassword from './pages/UpdatePassword';
+import { isFeatureEnabled } from './src/config/features';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
@@ -98,6 +100,15 @@ const AppContent: React.FC = () => {
                                 <ProtectedRoute check={u => u.role !== 'resident' && u.role !== 'guest'}>
                                     <CommandCenter />
                                 </ProtectedRoute>
+                            } />
+                            <Route path="/logbook" element={
+                                isFeatureEnabled('LOGBOOK') ? (
+                                    <ProtectedRoute check={u => !['guest', 'resident'].includes(u.role)}>
+                                        <Logbook />
+                                    </ProtectedRoute>
+                                ) : (
+                                    <Navigate to="/dashboard" replace />
+                                )
                             } />
                             <Route path="/public-request" element={<ProtectedRoute check={u => u.role === 'resident'}><PublicServiceRequest /></ProtectedRoute>} />
                             <Route path="/public-reports" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><PublicReportsQueue /></ProtectedRoute>} />
