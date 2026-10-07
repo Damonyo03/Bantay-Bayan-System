@@ -9,7 +9,9 @@ import { AddLogbookModal } from '../components/logbook/AddLogbookModal';
 import { AddCorrectionModal } from '../components/logbook/AddCorrectionModal';
 import { ShiftHandoverSection } from '../components/logbook/ShiftHandoverSection';
 import { ExportLogbookModal } from '../components/logbook/ExportLogbookModal';
+import { recordAccess } from '../services/auditAccessService';
 import {
+
   BookOpen,
   Plus,
   Calendar,
@@ -86,7 +88,9 @@ export const Logbook: React.FC = () => {
         query: searchQuery,
       });
       setEntries(data);
+      recordAccess({ action: 'viewed', record_type: 'logbook', record_id: selectedDate });
     } catch (err: any) {
+
       console.error('Failed to fetch logbook entries:', err);
       showToast('Failed to load logbook entries: ' + (err.message || 'Unknown error'), 'error');
     } finally {

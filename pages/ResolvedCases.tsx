@@ -11,7 +11,9 @@ import { generateOfficialReport, reprintCCTVForm } from '../utils/pdfGenerator';
 import { supabase } from '../lib/supabaseClient';
 import PageHeader from '../components/PageHeader';
 import { exportToExcel } from '../utils/excelExport';
+import { recordAccess } from '../services/auditAccessService';
 import { Download } from 'lucide-react';
+
 
 type TabType = 'incidents' | 'cctv';
 type SortOption = 'date_desc' | 'date_asc' | 'case_asc' | 'case_desc';
@@ -306,8 +308,14 @@ const ResolvedCases: React.FC = () => {
                                     </button>
 
                                     <button
-                                        onClick={() => toggleExpand(incident.id)}
+                                        onClick={() => {
+                                            toggleExpand(incident.id);
+                                            if (expandedId !== incident.id) {
+                                                recordAccess({ action: 'viewed', record_type: 'blotter_archive', record_id: incident.case_number || incident.id });
+                                            }
+                                        }}
                                         className={`flex-1 lg:w-40 flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs font-bold transition-colors border ${expandedId === incident.id
+
                                             ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
                                             : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-white border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600'
                                             }`}

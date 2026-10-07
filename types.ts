@@ -268,5 +268,18 @@ export interface ShiftHandover {
   acknowledged_by_name?: string | null;
 }
 
+// SENSITIVE DATA ACCESS AUDIT TRAIL TYPES
+export type AuditAccessAction = 'viewed' | 'exported' | 'printed';
 
-
+export interface AuditAccessLog {
+  id: string;
+  user_id?: string | null;
+  user_name?: string;
+  user_email?: string;
+  user_role?: string;
+  action: AuditAccessAction;
+  record_type: string;
+  record_id: string;
+  timestamp: string;
+  user_agent?: string | null;
+}

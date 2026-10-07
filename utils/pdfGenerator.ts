@@ -4,6 +4,8 @@ import { FileOpener } from '@capacitor-community/file-opener';
 import { Capacitor } from '@capacitor/core';
 import { IncidentWithDetails, AssetRequest, CCTVRequest, VehicleUsageData } from '../types';
 import { branding } from '../src/config/branding';
+import { recordAccess } from '../services/auditAccessService';
+
 
 const getCaptainName = () => {
     return branding.executive.find(m => m.isPrimary)?.name || "HON. PUNONG BARANGAY";
@@ -296,8 +298,10 @@ export const generateOfficialReport = async (incident: IncidentWithDetails, mode
     doc.setFont("times", "italic");
     doc.text("\"Patuloy na Pag-Unlad at Pagkakaisa Tungo sa Isang Matatag na Barangay\"", 105, 285, { align: "center" });
 
+    recordAccess({ action: mode === 'download' ? 'exported' : 'printed', record_type: 'blotter', record_id: incident.case_number || 'unassigned' });
     await savePdf(doc, `Blotter_${incident.case_number}.pdf`, mode);
 };
+
 
 export const generateBorrowingSlip = async (request: AssetRequest, mode: 'download' | 'print' = 'print') => {
     const doc = new jsPDF();
@@ -431,8 +435,10 @@ export const generateBorrowingSlip = async (request: AssetRequest, mode: 'downlo
     doc.text("Signature over Printed Name", marginLeft + 10, yPos + 5);
     doc.text("Punong Barangay", rightSigX + 5, yPos + 5);
 
+    recordAccess({ action: mode === 'download' ? 'exported' : 'printed', record_type: 'asset_request', record_id: request.borrower_name || 'unassigned' });
     await savePdf(doc, `Borrowing_Slip_${request.borrower_name.replace(/\s/g, '_')}.pdf`, mode);
 };
+
 
 export const generateCCTVForm = async (data: any, mode: 'download' | 'print' = 'print') => {
     const doc = new jsPDF();
@@ -605,6 +611,7 @@ export const generateCCTVForm = async (data: any, mode: 'download' | 'print' = '
     doc.setFont("times", "normal");
     doc.text("Punong Barangay", rightSigX + 5, yPos + 4);
 
+    recordAccess({ action: mode === 'download' ? 'exported' : 'printed', record_type: 'cctv_request', record_id: data.request_number || data.lastName || 'unassigned' });
     await savePdf(doc, `CCTV_Request_${data.lastName}.pdf`, mode);
 };
 
@@ -667,8 +674,10 @@ export const reprintCCTVForm = async (data: CCTVRequest, mode: 'download' | 'pri
     doc.setFont("times", "normal");
     doc.text("Punong Barangay", rightSigX + 5, yPos + 4);
 
+    recordAccess({ action: mode === 'download' ? 'exported' : 'printed', record_type: 'cctv_request', record_id: data.request_number });
     await savePdf(doc, `CCTV_Reprint_${data.request_number}.pdf`, mode);
 };
+
 
 export const generateVehicleLog = async (data: VehicleUsageData, mode: 'download' | 'print' = 'print') => {
     const doc = new jsPDF();

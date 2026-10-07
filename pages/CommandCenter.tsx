@@ -14,7 +14,9 @@ import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { generateOfficialReport } from '../utils/pdfGenerator';
 import { exportToExcel } from '../utils/excelExport';
+import { recordAccess } from '../services/auditAccessService';
 import PageHeader from '../components/PageHeader';
+
 // Local interface for vehicle logs on dashboard
 interface LogWithIncident extends DispatchLog {
     incidents?: {
@@ -467,9 +469,15 @@ const CommandCenter: React.FC = () => {
                                             )}
 
                                             <button
-                                                onClick={() => toggleExpand(incident.id)}
+                                                onClick={() => {
+                                                    toggleExpand(incident.id);
+                                                    if (expandedIncidentId !== incident.id) {
+                                                        recordAccess({ action: 'viewed', record_type: 'blotter', record_id: incident.case_number || incident.id });
+                                                    }
+                                                }}
                                                 className="w-full py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors flex items-center justify-center space-x-1"
                                             >
+
                                                 {expandedIncidentId === incident.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                                 <span>{expandedIncidentId === incident.id ? 'Hide Details' : 'View Details'}</span>
                                             </button>

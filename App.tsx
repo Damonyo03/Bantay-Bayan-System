@@ -24,7 +24,9 @@ import ResidentDirectory from './pages/ResidentDirectory';
 import Applications from './pages/Applications';
 import Logbook from './pages/Logbook';
 import VehicleMonitor from './pages/vehicles/VehicleMonitor';
+import AuditTrail from './pages/AuditTrail';
 import DashboardLayout from './components/DashboardLayout';
+
 import PublicLayout from './components/PublicLayout';
 import UpdatePassword from './pages/UpdatePassword';
 import { isFeatureEnabled } from './src/config/features';
@@ -132,7 +134,9 @@ const AppContent: React.FC = () => {
                             <Route path="/residents" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'bantay_bayan', 'developer'].includes(u.role)}><ResidentDirectory /></ProtectedRoute>} />
                             <Route path="/applications" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'supervisor', 'developer'].includes(u.role)}><Applications /></ProtectedRoute>} />
                             <Route path="/audit-logs" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'developer'].includes(u.role)}><AuditLogs /></ProtectedRoute>} />
+                            <Route path="/audit-trail" element={<ProtectedRoute check={u => ['barangay_captain', 'barangay_secretary', 'barangay_kagawad', 'developer'].includes(u.role)}><AuditTrail /></ProtectedRoute>} />
                             <Route path="/guidelines" element={<SystemGuidelines />} />
+
                             <Route path="/download-forms" element={<DownloadForms />} />
                             <Route path="/settings" element={<ProtectedRoute check={u => u.role !== 'guest'}><Settings /></ProtectedRoute>} />
                             <Route path="*" element={<Navigate to="/" />} />

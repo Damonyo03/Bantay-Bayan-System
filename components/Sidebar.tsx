@@ -20,8 +20,10 @@ import {
   PhoneCall,
   Image as ImageIcon,
   BookOpen,
-  Car
+  Car,
+  ShieldCheck
 } from 'lucide-react';
+
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -142,7 +144,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose, className = "" }) => {
     },
     { icon: FileDown, label: t.printableForms, path: '/download-forms', visible: true },
     { icon: FileClock, label: t.auditLogs, path: '/audit-logs', visible: isHighLevelAdmin() },
+    { icon: ShieldCheck, label: 'Audit Access Trail', path: '/audit-trail', visible: isHighLevelAdmin() },
     { icon: Settings, label: t.settings, path: '/settings', visible: !isGuest },
+
     { icon: ImageIcon, label: 'Visual Branding', path: '/settings?tab=branding', visible: isPrivilegedAdmin },
     { icon: Users, label: 'Leadership Setup', path: '/settings?tab=leadership', visible: isPrivilegedAdmin },
     { icon: PhoneCall, label: 'Emergency Setup', path: '/settings?tab=emergency', visible: isPrivilegedAdmin },

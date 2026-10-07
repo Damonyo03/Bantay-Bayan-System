@@ -5,7 +5,9 @@ import { VehicleCard } from '../../components/vehicles/VehicleCard';
 import { StartTripModal } from '../../components/vehicles/StartTripModal';
 import { StopActionModal } from '../../components/vehicles/StopActionModal';
 import { EndTripModal } from '../../components/vehicles/EndTripModal';
+import { recordAccess } from '../../services/auditAccessService';
 import {
+
   Car,
   Truck,
   Search,
@@ -74,7 +76,9 @@ export const VehicleMonitor: React.FC = () => {
     try {
       const data = await vehicleService.getVehiclesWithLiveTrips();
       setVehicles(data);
+      recordAccess({ action: 'viewed', record_type: 'vehicle_monitor', record_id: 'live_fleet' });
     } catch (err) {
+
       console.error('Failed to load fleet:', err);
     } finally {
       setLoading(false);
