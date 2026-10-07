@@ -252,4 +252,21 @@ export interface VehicleTrip {
   stops?: TripStop[];
 }
 
+// SHIFT HANDOVER TYPES
+export interface ShiftHandover {
+  id: string;
+  outgoing_user?: string | null;
+  outgoing_name: string;
+  incoming_user?: string | null;
+  incoming_name?: string | null;
+  shift_name: string;
+  notes: string;
+  pending_items?: string | null;
+  created_at: string;
+  acknowledged_at?: string | null;
+  acknowledged_by?: string | null;
+  acknowledged_by_name?: string | null;
+}
+
+
 
