@@ -661,7 +661,7 @@ const Login: React.FC = () => {
                     {!isLoading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
                 </button>
 
-                <div className="pt-4">
+                <div className="pt-4 space-y-3">
                     <button
                         onClick={() => setView('register')}
                         className="w-full py-4 rounded-2xl border border-dashed border-slate-300 dark:border-white/10 text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-center space-x-2"
@@ -669,6 +669,14 @@ const Login: React.FC = () => {
                         <UserPlus size={16} />
                         <span>REGISTER / SIGN-UP</span>
                     </button>
+                    
+                    <Link
+                        to="/guest-report"
+                        className="w-full py-3.5 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-500 hover:text-slate-950 transition-all flex items-center justify-center space-x-2"
+                    >
+                        <AlertTriangle size={15} />
+                        <span>File Guest Incident Report</span>
+                    </Link>
                 </div>
             </form>
         </ViewContainer>

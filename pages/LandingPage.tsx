@@ -84,7 +84,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Desktop Menu */}
-                    <div className="hidden lg:flex items-center space-x-12 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <div className="hidden lg:flex items-center space-x-10 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                         {SECTIONS.map((sec, idx) => (
                             <button
                                 key={sec.id}
@@ -95,8 +95,14 @@ const LandingPage: React.FC = () => {
                             </button>
                         ))}
                         <button
+                            onClick={() => navigate('/guest-report')}
+                            className="px-6 py-3.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-full hover:bg-amber-500 hover:text-slate-950 transition-all shadow-lg flex items-center group font-black text-xs uppercase"
+                        >
+                            <span>Report Incident</span>
+                        </button>
+                        <button
                             onClick={() => navigate('/login')}
-                            className="px-10 py-3.5 bg-taguig-blue text-white rounded-full hover:bg-taguig-navy transition-all shadow-xl shadow-taguig-blue/20 flex items-center group font-black text-xs uppercase"
+                            className="px-8 py-3.5 bg-taguig-blue text-white rounded-full hover:bg-taguig-navy transition-all shadow-xl shadow-taguig-blue/20 flex items-center group font-black text-xs uppercase"
                         >
                             <span>Portal Login</span>
                             <ArrowUpRight size={14} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -124,6 +130,12 @@ const LandingPage: React.FC = () => {
                                 {sec.label}
                             </button>
                         ))}
+                        <button
+                            onClick={() => { setIsMenuOpen(false); navigate('/guest-report'); }}
+                            className="w-full block text-center py-4 bg-amber-500 text-slate-950 font-black rounded-xl text-[10px] uppercase tracking-[0.2em] shadow-xl"
+                        >
+                            Report Incident as Guest
+                        </button>
                         {!isNative && (
                             <a
                                 href="/BantayBayan.apk"
@@ -179,15 +191,21 @@ const LandingPage: React.FC = () => {
 
                                         <div className="flex flex-wrap gap-4 pt-8">
                                             <button
-                                                onClick={() => setMainIndex(1)}
-                                                className="px-10 py-5 bg-white text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 hover:bg-taguig-gold transition-all shadow-2xl flex items-center group"
+                                                onClick={() => navigate('/guest-report')}
+                                                className="px-10 py-5 bg-amber-500 text-slate-950 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 hover:bg-amber-400 transition-all shadow-2xl flex items-center group shadow-amber-500/20"
                                             >
-                                                <span>View Leadership</span>
+                                                <span>Report Incident (Guest)</span>
                                                 <ChevronRight size={16} className="ml-3 group-hover:translate-x-1 transition-transform" />
                                             </button>
                                             <button
+                                                onClick={() => setMainIndex(1)}
+                                                className="px-8 py-5 bg-white/10 text-white rounded-[2rem] text-xs font-black uppercase tracking-widest hover:bg-white hover:text-slate-950 transition-all border border-white/20 flex items-center group"
+                                            >
+                                                <span>Leadership</span>
+                                            </button>
+                                            <button
                                                 onClick={() => navigate('/login')}
-                                                className="px-10 py-5 bg-transparent border-2 border-white/20 text-white rounded-[2rem] text-xs font-black uppercase tracking-widest hover:border-white transition-all flex items-center"
+                                                className="px-8 py-5 bg-transparent border-2 border-white/20 text-white rounded-[2rem] text-xs font-black uppercase tracking-widest hover:border-white transition-all flex items-center"
                                             >
                                                 Portal Login
                                             </button>
@@ -195,7 +213,7 @@ const LandingPage: React.FC = () => {
                                                 <a
                                                     href="/BantayBayan.apk"
                                                     download
-                                                    className="px-10 py-5 bg-emerald-600/20 border-2 border-emerald-500/50 text-emerald-400 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all flex items-center group"
+                                                    className="px-8 py-5 bg-emerald-600/20 border-2 border-emerald-500/50 text-emerald-400 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all flex items-center group"
                                                 >
                                                     <Download size={16} className="mr-3" />
                                                     <span>Get Android App</span>

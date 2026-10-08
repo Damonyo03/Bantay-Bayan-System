@@ -84,14 +84,31 @@ const PublicReportsQueue: React.FC = () => {
     const handleExportExcel = () => {
         const exportData = filteredReports.map(r => ({
             'Ref Number': r.reference_number,
+            'Reporter Type': r.is_guest ? 'Guest' : 'Registered Citizen',
             'Type': r.type,
             'Status': r.status,
             'Location': r.location,
             'Narrative': r.narrative,
-            'Submitter Name': r.submitter_name || 'Anonymous',
+            'Submitter Name': r.is_guest ? (r.guest_name || 'Guest') : (r.submitter_name || 'Resident'),
+            'Contact Info': r.guest_contact || 'N/A',
             'Submitted At': new Date(r.created_at).toLocaleString()
         }));
         exportToExcel(exportData, 'Public_Reports');
+    };
+
+    const OriginBadge = ({ isGuest }: { isGuest?: boolean }) => {
+        if (isGuest) {
+            return (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    Guest Report
+                </span>
+            );
+        }
+        return (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                Registered Citizen
+            </span>
+        );
     };
 
     const StatusBadge = ({ status }: { status: string }) => {
@@ -179,7 +196,10 @@ const PublicReportsQueue: React.FC = () => {
                         <div key={report.id} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-white/5 relative flex flex-col h-full hover:border-taguig-blue/30 transition-all">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{report.reference_number}</p>
+                                    <div className="flex items-center space-x-2 mb-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{report.reference_number}</p>
+                                        <OriginBadge isGuest={report.is_guest} />
+                                    </div>
                                     <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">{report.type}</h3>
                                 </div>
                                 <StatusBadge status={report.status} />
@@ -194,11 +214,21 @@ const PublicReportsQueue: React.FC = () => {
                                     <MessageSquare size={16} className="text-slate-400 mt-0.5 mr-2 shrink-0" />
                                     <p className="text-sm text-slate-500 leading-relaxed italic line-clamp-3">"{report.narrative}"</p>
                                 </div>
-                                <div className="flex items-center pt-2">
-                                    <User size={14} className="text-slate-400 mr-2 shrink-0" />
-                                    <p className="text-xs text-slate-500 font-medium">By: {report.submitter_name}</p>
-                                    <span className="mx-2 text-slate-300">•</span>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(report.created_at).toLocaleDateString()}</p>
+                                <div className="flex flex-wrap items-center gap-y-1 pt-2 text-xs text-slate-500">
+                                    <div className="flex items-center mr-3">
+                                        <User size={14} className="text-slate-400 mr-1.5 shrink-0" />
+                                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                            {report.is_guest ? report.guest_name : report.submitter_name}
+                                        </span>
+                                    </div>
+                                    {report.guest_contact && (
+                                        <div className="flex items-center text-taguig-blue dark:text-taguig-gold font-bold mr-3">
+                                            <span>📞 {report.guest_contact}</span>
+                                        </div>
+                                    )}
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        {new Date(report.created_at).toLocaleDateString()}
+                                    </span>
                                 </div>
                                 <AttachmentGallery publicReportId={report.id} />
                             </div>

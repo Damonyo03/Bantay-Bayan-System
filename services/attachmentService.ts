@@ -34,7 +34,7 @@ export const attachmentService = {
       ? `cctv/${cctvRequestId}`
       : `public-reports/${publicReportId}`;
 
-    for (let i = 0; i < Math.min(files.length, 3); i++) {
+    for (let i = 0; i < Math.min(files.length, 5); i++) {
       const rawFile = files[i];
       try {
         // 1. Compress image client-side (max 1600px, 0.7 quality)

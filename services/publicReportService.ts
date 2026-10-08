@@ -1,6 +1,15 @@
 import { supabase } from '../lib/supabaseClient';
 import { PublicReport, IncidentType } from '../types';
 
+export interface CreateGuestReportParams {
+  type: IncidentType;
+  narrative: string;
+  location: string;
+  guestName: string;
+  guestContact: string;
+  guestEmail?: string;
+}
+
 export const publicReportService = {
   createReport: async (
     type: IncidentType,
@@ -15,7 +24,27 @@ export const publicReportService = {
       type,
       narrative,
       location,
-      submitted_by: userId
+      submitted_by: userId,
+      is_guest: false
+    }).select().single();
+
+    if (error) throw error;
+    return data as PublicReport;
+  },
+
+  createGuestReport: async (params: CreateGuestReportParams): Promise<PublicReport> => {
+    // Generate a reference number GUEST-XXXXXX-XXX
+    const refNum = `GUEST-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+    const { data, error } = await supabase.from('public_reports').insert({
+      reference_number: refNum,
+      type: params.type,
+      narrative: params.narrative,
+      location: params.location,
+      is_guest: true,
+      guest_name: params.guestName.trim(),
+      guest_contact: params.guestContact.trim(),
+      guest_email: params.guestEmail?.trim() || null,
+      submitted_by: null
     }).select().single();
 
     if (error) throw error;
@@ -42,7 +71,9 @@ export const publicReportService = {
     if (error) throw error;
     return data.map((d: any) => ({
       ...d,
-      submitter_name: d.profiles?.full_name || 'Unknown'
+      submitter_name: d.is_guest 
+        ? `${d.guest_name || 'Guest Citizen'}`
+        : (d.profiles?.full_name || 'Registered Citizen')
     })) as PublicReport[];
   },
 

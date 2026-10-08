@@ -19,6 +19,7 @@ import DownloadForms from './pages/DownloadForms';
 import LandingPage from './pages/LandingPage';
 import PendingApproval from './pages/PendingApproval';
 import PublicServiceRequest from './pages/PublicServiceRequest';
+import GuestReport from './pages/GuestReport';
 import PublicReportsQueue from './pages/PublicReportsQueue';
 import ResidentDirectory from './pages/ResidentDirectory';
 import Applications from './pages/Applications';
@@ -99,6 +100,7 @@ const AppContent: React.FC = () => {
                 Capacitor.isNativePlatform() ? <Navigate to="/login" replace /> : <PublicLayout><LandingPage /></PublicLayout>
             } />
             <Route path="/login" element={<LoginRoute />} />
+            <Route path="/guest-report" element={<PublicLayout><GuestReport /></PublicLayout>} />
             <Route path="/pending" element={
                 user && user.status === 'pending' ? <PendingApproval /> : <Navigate to="/" replace />
             } />

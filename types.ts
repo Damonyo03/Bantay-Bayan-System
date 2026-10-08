@@ -152,8 +152,12 @@ export interface PublicReport {
   narrative: string;
   location: string;
   status: 'Pending Review' | 'Acknowledged' | 'Converted to Incident' | 'Rejected';
-  submitted_by: string;
+  submitted_by?: string | null;
   submitter_name?: string; // Joined field
+  is_guest?: boolean;
+  guest_name?: string;
+  guest_contact?: string;
+  guest_email?: string;
   converted_incident_id?: string;
   updated_at: string;
   created_at: string;
