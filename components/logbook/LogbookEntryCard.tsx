@@ -14,7 +14,8 @@ import {
   Link as LinkIcon,
   ShieldCheck,
   CheckCircle2,
-  LucideIcon
+  LucideIcon,
+  WifiOff
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AttachmentGallery } from '../attachments/AttachmentGallery';
@@ -90,7 +91,9 @@ export const LogbookEntryCard: React.FC<LogbookEntryCardProps> = ({ entry, onOpe
   const CategoryIcon = meta.icon;
 
   const entryDate = new Date(entry.created_at);
-  const timeFormatted = entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const isEnteredOffline = !!entry.metadata?.entered_offline;
+  const originalDeviceDate = entry.client_timestamp ? new Date(entry.client_timestamp) : entryDate;
+  const displayTimeFormatted = originalDeviceDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   const getReferenceLink = () => {
     if (!entry.reference_type || !entry.reference_id) return null;
@@ -145,8 +148,15 @@ export const LogbookEntryCard: React.FC<LogbookEntryCardProps> = ({ entry, onOpe
 
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg">
             <Clock size={12} />
-            {timeFormatted}
+            {displayTimeFormatted}
           </span>
+
+          {isEnteredOffline && (
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-500/20 px-2.5 py-1 rounded-lg border border-amber-300 dark:border-amber-500/30">
+              <WifiOff size={11} />
+              Entered Offline
+            </span>
+          )}
 
           {entry.corrects_entry_id && (
             <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-500/20">

@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useBranding } from '../src/config/branding';
 import { isFeatureEnabled } from '../src/config/features';
 import { GlobalSearchModal } from './search/GlobalSearchModal';
+import { SyncStatusBadge } from './offline/SyncStatusBadge';
 import BrandLogo from './BrandLogo';
 
 interface DashboardLayoutProps {
@@ -86,6 +87,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
                 
                 <div className="flex items-center space-x-2">
+                    <SyncStatusBadge compact />
                     {isFeatureEnabled('GLOBAL_SEARCH') && (
                         <button
                             onClick={() => setIsSearchOpen(true)}
@@ -122,6 +124,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
             {/* Main Content Area */}
             <div className="md:pl-64 flex-1 flex flex-col min-w-0 pb-[env(safe-area-inset-bottom)]">
+                {/* Desktop Top Right Sync Status Badge */}
+                <div className="hidden md:flex justify-end px-8 pt-4 pb-0 max-w-[1600px] mx-auto w-full">
+                    <SyncStatusBadge />
+                </div>
                 <main className="flex-1 p-4 md:p-8 lg:p-10 transition-all duration-300 min-w-0">
                     <div className="max-w-[1600px] mx-auto w-full">
                         {children}

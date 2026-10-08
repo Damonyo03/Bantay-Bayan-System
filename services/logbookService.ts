@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabaseClient';
 import { LogbookEntry, LogEventParams, LogbookCategory } from '../types';
+import { offlineSyncService } from './offline/offlineSyncService';
+import { isFeatureEnabled } from '../src/config/features';
 
 export const logbookService = {
   /**
@@ -53,9 +55,22 @@ export const logbookService = {
   },
 
   /**
-   * Log an event via the secure server-side RPC function
+   * Log an event via the secure server-side RPC function with offline queue fallback
    */
   logEvent: async (params: LogEventParams): Promise<string> => {
+    const clientTimestamp = params.client_timestamp || new Date().toISOString();
+    const idempotencyKey = params.idempotency_key || offlineSyncService.generateId();
+
+    // If offline and feature enabled, queue directly into IndexedDB
+    if (isFeatureEnabled('OFFLINE_SYNC') && !offlineSyncService.isOnline()) {
+      await offlineSyncService.enqueueMutation('LOGBOOK_ENTRY', params, {
+        id: idempotencyKey,
+        client_timestamp: clientTimestamp,
+        title: `Logbook: ${params.title}`,
+      });
+      return idempotencyKey;
+    }
+
     const { data, error } = await supabase.rpc('log_event', {
       p_category: params.category,
       p_action: params.action,
@@ -65,9 +80,21 @@ export const logbookService = {
       p_reference_id: params.reference_id || null,
       p_metadata: params.metadata || {},
       p_corrects_entry_id: params.corrects_entry_id || null,
+      p_client_timestamp: clientTimestamp,
+      p_idempotency_key: idempotencyKey,
     });
 
     if (error) {
+      // If network failure, queue offline
+      if (isFeatureEnabled('OFFLINE_SYNC') && (!navigator.onLine || error.message?.includes('fetch') || error.message?.includes('network'))) {
+        await offlineSyncService.enqueueMutation('LOGBOOK_ENTRY', params, {
+          id: idempotencyKey,
+          client_timestamp: clientTimestamp,
+          title: `Logbook: ${params.title}`,
+        });
+        return idempotencyKey;
+      }
+
       // Fallback: If RPC not yet installed or permission issue, insert directly if allowed by RLS
       console.warn('RPC log_event failed, attempting direct table insert fallback:', error.message);
       const { data: userData } = await supabase.auth.getUser();
@@ -82,6 +109,7 @@ export const logbookService = {
       const { data: insertData, error: insertError } = await supabase
         .from('logbook_entries')
         .insert({
+          id: idempotencyKey,
           reported_by: userData.user.id,
           reporter_name: profile?.full_name || 'Staff Member',
           reporter_role: profile?.role || 'bantay_bayan',
@@ -93,6 +121,8 @@ export const logbookService = {
           reference_id: params.reference_id || null,
           metadata: params.metadata || {},
           corrects_entry_id: params.corrects_entry_id || null,
+          client_timestamp: clientTimestamp,
+          idempotency_key: idempotencyKey,
         })
         .select('id')
         .single();

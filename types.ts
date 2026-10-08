@@ -186,6 +186,8 @@ export interface LogAttachment {
 
 export interface LogbookEntry {
   id: string;
+  client_timestamp?: string;
+  idempotency_key?: string;
   created_at: string;
   reported_by: string;
   reporter_name: string;
@@ -212,6 +214,8 @@ export interface LogEventParams {
   reference_id?: string | null;
   metadata?: Record<string, any>;
   corrects_entry_id?: string | null;
+  client_timestamp?: string;
+  idempotency_key?: string;
 }
 
 // VEHICLE TRIP MONITORING TYPES
@@ -245,6 +249,8 @@ export interface TripStop {
   arrival_time?: string | null;
   departure_time?: string | null;
   manual_time_reason?: string | null;
+  client_timestamp?: string;
+  idempotency_key?: string;
   created_at?: string;
 }
 
@@ -260,6 +266,8 @@ export interface VehicleTrip {
   remarks?: string | null;
   logged_by: string;
   created_at: string;
+  client_timestamp?: string;
+  idempotency_key?: string;
   started_at?: string | null;
   completed_at?: string | null;
   // Joined fields
@@ -280,6 +288,8 @@ export interface ShiftHandover {
   notes: string;
   pending_items?: string | null;
   created_at: string;
+  client_timestamp?: string;
+  idempotency_key?: string;
   acknowledged_at?: string | null;
   acknowledged_by?: string | null;
   acknowledged_by_name?: string | null;

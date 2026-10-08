@@ -12,7 +12,8 @@ export const FEATURES = {
   OPERATIONAL_REMINDERS: true,
   SHIFT_HANDOVER: true,
   TANOD_MODE: false,
-  OFFLINE_MODE: false,
+  OFFLINE_MODE: true,
+  OFFLINE_SYNC: true,
 } as const;
 
 

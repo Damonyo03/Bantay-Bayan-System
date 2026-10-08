@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabaseClient';
 import { Vehicle, VehicleTrip, TripStop, TripPassenger } from '../types';
+import { offlineSyncService } from './offline/offlineSyncService';
+import { isFeatureEnabled } from '../src/config/features';
 
 export interface StartTripParams {
   vehicle_id: string;
@@ -57,15 +59,33 @@ export const vehicleService = {
   },
 
   /**
-   * Start a new ongoing trip for a vehicle
+   * Start a new ongoing trip for a vehicle (with offline queueing)
    */
   startTrip: async (params: StartTripParams): Promise<string> => {
+    const tripId = offlineSyncService.generateId();
+    const clientTimestamp = new Date().toISOString();
+
+    if (isFeatureEnabled('OFFLINE_SYNC') && !offlineSyncService.isOnline()) {
+      await offlineSyncService.enqueueMutation(
+        'START_TRIP',
+        { ...params, id: tripId },
+        {
+          id: tripId,
+          trip_id: tripId,
+          client_timestamp: clientTimestamp,
+          title: `Start Trip (${params.driver_name})`,
+        }
+      );
+      return tripId;
+    }
+
     const { data: userData } = await supabase.auth.getUser();
 
     // 1. Insert vehicle_trip
     const { data: trip, error: tripError } = await supabase
       .from('vehicle_trips')
       .insert({
+        id: tripId,
         vehicle_id: params.vehicle_id,
         driver_id: params.driver_id || null,
         driver_name: params.driver_name.trim(),
@@ -73,14 +93,29 @@ export const vehicleService = {
         status: 'ongoing',
         odometer_start: params.odometer_start || null,
         logged_by: userData?.user?.id || null,
-        started_at: new Date().toISOString(),
+        started_at: clientTimestamp,
+        client_timestamp: clientTimestamp,
+        idempotency_key: tripId,
       })
       .select('id')
       .single();
 
-    if (tripError) throw tripError;
-
-    const tripId = trip.id;
+    if (tripError) {
+      if (isFeatureEnabled('OFFLINE_SYNC') && (!navigator.onLine || tripError.message?.includes('fetch') || tripError.message?.includes('network'))) {
+        await offlineSyncService.enqueueMutation(
+          'START_TRIP',
+          { ...params, id: tripId },
+          {
+            id: tripId,
+            trip_id: tripId,
+            client_timestamp: clientTimestamp,
+            title: `Start Trip (${params.driver_name})`,
+          }
+        );
+        return tripId;
+      }
+      throw tripError;
+    }
 
     // 2. Insert passengers (if any)
     if (params.passengers && params.passengers.length > 0) {
@@ -103,7 +138,8 @@ export const vehicleService = {
       const { error: stopError } = await supabase.from('trip_stops').insert({
         trip_id: tripId,
         place: params.initial_destination.trim(),
-        departure_time: new Date().toISOString(), // Initial departure from base
+        departure_time: clientTimestamp,
+        client_timestamp: clientTimestamp,
       });
       if (stopError) console.warn('Failed to insert initial stop:', stopError);
     }
@@ -120,18 +156,51 @@ export const vehicleService = {
     manual_time?: string | null,
     manual_reason?: string | null
   ): Promise<void> => {
+    const stopId = offlineSyncService.generateId();
     const arrivalTime = manual_time
       ? new Date(manual_time).toISOString()
       : new Date().toISOString();
 
+    if (isFeatureEnabled('OFFLINE_SYNC') && !offlineSyncService.isOnline()) {
+      await offlineSyncService.enqueueMutation(
+        'RECORD_ARRIVAL',
+        { trip_id, place, manual_time, manual_reason, id: stopId },
+        {
+          id: stopId,
+          trip_id,
+          client_timestamp: arrivalTime,
+          title: `Arrival at ${place}`,
+        }
+      );
+      return;
+    }
+
     const { error } = await supabase.from('trip_stops').insert({
+      id: stopId,
       trip_id,
       place: place.trim(),
       arrival_time: arrivalTime,
       manual_time_reason: manual_reason ? manual_reason.trim() : null,
+      client_timestamp: arrivalTime,
+      idempotency_key: stopId,
     });
 
-    if (error) throw error;
+    if (error) {
+      if (isFeatureEnabled('OFFLINE_SYNC') && (!navigator.onLine || error.message?.includes('fetch') || error.message?.includes('network'))) {
+        await offlineSyncService.enqueueMutation(
+          'RECORD_ARRIVAL',
+          { trip_id, place, manual_time, manual_reason, id: stopId },
+          {
+            id: stopId,
+            trip_id,
+            client_timestamp: arrivalTime,
+            title: `Arrival at ${place}`,
+          }
+        );
+        return;
+      }
+      throw error;
+    }
   },
 
   /**
@@ -146,6 +215,18 @@ export const vehicleService = {
       ? new Date(manual_time).toISOString()
       : new Date().toISOString();
 
+    if (isFeatureEnabled('OFFLINE_SYNC') && !offlineSyncService.isOnline()) {
+      await offlineSyncService.enqueueMutation(
+        'RECORD_DEPARTURE',
+        { stop_id, manual_time, manual_reason },
+        {
+          client_timestamp: departureTime,
+          title: `Departure Stamp`,
+        }
+      );
+      return;
+    }
+
     const updatePayload: any = {
       departure_time: departureTime,
     };
@@ -159,7 +240,20 @@ export const vehicleService = {
       .update(updatePayload)
       .eq('id', stop_id);
 
-    if (error) throw error;
+    if (error) {
+      if (isFeatureEnabled('OFFLINE_SYNC') && (!navigator.onLine || error.message?.includes('fetch') || error.message?.includes('network'))) {
+        await offlineSyncService.enqueueMutation(
+          'RECORD_DEPARTURE',
+          { stop_id, manual_time, manual_reason },
+          {
+            client_timestamp: departureTime,
+            title: `Departure Stamp`,
+          }
+        );
+        return;
+      }
+      throw error;
+    }
   },
 
   /**
@@ -170,17 +264,46 @@ export const vehicleService = {
     odometer_end?: number | null,
     remarks?: string | null
   ): Promise<void> => {
+    const clientTimestamp = new Date().toISOString();
+
+    if (isFeatureEnabled('OFFLINE_SYNC') && !offlineSyncService.isOnline()) {
+      await offlineSyncService.enqueueMutation(
+        'END_TRIP',
+        { trip_id, odometer_end, remarks },
+        {
+          trip_id,
+          client_timestamp: clientTimestamp,
+          title: `End Trip`,
+        }
+      );
+      return;
+    }
+
     const { error } = await supabase
       .from('vehicle_trips')
       .update({
         status: 'completed',
         odometer_end: odometer_end || null,
         remarks: remarks ? remarks.trim() : null,
-        completed_at: new Date().toISOString(),
+        completed_at: clientTimestamp,
       })
       .eq('id', trip_id);
 
-    if (error) throw error;
+    if (error) {
+      if (isFeatureEnabled('OFFLINE_SYNC') && (!navigator.onLine || error.message?.includes('fetch') || error.message?.includes('network'))) {
+        await offlineSyncService.enqueueMutation(
+          'END_TRIP',
+          { trip_id, odometer_end, remarks },
+          {
+            trip_id,
+            client_timestamp: clientTimestamp,
+            title: `End Trip`,
+          }
+        );
+        return;
+      }
+      throw error;
+    }
   },
 
   /**
