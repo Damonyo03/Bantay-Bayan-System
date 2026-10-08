@@ -283,3 +283,64 @@ export interface AuditAccessLog {
   timestamp: string;
   user_agent?: string | null;
 }
+
+// GLOBAL SEARCH TYPES
+export interface GlobalSearchResult {
+  id: string;
+  type: 'blotter' | 'logbook' | 'cctv_request' | 'vehicle' | 'vehicle_trip' | string;
+  title: string;
+  subtitle: string;
+  details?: string;
+  status?: string;
+  created_at?: string;
+  url_path: string;
+}
+
+export interface GroupedSearchResults {
+  blotters: GlobalSearchResult[];
+  logbook: GlobalSearchResult[];
+  cctv: GlobalSearchResult[];
+  vehicles: GlobalSearchResult[];
+  totalCount: number;
+}
+
+// DAILY SUMMARY TYPES
+export interface DailySummaryData {
+  date: string;
+  today_counts: {
+    blotters: number;
+    cctv_requests: number;
+    vehicle_trips: number;
+    logbook_entries: number;
+  };
+  pending_items: {
+    pending_blotters: number;
+    pending_cctv: number;
+    ongoing_trips: number;
+    pending_reports: number;
+    pending_handovers: number;
+  };
+}
+
+// OPERATIONAL REMINDERS & ALERTS
+export interface OperationalReminder {
+  id: string;
+  category: 'cctv' | 'vehicle' | 'blotter' | string;
+  severity: 'urgent' | 'warning' | 'info';
+  title: string;
+  description: string;
+  record_id?: string;
+  url_path: string;
+  created_at: string;
+}
+
+export interface SystemAlertSetting {
+  id: string;
+  key: string;
+  label: string;
+  value_numeric: number;
+  unit: string;
+  description?: string;
+  updated_at?: string;
+}
+

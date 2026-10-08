@@ -5,10 +5,14 @@
 export const FEATURES = {
   LOGBOOK: true,
   VEHICLE_MONITOR: true,
-  SHIFT_HANDOVER: false,
+  GLOBAL_SEARCH: true,
+  DAILY_SUMMARY_WIDGET: true,
+  OPERATIONAL_REMINDERS: true,
+  SHIFT_HANDOVER: true,
   TANOD_MODE: false,
   OFFLINE_MODE: false,
 } as const;
+
 
 export type FeatureKey = keyof typeof FEATURES;
 

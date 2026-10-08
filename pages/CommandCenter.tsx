@@ -16,6 +16,9 @@ import { generateOfficialReport } from '../utils/pdfGenerator';
 import { exportToExcel } from '../utils/excelExport';
 import { recordAccess } from '../services/auditAccessService';
 import PageHeader from '../components/PageHeader';
+import { isFeatureEnabled } from '../src/config/features';
+import { OperationalRemindersBanner } from '../components/reminders/OperationalRemindersBanner';
+import { DailySummaryWidget } from '../components/dashboard/DailySummaryWidget';
 
 // Local interface for vehicle logs on dashboard
 interface LogWithIncident extends DispatchLog {
@@ -339,6 +342,12 @@ const CommandCenter: React.FC = () => {
                 title="Command Center"
                 subtitle="Main Control Center • Post Proper Northside"
             />
+
+            {/* Operational Reminders & Alerts */}
+            {isFeatureEnabled('OPERATIONAL_REMINDERS') && <OperationalRemindersBanner />}
+
+            {/* Daily Operational Summary Widget */}
+            {isFeatureEnabled('DAILY_SUMMARY_WIDGET') && <DailySummaryWidget />}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                 <div onClick={scrollToBlotter} className="card-premium flex items-center space-x-6 cursor-pointer group relative overflow-hidden">

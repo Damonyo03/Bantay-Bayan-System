@@ -10,7 +10,7 @@ import {
     Settings as SettingsIcon, User, Lock, Mail, CreditCard, Save, Smartphone, 
     Check, ShieldAlert, Trash2, QrCode, Camera as CameraIcon, Database, Download, 
     AlertTriangle, FileJson, Upload, RotateCcw, Image as ImageIcon, Users, 
-    PhoneCall, Plus, MapPin, Building, Shield, ChevronRight, Edit3
+    PhoneCall, Plus, MapPin, Building, Shield, ChevronRight, Edit3, Bell
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -22,6 +22,7 @@ import {
     ExecutiveMember, LegislativeMember, HotlineContact
 } from '../src/config/branding';
 import BrandLogo from '../components/BrandLogo';
+import { AlertSettingsPanel } from '../components/reminders/AlertSettingsPanel';
 
 const Settings: React.FC = () => {
     const { user, refreshUser } = useAuth();
@@ -29,9 +30,9 @@ const Settings: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const isPrivilegedAdmin = user?.role === 'developer' || user?.role === 'barangay_captain';
 
-    // Support tab from query params (?tab=profile, ?tab=leadership, ?tab=emergency, ?tab=branding, ?tab=data, ?tab=all)
+    // Support tab from query params (?tab=profile, ?tab=leadership, ?tab=emergency, ?tab=branding, ?tab=alerts, ?tab=data, ?tab=all)
     const tabParam = searchParams.get('tab');
-    const validTabs = ['profile', 'branding', 'leadership', 'emergency', 'data', 'all'];
+    const validTabs = ['profile', 'branding', 'leadership', 'emergency', 'alerts', 'data', 'all'];
     const activeSection = (tabParam && validTabs.includes(tabParam))
         ? tabParam
         : 'profile';
@@ -734,6 +735,13 @@ const Settings: React.FC = () => {
                 icon: PhoneCall
             };
         }
+        if (activeSection === 'alerts') {
+            return {
+                title: "Operational Alert Settings",
+                subtitle: "Thresholds for CCTV footage retention, overdue vehicle trips, and blotter inactivity",
+                icon: Bell
+            };
+        }
         if (activeSection === 'data') {
             return {
                 title: "System Data Governance",
@@ -744,7 +752,7 @@ const Settings: React.FC = () => {
         if (activeSection === 'all') {
             return {
                 title: "System Administration & Settings",
-                subtitle: "All configuration sections: personal profile, branding, leadership, hotlines, and database controls",
+                subtitle: "All configuration sections: personal profile, branding, leadership, hotlines, alert thresholds, and database controls",
                 icon: SettingsIcon
             };
         }
@@ -830,6 +838,18 @@ const Settings: React.FC = () => {
                         >
                             <PhoneCall size={14} />
                             <span>Emergency Hub</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleSelectTab('alerts')}
+                            className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                                activeSection === 'alerts'
+                                    ? 'bg-white dark:bg-slate-800 text-taguig-gold shadow-sm font-black'
+                                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                            }`}
+                        >
+                            <Bell size={14} />
+                            <span>Alert Thresholds</span>
                         </button>
                         <button
                             type="button"
@@ -1857,6 +1877,11 @@ const Settings: React.FC = () => {
                                     </div>
                                 </form>
                             </div>
+                        )}
+
+                        {/* TAB: OPERATIONAL ALERT SETTINGS */}
+                        {(activeSection === 'alerts' || activeSection === 'all') && (
+                            <AlertSettingsPanel />
                         )}
 
                         {/* TAB 4: SYSTEM DATA GOVERNANCE */}

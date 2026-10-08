@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
-import { Menu } from 'lucide-react';
+import { Menu, Search, Command, Clock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useBranding } from '../src/config/branding';
+import { isFeatureEnabled } from '../src/config/features';
+import { GlobalSearchModal } from './search/GlobalSearchModal';
 import BrandLogo from './BrandLogo';
 
 interface DashboardLayoutProps {
@@ -13,6 +15,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const { user, logout } = useAuth();
     const branding = useBranding();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                if (isFeatureEnabled('GLOBAL_SEARCH')) {
+                    setIsSearchOpen(prev => !prev);
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     // If the user is pending approval, show a restricted view
     if (user?.status === 'pending') {
@@ -70,6 +86,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
                 
                 <div className="flex items-center space-x-2">
+                    {isFeatureEnabled('GLOBAL_SEARCH') && (
+                        <button
+                            onClick={() => setIsSearchOpen(true)}
+                            className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-taguig-navy hover:text-white transition-all active:scale-95"
+                            title="Search (Ctrl+K)"
+                            aria-label="Search"
+                        >
+                            <Search size={18} />
+                        </button>
+                    )}
                     <div className="w-9 h-9 rounded-full bg-taguig-navy dark:bg-taguig-blue text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-white dark:border-slate-800">
                         <SidebarTriggerAvatar />
                     </div>
@@ -102,6 +128,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </div>
                 </main>
             </div>
+
+            {/* Global Search Modal */}
+            {isFeatureEnabled('GLOBAL_SEARCH') && (
+                <GlobalSearchModal
+                    isOpen={isSearchOpen}
+                    onClose={() => setIsSearchOpen(false)}
+                />
+            )}
         </div>
     );
 };
