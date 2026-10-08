@@ -1,6 +1,7 @@
 
 import { supabase } from '../lib/supabaseClient';
 import { DispatchLog, AssetRequest, CCTVRequest } from '../types';
+import { logbookService } from './logbookService';
 
 export const resourceService = {
     // Dispatch & Logistics
@@ -67,6 +68,17 @@ export const resourceService = {
     createAssetRequest: async (requestData: any) => {
         const { data, error } = await supabase.from('asset_requests').insert(requestData).select().single();
         if (error) throw error;
+
+        logbookService.logEvent({
+            category: 'asset',
+            action: 'created',
+            title: 'New Equipment Borrowing Request Logged',
+            description: `Borrower: ${requestData.borrower_name || 'N/A'}. Purpose: ${requestData.purpose || 'N/A'}`,
+            reference_type: 'asset_request',
+            reference_id: data.id,
+            metadata: { asset_request_id: data.id, item_id: requestData.item_id }
+        }).catch((err) => console.warn('Logbook asset auto-sync notification:', err));
+
         return data;
     },
 
@@ -78,6 +90,17 @@ export const resourceService = {
         const { data, error } = await supabase.from('asset_requests').update(updates).eq('id', id).select();
         if (error) throw error;
         if (!data || data.length === 0) throw new Error("Update failed.");
+
+        logbookService.logEvent({
+            category: 'asset',
+            action: status === 'Released' ? 'released' : status === 'Returned' ? 'returned' : 'status_changed',
+            title: `Equipment Borrowing ${status}`,
+            description: `Request status updated to ${status} for ID: ${id}`,
+            reference_type: 'asset_request',
+            reference_id: id,
+            metadata: { asset_request_id: id, status }
+        }).catch((err) => console.warn('Logbook asset update auto-sync notification:', err));
+
         return data[0];
     },
 
@@ -113,6 +136,17 @@ export const resourceService = {
         const caseNum = `CCTV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
         const { data, error } = await supabase.from('cctv_requests').insert({ ...requestData, request_number: caseNum }).select().single();
         if (error) throw error;
+
+        logbookService.logEvent({
+            category: 'cctv_request',
+            action: 'created',
+            title: `New CCTV Request Logged: ${caseNum}`,
+            description: `Incident Type: ${requestData.incident_type || 'General'}. Location: ${requestData.location || 'Unspecified'}. Requestor: ${requestData.requestor_name || 'N/A'}`,
+            reference_type: 'cctv_request',
+            reference_id: caseNum,
+            metadata: { cctv_id: data.id, request_number: caseNum }
+        }).catch((err) => console.warn('Logbook CCTV auto-sync notification:', err));
+
         return data;
     },
 

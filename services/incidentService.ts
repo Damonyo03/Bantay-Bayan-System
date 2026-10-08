@@ -1,6 +1,7 @@
 
 import { supabase } from '../lib/supabaseClient';
 import { Incident, IncidentParty, IncidentWithDetails } from '../types';
+import { logbookService } from './logbookService';
 
 export const incidentService = {
     getIncidents: async (): Promise<IncidentWithDetails[]> => {
@@ -61,6 +62,17 @@ export const incidentService = {
                 updated_at: new Date().toISOString()
             });
         }
+
+        // Auto-mirror new blotter entry to logbook
+        logbookService.logEvent({
+            category: incident.type === 'Logistics' ? 'vehicle' : 'blotter',
+            action: 'created',
+            title: `New ${incident.type || 'Incident'} Blotter Logged: ${caseNum}`,
+            description: `Location: ${incident.location || 'Not specified'}. Initial Status: ${incident.status || 'Pending'}`,
+            reference_type: 'incident',
+            reference_id: caseNum,
+            metadata: { incident_id: incident.id, type: incident.type, location: incident.location }
+        }).catch((err) => console.warn('Logbook incident auto-sync notification:', err));
 
         return {
             ...incident,
