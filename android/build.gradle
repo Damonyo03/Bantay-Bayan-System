@@ -9,6 +9,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.1'
         classpath 'com.google.gms:google-services:4.4.4'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -28,6 +29,12 @@ allprojects {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    tasks.matching { it.name.contains("Kotlin") }.configureEach { task ->
+        if (task.hasProperty("kotlinOptions")) {
+            task.kotlinOptions.jvmTarget = "17"
+        }
+    }
+
     configurations.all {
         resolutionStrategy {
             force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.24'
@@ -35,6 +42,19 @@ allprojects {
             force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24'
             force 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
             force 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+        }
+    }
+}
+
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            project.android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
         }
     }
 }
