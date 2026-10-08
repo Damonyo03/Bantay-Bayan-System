@@ -1,5 +1,5 @@
 -- Rollback Migration: 20261008_remove_seed_vehicles_rollback.sql
--- Description: Re-insert initial 15 seed vehicles if rollback is needed.
+-- Description: Re-insert initial seed vehicles if rollback is needed.
 
 BEGIN;
 
@@ -19,6 +19,6 @@ INSERT INTO public.vehicles (name, plate_number, status, type) VALUES
     ('Disaster Rescue Truck 01', 'RES-4001', 'available', 'Rescue Truck'),
     ('Barangay Van 01', 'VAN-5001', 'available', 'Utility Van'),
     ('Rescue Boat 01', 'BOT-6001', 'available', 'Rescue Boat')
-ON CONFLICT (plate_number) DO NOTHING;
+ON CONFLICT (name) DO NOTHING;
 
 COMMIT;
