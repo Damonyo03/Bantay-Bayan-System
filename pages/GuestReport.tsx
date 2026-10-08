@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../contexts/ToastContext';
+import { useBranding } from '../src/config/branding';
+import BrandLogo from '../components/BrandLogo';
 import { publicReportService } from '../services/publicReportService';
 import { attachmentService } from '../services/attachmentService';
 import { IncidentType, PublicReport } from '../types';
-import PageHeader from '../components/PageHeader';
 import { PhotoUploader } from '../components/attachments/PhotoUploader';
 import { 
   ShieldAlert, 
@@ -19,11 +20,12 @@ import {
   Camera, 
   ArrowLeft, 
   RotateCcw, 
-  Lock,
-  Info
+  Info,
+  ShieldCheck
 } from 'lucide-react';
 
 const GuestReport: React.FC = () => {
+  const branding = useBranding();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -47,7 +49,6 @@ const GuestReport: React.FC = () => {
     const cleanFirst = first.trim();
     const cleanLast = last.trim();
     if (cleanFirst.length < 2 || cleanLast.length < 2) return false;
-    // Disallow single characters or numbers in names
     const namePattern = /^[a-zA-ZÀ-ÿ\s.\-ñÑ]+$/;
     return namePattern.test(cleanFirst) && namePattern.test(cleanLast);
   };
@@ -160,7 +161,7 @@ const GuestReport: React.FC = () => {
     return (
       <div className="max-w-3xl mx-auto py-12 px-4 animate-fade-in">
         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 sm:p-12 shadow-2xl border border-slate-100 dark:border-white/10 text-center space-y-6">
-          <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400 animate-bounce">
+          <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
             <CheckCircle size={44} />
           </div>
 
@@ -223,19 +224,34 @@ const GuestReport: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-20 px-4 animate-fade-in min-w-0">
-      <div className="mb-8">
+    <div className="max-w-4xl mx-auto py-8 pb-20 px-4 animate-fade-in min-w-0">
+      
+      {/* Top Branding Navigation */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200 dark:border-white/10">
+        <div className="flex items-center space-x-4">
+          <BrandLogo
+            src={branding.appLogoUrl}
+            alt="Logo"
+            variant="logo"
+            className="w-14 h-14 drop-shadow-md"
+          />
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tight">
+              Guest Incident Report
+            </h1>
+            <p className="text-[10px] font-black uppercase tracking-widest text-taguig-blue dark:text-taguig-gold">
+              {branding.orgName} • Public Emergency Registry
+            </p>
+          </div>
+        </div>
+
         <Link
           to="/"
-          className="inline-flex items-center space-x-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-taguig-blue mb-4 transition-colors"
+          className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:text-taguig-blue text-xs font-black uppercase tracking-widest transition-all"
         >
-          <ArrowLeft size={16} />
-          <span>Back to Home</span>
+          <ArrowLeft size={14} />
+          <span>Public Portal</span>
         </Link>
-        <PageHeader
-          title="Guest Incident Report"
-          subtitle="Direct community reporting for non-registered residents & emergency situations"
-        />
       </div>
 
       {/* Anti-Fraud & Real Name Requirement Notice */}
@@ -258,7 +274,7 @@ const GuestReport: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 sm:p-10 shadow-xl border border-slate-100 dark:border-white/5 space-y-8">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 sm:p-10 shadow-xl border border-slate-100 dark:border-white/10 space-y-8">
         
         {/* Section 1: Real Identity */}
         <section className="space-y-4">

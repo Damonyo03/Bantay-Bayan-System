@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Camera, Image as ImageIcon, Plus, X, AlertCircle } from 'lucide-react';
 import { capturePhotoFromCamera, pickPhotoFromGallery } from '../../utils/photoPicker';
 import { compressImage } from '../../utils/imageCompressor';
@@ -12,25 +12,52 @@ export interface PhotoAttachmentItem {
 }
 
 interface PhotoUploaderProps {
-  photos: PhotoAttachmentItem[];
-  onChange: (photos: PhotoAttachmentItem[]) => void;
+  photos?: PhotoAttachmentItem[];
+  onChange?: (photos: PhotoAttachmentItem[]) => void;
+  onPhotosChange?: (files: File[]) => void;
   maxPhotos?: number;
   label?: string;
   hint?: string;
+  className?: string;
 }
 
 export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
-  photos,
+  photos: controlledPhotos,
   onChange,
+  onPhotosChange,
   maxPhotos = 3,
   label = 'Photo Evidence / Verification (Optional)',
   hint = 'Max 3 photos • Auto-compressed for fast upload',
+  className = '',
 }) => {
+  const [internalPhotos, setInternalPhotos] = useState<PhotoAttachmentItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Active photos list (controlled or uncontrolled)
+  const isControlled = Array.isArray(controlledPhotos);
+  const currentPhotos = isControlled ? (controlledPhotos || []) : internalPhotos;
+
+  const updatePhotos = (newPhotos: PhotoAttachmentItem[]) => {
+    if (!isControlled) {
+      setInternalPhotos(newPhotos);
+    }
+    if (onChange) {
+      onChange(newPhotos);
+    }
+    if (onPhotosChange) {
+      const files: File[] = newPhotos.map((p) => {
+        if (p.blob instanceof File) {
+          return p.blob;
+        }
+        return new File([p.blob], p.fileName || 'photo.jpg', { type: p.blob.type || 'image/jpeg' });
+      });
+      onPhotosChange(files);
+    }
+  };
 
   const handleAddBlob = async (blob: Blob | null, defaultName = 'photo.jpg') => {
     if (!blob) return;
-    if (photos.length >= maxPhotos) {
+    if (currentPhotos.length >= maxPhotos) {
       alert(`You can attach up to ${maxPhotos} photos.`);
       return;
     }
@@ -45,7 +72,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
         fileName: compressed.fileName || defaultName,
         size: compressed.compressedSize,
       };
-      onChange([...photos, newItem]);
+      updatePhotos([...currentPhotos, newItem]);
     } catch (err) {
       console.warn('Failed to compress photo:', err);
     } finally {
@@ -72,7 +99,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
     if (!files || files.length === 0) return;
 
     for (let i = 0; i < files.length; i++) {
-      if (photos.length + i >= maxPhotos) break;
+      if (currentPhotos.length + i >= maxPhotos) break;
       await handleAddBlob(files[i], files[i].name);
     }
     // Clear input
@@ -80,17 +107,17 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   };
 
   const handleRemove = (id: string) => {
-    onChange(photos.filter((p) => p.id !== id));
+    updatePhotos(currentPhotos.filter((p) => p.id !== id));
   };
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${className}`}>
       <div className="flex items-center justify-between">
         <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
           {label}
         </label>
         <span className="text-[10px] font-bold text-slate-400">
-          {photos.length} of {maxPhotos} attached
+          {currentPhotos.length} of {maxPhotos} attached
         </span>
       </div>
 
@@ -101,8 +128,8 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       )}
 
       {/* Thumbnails Row */}
-      <div className="grid grid-cols-3 gap-2.5 pt-1">
-        {photos.map((item) => (
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 pt-1">
+        {currentPhotos.map((item) => (
           <div
             key={item.id}
             className="relative group rounded-2xl overflow-hidden aspect-square border border-slate-200 dark:border-white/10 shadow-sm bg-slate-100 dark:bg-slate-800"
@@ -127,7 +154,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
         ))}
 
         {/* Upload Trigger Buttons (if under limit) */}
-        {photos.length < maxPhotos && (
+        {currentPhotos.length < maxPhotos && (
           <div className="flex flex-col gap-1.5 aspect-square">
             <button
               type="button"
