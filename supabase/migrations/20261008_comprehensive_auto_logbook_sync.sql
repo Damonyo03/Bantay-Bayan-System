@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- BANTAY BAYAN: COMPREHENSIVE AUTO-LOGBOOK SYNCHRONIZATION MIGRATION
 -- Automatically mirrors ALL blotters, CCTV requests, vehicle monitoring,
--- equipment borrowing/assets, and dispatch actions into logbook_entries.
+-- equipment borrowing, and dispatch actions into logbook_entries.
 -- Idempotent, Null-Safe, and Non-Destructive
 -- ==============================================================================
 
@@ -67,7 +67,7 @@ BEGIN
                 END IF;
                 v_action := 'status_changed';
                 v_title := 'Blotter Status Changed: ' || COALESCE(NEW.case_number, NEW.id::text);
-                v_desc := 'Status updated from ' || COALESCE(OLD.status, 'N/A') || ' to ' || COALESCE(NEW.status, 'N/A') || CASE WHEN NEW.is_restricted_entry != OLD.is_restricted_entry THEN ' (Restricted Entry: ' || NEW.is_restricted_entry::text || ')' ELSE '' END;
+                v_desc := 'Status updated from ' || COALESCE(OLD.status, 'N/A') || ' to ' || COALESCE(NEW.status, 'N/A');
             END IF;
 
         ELSIF TG_TABLE_NAME = 'cctv_requests' THEN
@@ -78,14 +78,7 @@ BEGIN
             IF TG_OP = 'INSERT' THEN
                 v_action := 'created';
                 v_title := 'New CCTV Request Logged: ' || COALESCE(NEW.request_number, 'Unassigned');
-                v_desc := 'Incident Type: ' || COALESCE(NEW.incident_type, 'General') || ' | Location: ' || COALESCE(NEW.location, 'Unspecified') || ' | Requestor: ' || COALESCE(NEW.requestor_name, 'N/A');
-            ELSIF TG_OP = 'UPDATE' THEN
-                IF OLD.status IS NOT DISTINCT FROM NEW.status THEN
-                    RETURN NEW;
-                END IF;
-                v_action := 'status_changed';
-                v_title := 'CCTV Request ' || COALESCE(NEW.status, 'Updated') || ': ' || COALESCE(NEW.request_number, NEW.id::text);
-                v_desc := 'Status changed from ' || COALESCE(OLD.status, 'N/A') || ' to ' || COALESCE(NEW.status, 'N/A');
+                v_desc := 'Incident Type: ' || COALESCE(NEW.incident_type, 'General') || ' | Location: ' || COALESCE(NEW.location, 'Unspecified') || ' | Purpose: ' || COALESCE(NEW.purpose, 'N/A');
             END IF;
 
         ELSIF TG_TABLE_NAME = 'asset_requests' THEN
@@ -108,24 +101,6 @@ BEGIN
                 END;
                 v_title := 'Equipment Borrowing ' || COALESCE(NEW.status, 'Updated');
                 v_desc := 'Status updated from ' || COALESCE(OLD.status, 'N/A') || ' to ' || COALESCE(NEW.status, 'N/A') || ' for borrower: ' || COALESCE(NEW.borrower_name, 'N/A');
-            END IF;
-
-        ELSIF TG_TABLE_NAME = 'assets' THEN
-            v_category := 'asset'::public.logbook_category;
-            v_ref_type := 'asset';
-            v_ref_id := NEW.id::text;
-
-            IF TG_OP = 'INSERT' THEN
-                v_action := 'registered';
-                v_title := 'New Equipment Registered: ' || COALESCE(NEW.name, 'Asset');
-                v_desc := 'Category: ' || COALESCE(NEW.category, 'General') || ' | Initial Condition: ' || COALESCE(NEW.condition, 'Good');
-            ELSIF TG_OP = 'UPDATE' THEN
-                IF OLD.status IS NOT DISTINCT FROM NEW.status AND OLD.condition IS NOT DISTINCT FROM NEW.condition THEN
-                    RETURN NEW;
-                END IF;
-                v_action := 'status_changed';
-                v_title := 'Equipment Status Changed: ' || COALESCE(NEW.name, 'Asset');
-                v_desc := 'Condition: ' || COALESCE(NEW.condition, 'N/A') || ' | Status: ' || COALESCE(NEW.status, 'N/A');
             END IF;
 
         ELSIF TG_TABLE_NAME = 'public_reports' THEN
@@ -184,7 +159,7 @@ BEGIN
                 END IF;
                 v_action := 'trip_' || NEW.status;
                 v_title := v_vehicle_name || ' Trip ' || INITCAP(NEW.status);
-                v_desc := 'Trip status changed to ' || NEW.status || CASE WHEN NEW.odometer_end IS NOT NULL THEN ' | End Odo: ' || NEW.odometer_end::text || ' km' ELSE '' END || CASE WHEN NEW.remarks IS NOT NULL AND NEW.remarks != '' THEN ' | Remarks: ' || NEW.remarks ELSE '' END;
+                v_desc := 'Trip status changed to ' || NEW.status || CASE WHEN NEW.odometer_end IS NOT NULL THEN ' | End Odo: ' || NEW.odometer_end::text || ' km' ELSE '' END;
             END IF;
 
         ELSIF TG_TABLE_NAME = 'trip_stops' THEN
@@ -249,7 +224,6 @@ BEGIN
         );
 
     EXCEPTION WHEN OTHERS THEN
-        -- Silent safe catch: trigger will never fail primary insert/update
         NULL;
     END;
 
@@ -265,22 +239,16 @@ CREATE TRIGGER trg_auto_log_incidents
     AFTER INSERT OR UPDATE OF status, is_restricted_entry ON public.incidents
     FOR EACH ROW EXECUTE FUNCTION public.trg_auto_log_event_func();
 
--- CCTV Requests
+-- CCTV Requests (Insert only)
 DROP TRIGGER IF EXISTS trg_auto_log_cctv ON public.cctv_requests;
 CREATE TRIGGER trg_auto_log_cctv
-    AFTER INSERT OR UPDATE OF status ON public.cctv_requests
+    AFTER INSERT ON public.cctv_requests
     FOR EACH ROW EXECUTE FUNCTION public.trg_auto_log_event_func();
 
 -- Asset Requests (Borrowing)
 DROP TRIGGER IF EXISTS trg_auto_log_assets ON public.asset_requests;
 CREATE TRIGGER trg_auto_log_assets
     AFTER INSERT OR UPDATE OF status ON public.asset_requests
-    FOR EACH ROW EXECUTE FUNCTION public.trg_auto_log_event_func();
-
--- Assets (Equipment Catalog)
-DROP TRIGGER IF EXISTS trg_auto_log_asset_items ON public.assets;
-CREATE TRIGGER trg_auto_log_asset_items
-    AFTER INSERT OR UPDATE OF status, condition ON public.assets
     FOR EACH ROW EXECUTE FUNCTION public.trg_auto_log_event_func();
 
 -- Public Reports
