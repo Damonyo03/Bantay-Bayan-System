@@ -171,6 +171,19 @@ export type LogbookCategory =
   | 'correction' 
   | 'other';
 
+export interface LogAttachment {
+  id: string;
+  entry_id?: string | null;
+  trip_id?: string | null;
+  storage_path: string;
+  file_name?: string | null;
+  file_size?: number | null;
+  mime_type?: string | null;
+  uploaded_by?: string | null;
+  created_at: string;
+  signed_url?: string | null;
+}
+
 export interface LogbookEntry {
   id: string;
   created_at: string;
@@ -187,6 +200,7 @@ export interface LogbookEntry {
   corrects_entry_id?: string | null;
   // UI joined / helper properties
   referenced_correction?: LogbookEntry | null;
+  attachments?: LogAttachment[];
 }
 
 export interface LogEventParams {
@@ -252,6 +266,7 @@ export interface VehicleTrip {
   vehicle?: Vehicle;
   passengers?: TripPassenger[];
   stops?: TripStop[];
+  attachments?: LogAttachment[];
 }
 
 // SHIFT HANDOVER TYPES

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Vehicle } from '../../types';
 import { vehicleService, StartTripParams } from '../../services/vehicleService';
+import { attachmentService } from '../../services/attachmentService';
+import { PhotoUploader, PhotoAttachmentItem } from '../attachments/PhotoUploader';
+import { isFeatureEnabled } from '../../src/config/features';
 import {
   X,
   Play,
@@ -42,6 +45,7 @@ export const StartTripModal: React.FC<StartTripModalProps> = ({
   const [initialDestination, setInitialDestination] = useState('');
   const [odometerStart, setOdometerStart] = useState<string>('');
   const [passengers, setPassengers] = useState<string[]>(['']);
+  const [photos, setPhotos] = useState<PhotoAttachmentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,7 +93,16 @@ export const StartTripModal: React.FC<StartTripModalProps> = ({
         passengers: validPassengers,
       };
 
-      await vehicleService.startTrip(params);
+      const tripId = await vehicleService.startTrip(params);
+
+      if (tripId && photos.length > 0) {
+        attachmentService.uploadAttachments({
+          tripId,
+          files: photos.map((p) => p.blob),
+          fileNames: photos.map((p) => p.fileName),
+        }).catch((err) => console.warn('Background trip attachment upload error:', err));
+      }
+
       onSuccess();
       onClose();
       // Reset form
@@ -98,6 +111,7 @@ export const StartTripModal: React.FC<StartTripModalProps> = ({
       setInitialDestination('');
       setOdometerStart('');
       setPassengers(['']);
+      setPhotos([]);
     } catch (err: any) {
       console.error('Failed to start trip:', err);
       setError(err.message || 'Failed to start trip. Please try again.');
@@ -277,6 +291,17 @@ export const StartTripModal: React.FC<StartTripModalProps> = ({
               ))}
             </div>
           </div>
+
+          {/* Optional Pre-Trip Photos */}
+          {isFeatureEnabled('PHOTO_ATTACHMENTS') && (
+            <PhotoUploader
+              photos={photos}
+              onChange={setPhotos}
+              maxPhotos={3}
+              label="Pre-Trip Photos / Odometer (Optional)"
+              hint="Max 3 photos • Condition verification"
+            />
+          )}
         </form>
 
         {/* Footer Actions */}

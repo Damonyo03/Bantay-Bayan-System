@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { LogbookCategory, LogEventParams } from '../../types';
 import { logbookService } from '../../services/logbookService';
+import { attachmentService } from '../../services/attachmentService';
+import { PhotoUploader, PhotoAttachmentItem } from '../attachments/PhotoUploader';
+import { isFeatureEnabled } from '../../src/config/features';
 import { useToast } from '../../contexts/ToastContext';
 import { X, Save, ShieldAlert, Loader2, BookOpen } from 'lucide-react';
 
@@ -24,6 +27,7 @@ const CATEGORIES: { value: LogbookCategory; label: string }[] = [
 export const AddLogbookModal: React.FC<AddLogbookModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photos, setPhotos] = useState<PhotoAttachmentItem[]>([]);
 
   const [formData, setFormData] = useState<{
     category: LogbookCategory;
@@ -64,8 +68,19 @@ export const AddLogbookModal: React.FC<AddLogbookModalProps> = ({ isOpen, onClos
         },
       };
 
-      await logbookService.logEvent(payload);
+      const entry = await logbookService.logEvent(payload);
+
+      // Non-blocking attachment upload
+      if (entry && photos.length > 0) {
+        attachmentService.uploadAttachments({
+          entryId: entry.id,
+          files: photos.map((p) => p.blob),
+          fileNames: photos.map((p) => p.fileName),
+        }).catch((err) => console.warn('Background attachment upload error:', err));
+      }
+
       showToast('Logbook entry recorded successfully.', 'success');
+      setPhotos([]);
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -179,6 +194,17 @@ export const AddLogbookModal: React.FC<AddLogbookModalProps> = ({ isOpen, onClos
               />
             </div>
           </div>
+
+          {/* Photo Attachments */}
+          {isFeatureEnabled('PHOTO_ATTACHMENTS') && (
+            <PhotoUploader
+              photos={photos}
+              onChange={setPhotos}
+              maxPhotos={3}
+              label="Attach Photo Evidence (Optional)"
+              hint="Max 3 photos • Auto-compressed JPEG"
+            />
+          )}
 
           {/* Immutable notice */}
           <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-200/70 dark:border-amber-500/20 flex items-start space-x-2 text-xs text-amber-800 dark:text-amber-300">

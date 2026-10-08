@@ -17,6 +17,8 @@ import {
   LucideIcon
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AttachmentGallery } from '../attachments/AttachmentGallery';
+import { isFeatureEnabled } from '../../src/config/features';
 
 interface LogbookEntryCardProps {
   entry: LogbookEntry;
@@ -191,6 +193,14 @@ export const LogbookEntryCard: React.FC<LogbookEntryCardProps> = ({ entry, onOpe
         <div className="mb-3 p-3 bg-amber-50/70 dark:bg-amber-500/5 rounded-xl border border-amber-200/70 dark:border-amber-500/10 text-xs text-amber-900 dark:text-amber-300">
           <span className="font-bold">Original Referenced Subject:</span> {entry.metadata.original_title}
         </div>
+      )}
+
+      {/* Photo Attachments Gallery */}
+      {isFeatureEnabled('PHOTO_ATTACHMENTS') && (
+        <AttachmentGallery
+          entryId={entry.id}
+          initialAttachments={entry.attachments}
+        />
       )}
 
       {/* Footer: Reporter Snapshot */}

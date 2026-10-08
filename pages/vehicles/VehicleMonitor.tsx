@@ -8,6 +8,7 @@ import { StopActionModal } from '../../components/vehicles/StopActionModal';
 import { EndTripModal } from '../../components/vehicles/EndTripModal';
 import { VehicleQRModal } from '../../components/vehicles/VehicleQRModal';
 import { VehicleScannerModal } from '../../components/vehicles/VehicleScannerModal';
+import { AttachmentGallery } from '../../components/attachments/AttachmentGallery';
 import { recordAccess } from '../../services/auditAccessService';
 import { isFeatureEnabled } from '../../src/config/features';
 import {
@@ -744,8 +745,23 @@ export const VehicleMonitor: React.FC = () => {
                             <strong>Remarks:</strong> {trip.remarks}
                           </div>
                         )}
+
+                        {/* Photo Attachments */}
+                        {isFeatureEnabled('PHOTO_ATTACHMENTS') && (
+                          <AttachmentGallery
+                            tripId={trip.id}
+                            initialAttachments={trip.attachments}
+                          />
+                        )}
                       </div>
-                    ) : null}
+                    ) : (
+                      isFeatureEnabled('PHOTO_ATTACHMENTS') ? (
+                        <AttachmentGallery
+                          tripId={trip.id}
+                          initialAttachments={trip.attachments}
+                        />
+                      ) : null
+                    )}
                   </div>
                 );
               })}

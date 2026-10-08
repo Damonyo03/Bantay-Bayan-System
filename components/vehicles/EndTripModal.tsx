@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { VehicleTrip } from '../../types';
 import { vehicleService } from '../../services/vehicleService';
+import { attachmentService } from '../../services/attachmentService';
+import { PhotoUploader, PhotoAttachmentItem } from '../attachments/PhotoUploader';
+import { isFeatureEnabled } from '../../src/config/features';
 import {
   X,
   StopCircle,
@@ -27,12 +30,14 @@ export const EndTripModal: React.FC<EndTripModalProps> = ({
 }) => {
   const [odometerEnd, setOdometerEnd] = useState<string>('');
   const [remarks, setRemarks] = useState('');
+  const [photos, setPhotos] = useState<PhotoAttachmentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
     setOdometerEnd('');
     setRemarks('');
+    setPhotos([]);
     setError(null);
   }, [isOpen, trip]);
 
@@ -56,6 +61,15 @@ export const EndTripModal: React.FC<EndTripModalProps> = ({
       }
 
       await vehicleService.endTrip(trip.id, endKm, remarks ? remarks.trim() : null);
+
+      if (photos.length > 0) {
+        attachmentService.uploadAttachments({
+          tripId: trip.id,
+          files: photos.map((p) => p.blob),
+          fileNames: photos.map((p) => p.fileName),
+        }).catch((err) => console.warn('Background trip check-in attachment upload error:', err));
+      }
+
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -176,6 +190,17 @@ export const EndTripModal: React.FC<EndTripModalProps> = ({
               />
             </div>
           </div>
+
+          {/* Photo Attachments */}
+          {isFeatureEnabled('PHOTO_ATTACHMENTS') && (
+            <PhotoUploader
+              photos={photos}
+              onChange={setPhotos}
+              maxPhotos={3}
+              label="Return Photos / Odometer (Optional)"
+              hint="Max 3 photos • Check-in verification"
+            />
+          )}
 
           {/* Footer Actions */}
           <div className="pt-3 flex items-center justify-end space-x-2">
