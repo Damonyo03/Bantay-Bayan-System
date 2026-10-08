@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
 import { incidentService } from '../services/incidentService';
+import { attachmentService } from '../services/attachmentService';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IncidentType, IncidentParty, IncidentWithDetails, IncidentStatus } from '../types';
 import { generateOfficialReport } from '../utils/pdfGenerator';
 import { Plus, Trash2, Save, FileText, ChevronRight, UserPlus, Check, AlertOctagon, Printer, RotateCcw, Shield } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import { PhotoUploader } from '../components/attachments/PhotoUploader';
 
 const IncidentForm: React.FC = () => {
   const { user } = useAuth();
@@ -30,6 +32,9 @@ const IncidentForm: React.FC = () => {
   // Step 2: Parties Data
   const [parties, setParties] = useState<Omit<IncidentParty, 'id' | 'incident_id'>[]>([]);
 
+  // Photos State
+  const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
+
   // Privacy Consent State
   const [hasConsented, setHasConsented] = useState(false);
 
@@ -50,6 +55,7 @@ const IncidentForm: React.FC = () => {
   const handleNewEntry = () => {
     setFormData(initialFormData);
     setParties([]);
+    setSelectedPhotos([]);
     setLastIncident(null);
     setStep(1);
     setHasConsented(false);
@@ -75,6 +81,15 @@ const IncidentForm: React.FC = () => {
       };
 
       const result = await incidentService.createIncidentReport(payload, parties);
+
+      // Upload optional photos in background if any
+      if (selectedPhotos.length > 0 && result?.id) {
+        attachmentService.uploadAttachments({
+          incidentId: result.id,
+          files: selectedPhotos,
+          uploadedBy: user.id,
+        }).catch((err) => console.warn('Incident photo upload error:', err));
+      }
 
       // Combine result with officer name for the printout
       const fullIncidentRecord = {
@@ -207,6 +222,17 @@ const IncidentForm: React.FC = () => {
                 value={formData.narrative}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, narrative: e.target.value })}
                 placeholder="State the facts clearly..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest mb-2 ml-1">
+                Optional Photos / Evidence
+              </label>
+              <PhotoUploader
+                onPhotosChange={setSelectedPhotos}
+                maxPhotos={5}
+                className="bg-slate-50/50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-2xl p-4"
               />
             </div>
 

@@ -7,6 +7,7 @@ import PageHeader from '../components/PageHeader';
 import { RefreshCw, Search, Shield, CheckCircle, Clock, XCircle, ChevronRight, MessageSquare, MapPin, User, FileText, AlertTriangle, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { exportToExcel } from '../utils/excelExport';
+import { AttachmentGallery } from '../components/attachments/AttachmentGallery';
 
 const PublicReportsQueue: React.FC = () => {
     const { user, isSupremeAdmin } = useAuth();
@@ -199,6 +200,7 @@ const PublicReportsQueue: React.FC = () => {
                                     <span className="mx-2 text-slate-300">•</span>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(report.created_at).toLocaleDateString()}</p>
                                 </div>
+                                <AttachmentGallery publicReportId={report.id} />
                             </div>
 
                             {report.status === 'Pending Review' && (

@@ -175,6 +175,9 @@ export interface LogAttachment {
   id: string;
   entry_id?: string | null;
   trip_id?: string | null;
+  incident_id?: string | null;
+  cctv_request_id?: string | null;
+  public_report_id?: string | null;
   storage_path: string;
   file_name?: string | null;
   file_size?: number | null;

@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { publicReportService } from '../services/publicReportService';
+import { attachmentService } from '../services/attachmentService';
 import { PublicReport, IncidentType } from '../types';
 import PageHeader from '../components/PageHeader';
+import { PhotoUploader } from '../components/attachments/PhotoUploader';
+import { AttachmentGallery } from '../components/attachments/AttachmentGallery';
 import { Shield, Send, Clock, CheckCircle, XCircle, FileText, MapPin, AlertCircle } from 'lucide-react';
 
 const PublicServiceRequest: React.FC = () => {
@@ -13,6 +16,7 @@ const PublicServiceRequest: React.FC = () => {
     const [reports, setReports] = useState<PublicReport[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
     
     const [formData, setFormData] = useState({
         type: 'Disturbance' as IncidentType,
@@ -45,14 +49,24 @@ const PublicServiceRequest: React.FC = () => {
         
         setIsSubmitting(true);
         try {
-            await publicReportService.createReport(
+            const created = await publicReportService.createReport(
                 formData.type,
                 formData.narrative,
                 formData.location,
                 user.id
             );
+
+            if (selectedPhotos.length > 0 && created?.id) {
+                await attachmentService.uploadAttachments({
+                    publicReportId: created.id,
+                    files: selectedPhotos,
+                    uploadedBy: user.id,
+                }).catch((err) => console.warn('Public report photo upload error:', err));
+            }
+
             showToast("Report submitted successfully. We will review it shortly.", "success");
             setFormData({ type: 'Disturbance', location: '', narrative: '' });
+            setSelectedPhotos([]);
             fetchMyReports();
         } catch (error) {
             showToast("Failed to submit report. Please try again.", "error");
@@ -135,6 +149,15 @@ const PublicServiceRequest: React.FC = () => {
                                     onChange={e => setFormData({ ...formData, narrative: e.target.value })}
                                 />
                             </div>
+
+                            <div>
+                                <label className="text-[10px] font-black text-taguig-blue/60 dark:text-taguig-gold/60 uppercase tracking-widest ml-1 mb-2 block">Optional Photos / Evidence</label>
+                                <PhotoUploader
+                                    onPhotosChange={setSelectedPhotos}
+                                    maxPhotos={5}
+                                    className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl p-3"
+                                />
+                            </div>
                             
                             <button
                                 type="submit"
@@ -178,21 +201,24 @@ const PublicServiceRequest: React.FC = () => {
                         ) : (
                             <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                                 {reports.map((report) => (
-                                    <div key={report.id} className="p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 hover:border-taguig-blue/30 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                        <div>
-                                            <div className="flex items-center space-x-3 mb-2">
-                                                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{report.reference_number}</span>
-                                                <StatusBadge status={report.status} />
+                                    <div key={report.id} className="p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 hover:border-taguig-blue/30 transition-all flex flex-col gap-4">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                            <div>
+                                                <div className="flex items-center space-x-3 mb-2">
+                                                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{report.reference_number}</span>
+                                                    <StatusBadge status={report.status} />
+                                                </div>
+                                                <h4 className="font-bold text-lg text-slate-800 dark:text-white break-words">{report.type} at {report.location}</h4>
+                                                <p className="text-sm text-slate-500 line-clamp-2 mt-1">{report.narrative}</p>
                                             </div>
-                                            <h4 className="font-bold text-lg text-slate-800 dark:text-white break-words">{report.type} at {report.location}</h4>
-                                            <p className="text-sm text-slate-500 line-clamp-2 mt-1">{report.narrative}</p>
+                                            <div className="text-left md:text-right shrink-0">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Submitted</p>
+                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                                    {new Date(report.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="text-left md:text-right shrink-0">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Submitted</p>
-                                            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                {new Date(report.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                            </p>
-                                        </div>
+                                        <AttachmentGallery publicReportId={report.id} />
                                     </div>
                                 ))}
                             </div>

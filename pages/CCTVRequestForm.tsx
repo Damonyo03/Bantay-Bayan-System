@@ -1,18 +1,21 @@
 
 import React, { useState, useRef } from 'react';
 import { resourceService } from '../services/resourceService';
+import { attachmentService } from '../services/attachmentService';
 import { Video, Printer, CheckSquare, Square, RefreshCcw, Calendar, Clock, Shield, Save, ArrowRight } from 'lucide-react';
 import { generateCCTVForm } from '../utils/pdfGenerator';
 import { CCTVRequest } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
+import { PhotoUploader } from '../components/attachments/PhotoUploader';
 
 const CCTVRequestForm: React.FC = () => {
     const { showToast } = useToast();
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
     const [formData, setFormData] = useState({
         lastName: '',
         firstName: '',
@@ -86,6 +89,14 @@ const CCTVRequestForm: React.FC = () => {
             };
 
             await resourceService.createCCTVRequest(payload);
+
+            if (selectedPhotos.length > 0) {
+                await attachmentService.uploadAttachments({
+                    cctvRequestId: payload.id,
+                    files: selectedPhotos,
+                }).catch((err) => console.warn('CCTV photo upload error:', err));
+            }
+
             await generateCCTVForm({ ...formData, request_number: payload.request_number });
             showToast("CCTV Request recorded successfully", "success");
             setIsSuccess(true);
@@ -103,6 +114,7 @@ const CCTVRequestForm: React.FC = () => {
                 lastName: '', firstName: '', middleInitial: '', addressNo: '', street: '', barangay: 'Post Proper Northside', city: 'Taguig City',
                 incidentTypes: [], others: '', dateOfIncident: '', timeOfIncident: '', placeOfIncident: '', purpose: ''
             });
+            setSelectedPhotos([]);
             setHasConsented(false);
             setIsSuccess(false);
         }
@@ -228,6 +240,15 @@ const CCTVRequestForm: React.FC = () => {
                             <textarea id="purposeOfRequest" className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-4 px-6 outline-none focus:ring-4 focus:ring-taguig-navy/10 h-32 resize-none text-slate-800 dark:text-white font-medium leading-relaxed" value={formData.purpose} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange('purpose', e.target.value)} />
                         </div>
                     </div>
+                </section>
+
+                <section>
+                    <h3 className="text-[10px] font-black text-slate-400 dark:text-taguig-gold/60 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-white/5 pb-3">Optional Attachments / Evidence</h3>
+                    <PhotoUploader
+                        onPhotosChange={setSelectedPhotos}
+                        maxPhotos={5}
+                        className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl p-4"
+                    />
                 </section>
 
                 <div className="bg-taguig-navy/[0.02] dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 rounded-2xl flex items-start space-x-4">

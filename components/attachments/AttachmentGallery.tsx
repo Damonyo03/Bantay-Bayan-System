@@ -6,6 +6,9 @@ import { Image as ImageIcon, X, ExternalLink, Download, Eye, Loader2 } from 'luc
 interface AttachmentGalleryProps {
   entryId?: string;
   tripId?: string;
+  incidentId?: string;
+  cctvRequestId?: string;
+  publicReportId?: string;
   initialAttachments?: LogAttachment[];
 }
 
@@ -17,6 +20,9 @@ interface LoadedPhoto {
 export const AttachmentGallery: React.FC<AttachmentGalleryProps> = ({
   entryId,
   tripId,
+  incidentId,
+  cctvRequestId,
+  publicReportId,
   initialAttachments,
 }) => {
   const [photos, setPhotos] = useState<LoadedPhoto[]>([]);
@@ -35,6 +41,12 @@ export const AttachmentGallery: React.FC<AttachmentGalleryProps> = ({
             records = await attachmentService.getAttachmentsForEntry(entryId);
           } else if (tripId) {
             records = await attachmentService.getAttachmentsForTrip(tripId);
+          } else if (incidentId) {
+            records = await attachmentService.getAttachmentsForIncident(incidentId);
+          } else if (cctvRequestId) {
+            records = await attachmentService.getAttachmentsForCCTV(cctvRequestId);
+          } else if (publicReportId) {
+            records = await attachmentService.getAttachmentsForPublicReport(publicReportId);
           }
         }
 
@@ -61,14 +73,14 @@ export const AttachmentGallery: React.FC<AttachmentGalleryProps> = ({
       }
     };
 
-    if (entryId || tripId || (initialAttachments && initialAttachments.length > 0)) {
+    if (entryId || tripId || incidentId || cctvRequestId || publicReportId || (initialAttachments && initialAttachments.length > 0)) {
       loadSignedUrls();
     }
 
     return () => {
       isMounted = false;
     };
-  }, [entryId, tripId, initialAttachments]);
+  }, [entryId, tripId, incidentId, cctvRequestId, publicReportId, initialAttachments]);
 
   if (loading) {
     return (

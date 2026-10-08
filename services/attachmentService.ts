@@ -5,6 +5,9 @@ import { compressImage } from '../utils/imageCompressor';
 export interface UploadAttachmentsParams {
   entryId?: string;
   tripId?: string;
+  incidentId?: string;
+  cctvRequestId?: string;
+  publicReportId?: string;
   files: (File | Blob)[];
   fileNames?: string[];
 }
@@ -14,14 +17,22 @@ export const attachmentService = {
    * Upload multiple photos in background / non-blocking mode
    */
   async uploadAttachments(params: UploadAttachmentsParams): Promise<LogAttachment[]> {
-    const { entryId, tripId, files, fileNames } = params;
-    if (!entryId && !tripId) {
-      throw new Error('Either entryId or tripId must be provided for attachment upload.');
+    const { entryId, tripId, incidentId, cctvRequestId, publicReportId, files, fileNames } = params;
+    if (!entryId && !tripId && !incidentId && !cctvRequestId && !publicReportId) {
+      throw new Error('A parent record ID must be provided for attachment upload.');
     }
     if (!files || files.length === 0) return [];
 
     const uploadedRecords: LogAttachment[] = [];
-    const targetFolder = entryId ? `entries/${entryId}` : `trips/${tripId}`;
+    const targetFolder = entryId
+      ? `entries/${entryId}`
+      : tripId
+      ? `trips/${tripId}`
+      : incidentId
+      ? `incidents/${incidentId}`
+      : cctvRequestId
+      ? `cctv/${cctvRequestId}`
+      : `public-reports/${publicReportId}`;
 
     for (let i = 0; i < Math.min(files.length, 3); i++) {
       const rawFile = files[i];
@@ -50,6 +61,9 @@ export const attachmentService = {
           .insert({
             entry_id: entryId || null,
             trip_id: tripId || null,
+            incident_id: incidentId || null,
+            cctv_request_id: cctvRequestId || null,
+            public_report_id: publicReportId || null,
             storage_path: storagePath,
             file_name: name,
             file_size: compressed.compressedSize,
@@ -105,6 +119,63 @@ export const attachmentService = {
       return (data || []) as LogAttachment[];
     } catch (err) {
       console.warn('Failed to fetch trip attachments:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Fetch attachments for an incident/blotter report
+   */
+  async getAttachmentsForIncident(incidentId: string): Promise<LogAttachment[]> {
+    try {
+      const { data, error } = await supabase
+        .from('log_attachments')
+        .select('*')
+        .eq('incident_id', incidentId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as LogAttachment[];
+    } catch (err) {
+      console.warn('Failed to fetch incident attachments:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Fetch attachments for a CCTV request
+   */
+  async getAttachmentsForCCTV(cctvRequestId: string): Promise<LogAttachment[]> {
+    try {
+      const { data, error } = await supabase
+        .from('log_attachments')
+        .select('*')
+        .eq('cctv_request_id', cctvRequestId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as LogAttachment[];
+    } catch (err) {
+      console.warn('Failed to fetch CCTV attachments:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Fetch attachments for a citizen public report
+   */
+  async getAttachmentsForPublicReport(publicReportId: string): Promise<LogAttachment[]> {
+    try {
+      const { data, error } = await supabase
+        .from('log_attachments')
+        .select('*')
+        .eq('public_report_id', publicReportId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as LogAttachment[];
+    } catch (err) {
+      console.warn('Failed to fetch public report attachments:', err);
       return [];
     }
   },
