@@ -458,12 +458,25 @@ export const VehicleMonitor: React.FC = () => {
           ) : filteredVehicles.length === 0 ? (
             <div className="py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-white/10 text-center p-6">
               <Car size={36} className="mx-auto text-slate-400 mb-2" />
-              <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                No vehicles match your filter
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Try adjusting your search terms or status filter.
-              </p>
+              {vehicles.length === 0 ? (
+                <>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    No Vehicles Registered
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    The fleet is currently empty. Click &ldquo;+ Add Vehicle&rdquo; above to register your first vehicle.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    No vehicles match your filter
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Try adjusting your search terms or status filter.
+                  </p>
+                </>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
