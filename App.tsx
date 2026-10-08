@@ -96,9 +96,7 @@ const AppContent: React.FC = () => {
     return (
         <Routes>
             {/* Public Routes wrapped in PublicLayout */}
-            <Route path="/" element={
-                Capacitor.isNativePlatform() ? <Navigate to="/login" replace /> : <PublicLayout><LandingPage /></PublicLayout>
-            } />
+            <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
             <Route path="/login" element={<LoginRoute />} />
             <Route path="/guest-report" element={<PublicLayout><GuestReport /></PublicLayout>} />
             <Route path="/pending" element={
