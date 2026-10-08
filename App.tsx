@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { UserProfile } from './types';
 import CommandCenter from './pages/CommandCenter';
@@ -40,13 +40,18 @@ import { Lock, Save } from 'lucide-react';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode, check?: (user: UserProfile) => boolean }> = ({ children, check }) => {
     const { user, isLoading } = useAuth();
+    const location = useLocation();
 
     if (isLoading) {
         return <div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div></div>;
     }
 
     if (!user) {
-        return <Navigate to="/" replace />;
+        const returnUrl = location.pathname + location.search;
+        const target = returnUrl && returnUrl !== '/' && returnUrl !== '/login'
+            ? `/login?redirect=${encodeURIComponent(returnUrl)}`
+            : '/login';
+        return <Navigate to={target} replace />;
     }
 
     if (user.status === 'pending') {
@@ -60,9 +65,21 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, check?: (user: UserP
     return <>{children}</>;
 };
 
-// Legacy inline component removed. Using standalone UpdatePassword component.
+// Standalone Login Router to handle post-login redirects (e.g. from scanned QR)
+const LoginRoute: React.FC = () => {
+    const { user } = useAuth();
+    const [searchParams] = useSearchParams();
+    const redirectParam = searchParams.get('redirect');
+    const safeRedirect = redirectParam && redirectParam.startsWith('/') ? redirectParam : '/dashboard';
 
-// DashboardLayout wraps all authenticated routes
+    if (user) {
+        if (user.status === 'pending') return <Navigate to="/pending" replace />;
+        if (user.role === 'resident') return <Navigate to="/public-request" replace />;
+        return <Navigate to={safeRedirect} replace />;
+    }
+
+    return <PublicLayout><Login /></PublicLayout>;
+};
 
 const AppContent: React.FC = () => {
     const { user, isLoading } = useAuth();
@@ -81,14 +98,7 @@ const AppContent: React.FC = () => {
             <Route path="/" element={
                 Capacitor.isNativePlatform() ? <Navigate to="/login" replace /> : <PublicLayout><LandingPage /></PublicLayout>
             } />
-            <Route path="/login" element={
-                user ? (
-                    user.status === 'pending' ? <Navigate to="/pending" replace /> :
-                    user.role === 'resident' ? <Navigate to="/public-request" replace /> : <Navigate to="/dashboard" replace />
-                ) : (
-                    <PublicLayout><Login /></PublicLayout>
-                )
-            } />
+            <Route path="/login" element={<LoginRoute />} />
             <Route path="/pending" element={
                 user && user.status === 'pending' ? <PendingApproval /> : <Navigate to="/" replace />
             } />

@@ -15,6 +15,7 @@ import {
   Wrench,
   ChevronRight,
   Sparkles,
+  QrCode,
 } from 'lucide-react';
 
 interface VehicleCardProps {
@@ -23,6 +24,7 @@ interface VehicleCardProps {
   onRecordStop: (trip: VehicleTrip, mode: 'arrival' | 'departure', activeStop?: TripStop) => void;
   onEndTrip: (trip: VehicleTrip) => void;
   onToggleMaintenance: (vehicle: Vehicle, setMaintenance: boolean) => void;
+  onShowQR?: (vehicle: Vehicle) => void;
 }
 
 export const VehicleCard: React.FC<VehicleCardProps> = ({
@@ -31,6 +33,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   onRecordStop,
   onEndTrip,
   onToggleMaintenance,
+  onShowQR,
 }) => {
   const activeTrip = vehicle.active_trip;
   const isAvailable = vehicle.status === 'available';
@@ -133,7 +136,20 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
             </div>
           </div>
 
-          <div>{getStatusBadge()}</div>
+          <div className="flex items-center space-x-2">
+            {onShowQR && (
+              <button
+                type="button"
+                onClick={() => onShowQR(vehicle)}
+                className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-taguig-navy hover:text-white dark:hover:bg-taguig-blue text-slate-600 dark:text-slate-300 transition-colors"
+                title="View & Print Vehicle QR Pass"
+                aria-label="View Vehicle QR"
+              >
+                <QrCode size={16} />
+              </button>
+            )}
+            <div>{getStatusBadge()}</div>
+          </div>
         </div>
 
         {/* Live Trip Activity Details */}

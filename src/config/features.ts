@@ -5,6 +5,7 @@
 export const FEATURES = {
   LOGBOOK: true,
   VEHICLE_MONITOR: true,
+  VEHICLE_QR_CODES: true,
   GLOBAL_SEARCH: true,
   DAILY_SUMMARY_WIDGET: true,
   OPERATIONAL_REMINDERS: true,

@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Vehicle, VehicleTrip, TripStop } from '../../types';
 import { vehicleService } from '../../services/vehicleService';
 import { VehicleCard } from '../../components/vehicles/VehicleCard';
 import { StartTripModal } from '../../components/vehicles/StartTripModal';
 import { StopActionModal } from '../../components/vehicles/StopActionModal';
 import { EndTripModal } from '../../components/vehicles/EndTripModal';
+import { VehicleQRModal } from '../../components/vehicles/VehicleQRModal';
+import { VehicleScannerModal } from '../../components/vehicles/VehicleScannerModal';
 import { recordAccess } from '../../services/auditAccessService';
+import { isFeatureEnabled } from '../../src/config/features';
 import {
-
   Car,
   Truck,
   Search,
@@ -24,9 +27,14 @@ import {
   ArrowRight,
   Gauge,
   FileText,
+  QrCode,
+  Scan,
+  Printer,
 } from 'lucide-react';
 
 export const VehicleMonitor: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // Navigation tabs
   const [activeTab, setActiveTab] = useState<'live' | 'history'>('live');
 
@@ -57,6 +65,11 @@ export const VehicleMonitor: React.FC = () => {
 
   const [endModalTrip, setEndModalTrip] = useState<VehicleTrip | null>(null);
   const [isEndModalOpen, setIsEndModalOpen] = useState(false);
+
+  // QR Modals state
+  const [qrModalVehicle, setQRModalVehicle] = useState<Vehicle | null>(null);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
 
   // Notification / Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -151,6 +164,51 @@ export const VehicleMonitor: React.FC = () => {
     setIsEndModalOpen(true);
   };
 
+  // Handler for QR Scanned Vehicle / Deep Link
+  const handleVehicleQRAction = useCallback((vehicleIdOrToken: string) => {
+    const target = vehicles.find(
+      (v) =>
+        v.id === vehicleIdOrToken ||
+        v.qr_code_token === vehicleIdOrToken ||
+        v.plate_number.toLowerCase().replace(/\s+/g, '') === vehicleIdOrToken.toLowerCase().replace(/\s+/g, '')
+    );
+
+    if (!target) {
+      showToast(`Vehicle '${vehicleIdOrToken}' not found in fleet.`);
+      return;
+    }
+
+    if (target.status === 'available') {
+      handleOpenStartTrip(target);
+    } else if (target.status === 'on_trip' && target.active_trip) {
+      const activeTrip = target.active_trip;
+      const latestStop = activeTrip.stops && activeTrip.stops.length > 0
+        ? activeTrip.stops[activeTrip.stops.length - 1]
+        : null;
+
+      if (latestStop && latestStop.arrival_time && !latestStop.departure_time) {
+        handleOpenRecordStop(activeTrip, 'departure', latestStop);
+      } else {
+        handleOpenRecordStop(activeTrip, 'arrival');
+      }
+    } else if (target.status === 'maintenance') {
+      showToast(`${target.name} (${target.plate_number}) is currently under maintenance.`);
+    }
+  }, [vehicles]);
+
+  // Deep Link / URL Parameter listener (e.g. when scanned via mobile phone camera)
+  useEffect(() => {
+    const vehicleIdParam = searchParams.get('vehicle_id') || searchParams.get('scan_vehicle');
+    if (vehicleIdParam && vehicles.length > 0) {
+      handleVehicleQRAction(vehicleIdParam);
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('vehicle_id');
+      newParams.delete('scan_vehicle');
+      newParams.delete('action');
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, vehicles, handleVehicleQRAction, setSearchParams]);
+
   // Handler for Maintenance Toggle
   const handleToggleMaintenance = async (vehicle: Vehicle, setMaintenance: boolean) => {
     try {
@@ -239,6 +297,30 @@ export const VehicleMonitor: React.FC = () => {
               <span>Trip Logs</span>
             </button>
           </div>
+
+          {isFeatureEnabled('VEHICLE_QR_CODES') && (
+            <>
+              <button
+                onClick={() => setIsScannerModalOpen(true)}
+                title="Scan Vehicle QR Code"
+                className="px-3.5 py-2.5 rounded-2xl bg-taguig-navy dark:bg-taguig-blue text-white font-black text-xs uppercase tracking-wider flex items-center space-x-1.5 shadow-md hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                <Scan size={16} />
+                <span className="hidden sm:inline">Scan QR</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setQRModalVehicle(null);
+                  setIsQRModalOpen(true);
+                }}
+                title="Print All Vehicle QR Badges"
+                className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:text-taguig-blue hover:border-taguig-blue transition-all active:scale-95 shadow-sm"
+              >
+                <Printer size={16} />
+              </button>
+            </>
+          )}
 
           <button
             onClick={() => {
@@ -374,6 +456,14 @@ export const VehicleMonitor: React.FC = () => {
                   onRecordStop={handleOpenRecordStop}
                   onEndTrip={handleOpenEndTrip}
                   onToggleMaintenance={handleToggleMaintenance}
+                  onShowQR={
+                    isFeatureEnabled('VEHICLE_QR_CODES')
+                      ? (v) => {
+                          setQRModalVehicle(v);
+                          setIsQRModalOpen(true);
+                        }
+                      : undefined
+                  }
                 />
               ))}
             </div>
@@ -700,6 +790,31 @@ export const VehicleMonitor: React.FC = () => {
           fetchFleet(true);
         }}
       />
+
+      {/* Vehicle QR Code Printable Modal */}
+      {isFeatureEnabled('VEHICLE_QR_CODES') && (
+        <VehicleQRModal
+          vehicle={qrModalVehicle}
+          allVehicles={vehicles}
+          isOpen={isQRModalOpen}
+          onClose={() => {
+            setIsQRModalOpen(false);
+            setQRModalVehicle(null);
+          }}
+        />
+      )}
+
+      {/* In-App Real-Time QR Camera Scanner Modal */}
+      {isFeatureEnabled('VEHICLE_QR_CODES') && (
+        <VehicleScannerModal
+          isOpen={isScannerModalOpen}
+          onClose={() => setIsScannerModalOpen(false)}
+          onVehicleDetected={(vehicleId) => {
+            setIsScannerModalOpen(false);
+            handleVehicleQRAction(vehicleId);
+          }}
+        />
+      )}
     </div>
   );
 };

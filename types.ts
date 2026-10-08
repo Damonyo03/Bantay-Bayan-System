@@ -208,7 +208,9 @@ export interface Vehicle {
   id: string;
   name: string;
   plate_number: string;
+  type?: string;
   status: VehicleStatus;
+  qr_code_token?: string;
   created_at: string;
   // Joined live status
   active_trip?: VehicleTrip | null;
