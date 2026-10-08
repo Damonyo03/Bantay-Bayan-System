@@ -13,6 +13,19 @@ export interface StartTripParams {
   passengers?: { person_id?: string | null; name: string }[];
 }
 
+export interface VehicleInputParams {
+  name: string;
+  plate_number: string;
+  type?: string;
+  color?: string | null;
+  model?: string | null;
+  year?: string | null;
+  fuel_type?: string | null;
+  image_url?: string | null;
+  notes?: string | null;
+  status?: 'available' | 'maintenance' | 'decommissioned';
+}
+
 export const vehicleService = {
   /**
    * Fetch all vehicles with their active/ongoing trip details (if any)
@@ -374,6 +387,74 @@ export const vehicleService = {
     }
 
     return trips;
+  },
+
+  /**
+   * Upload a vehicle photo to Supabase Storage
+   */
+  uploadVehiclePhoto: async (file: File | Blob): Promise<string> => {
+    const fileExt = file.type === 'image/png' ? 'png' : 'jpg';
+    const filePath = `vehicles/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('vehicle-photos')
+      .upload(filePath, file, { contentType: file.type || 'image/jpeg', upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from('vehicle-photos').getPublicUrl(filePath);
+    return data.publicUrl;
+  },
+
+  /**
+   * Create a new custom vehicle
+   */
+  createVehicle: async (params: VehicleInputParams): Promise<Vehicle> => {
+    const qrToken = `BB-VEH-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+    const { data, error } = await supabase
+      .from('vehicles')
+      .insert({
+        name: params.name.trim(),
+        plate_number: params.plate_number.trim(),
+        type: params.type || 'Patrol Vehicle',
+        color: params.color || null,
+        model: params.model || null,
+        year: params.year || null,
+        fuel_type: params.fuel_type || null,
+        image_url: params.image_url || null,
+        notes: params.notes || null,
+        status: params.status || 'available',
+        qr_code_token: qrToken,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Vehicle;
+  },
+
+  /**
+   * Update custom vehicle details
+   */
+  updateVehicle: async (vehicle_id: string, params: Partial<VehicleInputParams>): Promise<Vehicle> => {
+    const { data, error } = await supabase
+      .from('vehicles')
+      .update(params)
+      .eq('id', vehicle_id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Vehicle;
+  },
+
+  /**
+   * Delete a vehicle
+   */
+  deleteVehicle: async (vehicle_id: string): Promise<void> => {
+    const { error } = await supabase.from('vehicles').delete().eq('id', vehicle_id);
+    if (error) throw error;
   },
 
   /**

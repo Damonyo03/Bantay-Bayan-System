@@ -8,6 +8,7 @@ import { StopActionModal } from '../../components/vehicles/StopActionModal';
 import { EndTripModal } from '../../components/vehicles/EndTripModal';
 import { VehicleQRModal } from '../../components/vehicles/VehicleQRModal';
 import { VehicleScannerModal } from '../../components/vehicles/VehicleScannerModal';
+import { AddEditVehicleModal } from '../../components/vehicles/AddEditVehicleModal';
 import { AttachmentGallery } from '../../components/attachments/AttachmentGallery';
 import { recordAccess } from '../../services/auditAccessService';
 import { isFeatureEnabled } from '../../src/config/features';
@@ -31,6 +32,7 @@ import {
   QrCode,
   Scan,
   Printer,
+  Plus,
 } from 'lucide-react';
 
 export const VehicleMonitor: React.FC = () => {
@@ -71,6 +73,10 @@ export const VehicleMonitor: React.FC = () => {
   const [qrModalVehicle, setQRModalVehicle] = useState<Vehicle | null>(null);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
+
+  // Vehicle Add / Edit Modal state
+  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
   // Notification / Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -323,6 +329,18 @@ export const VehicleMonitor: React.FC = () => {
             </>
           )}
 
+          {/* Add New Vehicle Button */}
+          <button
+            onClick={() => {
+              setEditingVehicle(null);
+              setIsAddEditModalOpen(true);
+            }}
+            className="px-4 py-2.5 rounded-2xl bg-taguig-blue hover:bg-taguig-navy text-white font-black text-xs uppercase tracking-wider flex items-center space-x-1.5 shadow-md shadow-taguig-blue/20 hover:scale-[1.02] active:scale-95 transition-all"
+          >
+            <Plus size={16} />
+            <span>Add Vehicle</span>
+          </button>
+
           <button
             onClick={() => {
               if (activeTab === 'live') fetchFleet(true);
@@ -457,6 +475,10 @@ export const VehicleMonitor: React.FC = () => {
                   onRecordStop={handleOpenRecordStop}
                   onEndTrip={handleOpenEndTrip}
                   onToggleMaintenance={handleToggleMaintenance}
+                  onEditVehicle={(v) => {
+                    setEditingVehicle(v);
+                    setIsAddEditModalOpen(true);
+                  }}
                   onShowQR={
                     isFeatureEnabled('VEHICLE_QR_CODES')
                       ? (v) => {
@@ -831,6 +853,20 @@ export const VehicleMonitor: React.FC = () => {
           }}
         />
       )}
+
+      {/* Dynamic Vehicle Creation & Edit Modal */}
+      <AddEditVehicleModal
+        vehicle={editingVehicle}
+        isOpen={isAddEditModalOpen}
+        onClose={() => {
+          setIsAddEditModalOpen(false);
+          setEditingVehicle(null);
+        }}
+        onSuccess={() => {
+          showToast(editingVehicle ? 'Vehicle details updated!' : 'New vehicle registered successfully!');
+          fetchFleet(true);
+        }}
+      />
     </div>
   );
 };

@@ -227,6 +227,12 @@ export interface Vehicle {
   name: string;
   plate_number: string;
   type?: string;
+  color?: string | null;
+  model?: string | null;
+  year?: string | null;
+  fuel_type?: string | null;
+  image_url?: string | null;
+  notes?: string | null;
   status: VehicleStatus;
   qr_code_token?: string;
   created_at: string;

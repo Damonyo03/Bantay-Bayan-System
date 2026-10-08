@@ -25,6 +25,7 @@ interface VehicleCardProps {
   onEndTrip: (trip: VehicleTrip) => void;
   onToggleMaintenance: (vehicle: Vehicle, setMaintenance: boolean) => void;
   onShowQR?: (vehicle: Vehicle) => void;
+  onEditVehicle?: (vehicle: Vehicle) => void;
 }
 
 export const VehicleCard: React.FC<VehicleCardProps> = ({
@@ -34,6 +35,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   onEndTrip,
   onToggleMaintenance,
   onShowQR,
+  onEditVehicle,
 }) => {
   const activeTrip = vehicle.active_trip;
   const isAvailable = vehicle.status === 'available';
@@ -108,35 +110,69 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     >
       {/* Top Details */}
       <div>
-        {/* Header: Name, Plate & Status */}
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex items-center space-x-3">
-            <div
-              className={`p-3 rounded-2xl ${
-                isOnTrip
-                  ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
-                  : isAvailable
-                  ? 'bg-taguig-navy dark:bg-slate-800 text-white'
-                  : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
-              }`}
-            >
-              {vehicle.name.toLowerCase().includes('ambulance') ? (
-                <Truck size={24} />
-              ) : (
-                <Car size={24} />
-              )}
+        {/* Vehicle Photo Banner (if uploaded) */}
+        {vehicle.image_url && (
+          <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-4 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/5">
+            <img
+              src={vehicle.image_url}
+              alt={vehicle.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div className="absolute top-2.5 right-2.5 shadow-md">
+              {getStatusBadge()}
             </div>
+          </div>
+        )}
+
+        {/* Header: Name, Plate & Status */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center space-x-3">
+            {!vehicle.image_url && (
+              <div
+                className={`p-3 rounded-2xl ${
+                  isOnTrip
+                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+                    : isAvailable
+                    ? 'bg-taguig-navy dark:bg-slate-800 text-white'
+                    : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
+                }`}
+              >
+                {vehicle.name.toLowerCase().includes('ambulance') ? (
+                  <Truck size={24} />
+                ) : (
+                  <Car size={24} />
+                )}
+              </div>
+            )}
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug">
                 {vehicle.name}
               </h3>
-              <span className="inline-block font-mono text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md mt-0.5">
-                {vehicle.plate_number}
-              </span>
+              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md">
+                  {vehicle.plate_number}
+                </span>
+                {vehicle.model && (
+                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded-md">
+                    {vehicle.model} {vehicle.year ? `(${vehicle.year})` : ''}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5">
+            {onEditVehicle && (
+              <button
+                type="button"
+                onClick={() => onEditVehicle(vehicle)}
+                className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-taguig-navy hover:text-white dark:hover:bg-taguig-blue text-slate-600 dark:text-slate-300 transition-colors"
+                title="Edit Vehicle Details"
+                aria-label="Edit Vehicle"
+              >
+                <Sparkles size={16} />
+              </button>
+            )}
             {onShowQR && (
               <button
                 type="button"
@@ -148,9 +184,32 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
                 <QrCode size={16} />
               </button>
             )}
-            <div>{getStatusBadge()}</div>
+            {!vehicle.image_url && <div>{getStatusBadge()}</div>}
           </div>
         </div>
+
+        {/* Custom Meta Tags (Color, Fuel, Notes) */}
+        {(vehicle.color || vehicle.fuel_type || vehicle.notes) && (
+          <div className="mb-3 space-y-1 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+              {vehicle.color && (
+                <span className="font-medium bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/5">
+                  Color: <strong className="text-slate-700 dark:text-slate-200">{vehicle.color}</strong>
+                </span>
+              )}
+              {vehicle.fuel_type && (
+                <span className="font-medium bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/5">
+                  Fuel: <strong className="text-slate-700 dark:text-slate-200">{vehicle.fuel_type}</strong>
+                </span>
+              )}
+            </div>
+            {vehicle.notes && (
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 italic pt-0.5">
+                "{vehicle.notes}"
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Live Trip Activity Details */}
         {isOnTrip && activeTrip && (
